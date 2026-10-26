@@ -8,6 +8,8 @@ import LabList from './pages/LabList'
 import ExperimentCatalog from './pages/ExperimentCatalog'
 import ExperimentDetail from './pages/ExperimentDetail'
 import LabPage from './pages/LabPage'
+import DevEngine from './pages/DevEngine'
+
 
 const router = createBrowserRouter([
   {
@@ -18,6 +20,7 @@ const router = createBrowserRouter([
       { path: '/lab/:pelajaran', element: <ExperimentCatalog /> },
       { path: '/lab/:pelajaran/:id', element: <ExperimentDetail /> },
       { path: '/lab/:pelajaran/:id/mulai', element: <LabPage /> },
+      ...(import.meta.env.DEV ? [{ path: '/dev/engine', element: <DevEngine /> }] : []),
     ],
   },
 ])
@@ -28,3 +31,4 @@ createRoot(document.getElementById('root')!).render(
     <RouterProvider router={router} />
   </StrictMode>
 )
+
