@@ -1,27 +1,45 @@
-import { useReducer } from 'react'
-import type { Experiment, Input } from '../data/types'
+import { useEffect, useMemo, useReducer } from 'react'
+import type { Experiment } from '../data/types'
 import {
   runEngine,
-  initialState,
+  createInitialState,
   type EngineAction,
   type EngineState,
 } from '../lib/engine'
 
-export function useExperiment(exp: Experiment) {
+export function useExperiment(exp: Experiment, speed = 1) {
   const [state, dispatch] = useReducer(
     (s: EngineState, e: EngineAction) => runEngine(exp, s, e),
-    initialState,
+    exp,
+    createInitialState,
   )
+  const view = useMemo(() => exp.view(state.world), [exp, state.world])
+  const active = exp.isActive(state.world)
+
+  useEffect(() => {
+    if (!active) return
+    let last = performance.now()
+    let frame = requestAnimationFrame(function loop(now) {
+      dispatch({ type: 'tick', dt: ((now - last) / 1000) * speed })
+      last = now
+      frame = requestAnimationFrame(loop)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [active, speed])
 
   return {
-    activeStep: state.activeStep,
+    items: state.world.items,
+    view,
+    columns: exp.observationColumns,
     observationRows: state.rows,
     hint: state.hint,
-    stepExplanation: exp.steps[state.activeStep]?.explanation ?? '',
-    resultExplanation: state.resultExplanation,
-    completed: state.completed,
-    performAction: (action: string, input: Input = {}) =>
-      dispatch({ type: 'action', action, input }),
+    explanation: state.explanation,
+    active,
+    drop: (id: string, target: string) =>
+      dispatch({ type: 'drop', id, target }),
+    use: (id: string) => dispatch({ type: 'use', id }),
+    pull: (id: string, value: number) => dispatch({ type: 'pull', id, value }),
+    release: (id: string) => dispatch({ type: 'release', id }),
     removeRow: (index: number) => dispatch({ type: 'removeRow', index }),
     reset: () => dispatch({ type: 'reset' }),
   }
