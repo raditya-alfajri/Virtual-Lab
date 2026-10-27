@@ -1,54 +1,105 @@
-import type { Experiment } from '../data/types'
+import type { Experiment, World } from '../data/types'
+import {
+  bool,
+  num,
+  ok,
+  pressStopwatch,
+  reject,
+  str,
+  tickStopwatch,
+  update,
+} from '../data/instruments'
 
-const PH: Record<string, number> = {
-  cuka: 3,
-  'air-jeruk': 4,
-  'air-suling': 7,
-  'air-sabun': 10,
-  naoh: 13,
-}
+const TUBES = ['tube-1', 'tube-2']
+const PH: Record<string, number> = { acid: 3, base: 13 }
+
+const reacting = (w: World, id: string) =>
+  str(w, id, 'solution') !== '' &&
+  bool(w, id, 'indicator') &&
+  num(w, id, 'progress') < 1
 
 export const sampleK1: Experiment = {
   id: 'uji-asam-basa',
-  title: 'Uji Asam dan Basa',
+  title: 'Uji Asam & Basa',
   subject: 'kimia',
   topic: 'asam-basa',
   summary: 'Data pengujian',
   description: '',
   previewImage: '/img/cairan.jpg',
   objectives: [],
-  materials: [],
   tips: [],
   concepts: [],
-  observationColumns: ['larutan', 'pH', 'sifat'],
-  steps: [
+  observationColumns: [
+    { key: 'larutan', label: 'Larutan' },
+    { key: 'ph', label: 'pH' },
+  ],
+  items: [
+    ...TUBES.map((id) => ({
+      id,
+      kind: 'tube',
+      name: 'Tabung',
+      state: { solution: '', indicator: false, progress: 0 },
+    })),
+    { id: 'acid', kind: 'solution', name: 'Asam', props: { ph: 3 } },
+    { id: 'base', kind: 'solution', name: 'Basa', props: { ph: 13 } },
+    { id: 'indicator', kind: 'indicator', name: 'Indikator' },
     {
-      id: 'l1',
-      instruction: 'Letakkan tabung reaksi di rak.',
-      correctAction: 'tube->rack',
-      explanation: 'Tabung harus tegak agar larutan tidak tumpah.',
+      id: 'stopwatch',
+      kind: 'stopwatch',
+      name: 'Stopwatch',
+      state: { running: false, elapsed: 0 },
+    },
+    { id: 'lamp', kind: 'lamp', name: 'Lampu', start: 'bench', fixed: true },
+  ],
+  zones: [
+    { id: 'rack-1', name: 'Rak 1', accepts: ['tube'], capacity: 1 },
+    { id: 'rack-2', name: 'Rak 2', accepts: ['tube'], capacity: 1 },
+    { id: 'bench', name: 'Meja', accepts: ['tube', 'stopwatch'] },
+    { id: 'card', name: 'Kartu pH', accepts: [] },
+  ],
+  interactions: [
+    {
+      source: 'solution',
+      target: 'tube',
+      run: (w, src, tube) =>
+        str(w, tube, 'solution') !== ''
+          ? reject('Satu tabung hanya untuk satu larutan.')
+          : ok(update(w, tube, { solution: src })),
     },
     {
-      id: 'l2',
-      instruction: 'Tuang larutan ke tabung.',
-      correctAction: 'solution->tube',
-      explanation: 'Setiap larutan diuji satu per satu.',
+      source: 'indicator',
+      target: 'tube',
+      run: (w, _src, tube) => ok(update(w, tube, { indicator: true })),
     },
     {
-      id: 'l3',
-      instruction: 'Teteskan indikator universal.',
-      correctAction: 'indicator->tube',
-      explanation: 'Indikator berubah warna sesuai tingkat keasaman.',
-      compute: true,
-      repeatFrom: 'l2',
+      source: 'tube',
+      target: 'card',
+      run: (w, tube) => {
+        if (!bool(w, tube, 'indicator')) return reject('Belum ada indikator.')
+        if (num(w, tube, 'progress') < 1) return reject('Tunggu warnanya.')
+        const solution = str(w, tube, 'solution')
+        return ok(w, {
+          record: { larutan: solution, ph: PH[solution] },
+          explanation: { result: `pH ${PH[solution]}`, reason: 'contoh' },
+        })
+      },
     },
   ],
-  rule: (input) => {
-    const ph = PH[String(input.solution)] ?? 7
-    const nature = ph < 7 ? 'asam' : ph === 7 ? 'netral' : 'basa'
-    return {
-      values: { larutan: String(input.solution), pH: ph, sifat: nature },
-      explanation: `pH ${ph} berarti larutan bersifat ${nature}.`,
+  use: { stopwatch: (w, id) => ok(pressStopwatch(w, id)) },
+  tick: (w, dt) => {
+    let next = tickStopwatch(w, 'stopwatch', dt)
+    for (const tube of TUBES) {
+      if (reacting(next, tube)) {
+        const progress = Math.min(num(next, tube, 'progress') + dt, 1)
+        next = update(next, tube, { progress })
+      }
     }
+    return ok(next)
   },
+  isActive: (w) =>
+    bool(w, 'stopwatch', 'running') || TUBES.some((t) => reacting(w, t)),
+  view: (w) =>
+    Object.fromEntries(
+      TUBES.map((t) => [t, { label: str(w, t, 'solution') || 'Kosong' }]),
+    ),
 }
