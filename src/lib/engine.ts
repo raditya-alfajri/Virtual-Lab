@@ -40,7 +40,7 @@ export function runEngine(
       if (!step) return state
 
       if (event.action !== step.correctAction) {
-        return { ...state, hint: `belum tepat. Coba: ${step.instruction}` }
+        return { ...state, hint: `Belum tepat. Coba: ${step.instruction}` }
       }
 
       const input = { ...state.input, ...event.input }
@@ -54,13 +54,11 @@ export function runEngine(
         rows = [...rows, { input, values: result.values }]
         resultExplanation = result.explanation
         completed = true
-        // kembali ke langkah repeatFrom (atau langkah sebelumnya) agar bisa menguji input lain
         const repeatIndex = exp.steps.findIndex((s) => s.id === step.repeatFrom)
         activeStep =
           repeatIndex >= 0 ? repeatIndex : Math.max(state.activeStep - 1, 0)
       }
 
-      // langkah terakhir bukan compute: tandai selesai dan mulai ulang dari awal
       if (activeStep >= exp.steps.length) {
         activeStep = 0
         completed = true
