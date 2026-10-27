@@ -1,75 +1,34 @@
-# React + TypeScript + Vite
+# Virtual Lab
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Laboratorium virtual berbasis web untuk praktikum kimia dan fisika.
 
-Currently, two official plugins are available:
+## Menjalankan
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm install
+npm run dev      # server pengembangan
+npm test         # unit test (Vitest)
+npm run lint     # ESLint
+npm run format   # Prettier, jalankan sebelum membuat pull request
+npm run build    # build produksi
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Halaman `/dev/engine` hanya tersedia saat `npm run dev`, untuk mencoba mesin eksperimen secara manual.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Struktur
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Folder                         | Isi                                                                             |
+| ------------------------------ | ------------------------------------------------------------------------------- |
+| `src/data/types.ts`            | Tipe data eksperimen (`Experiment`, `Step`, dll.)                               |
+| `src/lib/engine.ts`            | Mesin eksperimen (fungsi murni `runEngine`)                                     |
+| `src/lib/sample-experiment.ts` | Contoh data eksperimen `sampleK1`, dipakai test dan halaman dev                 |
+| `src/hooks/useExperiment.ts`   | Hook React di atas mesin                                                        |
+| `src/pages/`                   | Halaman, nama file PascalCase                                                   |
+| `public/img/`                  | Gambar yang dirujuk lewat path teks, misalnya `previewImage: '/img/cairan.jpg'` |
 
-```
+Gambar yang dirujuk dengan path teks di data harus ditaruh di `public/`, bukan `src/assets/`.
+
+## Aturan menulis langkah eksperimen
+
+- Langkah dengan `compute: true` mencatat satu baris pengamatan, lalu **selalu melompat kembali** ke langkah `repeatFrom` (atau ke langkah sebelumnya jika `repeatFrom` tidak diisi). Karena itu, langkah compute harus menjadi **akhir dari satu siklus percobaan**.
+- Jika langkah terakhir bukan compute, setelah langkah itu eksperimen ditandai selesai dan kembali ke langkah pertama.
