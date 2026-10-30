@@ -1,11 +1,10 @@
 import { Outlet } from 'react-router'
+import Navbar from './ui/navbar'
 
 export default function Layout() {
   return (
     <>
-      <nav className="border-b border-line p-4 font-heading font-extrabold">
-        virtual lab.
-      </nav>
+      <Navbar />
       <main className="min-h-screen">
         <Outlet />
       </main>
