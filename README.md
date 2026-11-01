@@ -44,7 +44,7 @@ Lab bersifat bebas seperti simulasi PhET: tidak ada langkah berurutan. Siswa men
 - `use`, `pull`, `release`: handler per kind untuk tap pada benda (sakelar, stopwatch, mengaduk) serta menarik dan melepas benda (bandul).
 - `guard`: penolakan sebelum benda dipindah, misalnya mengganti tali saat bandul berayun.
 - `tick(world, dt)`: proses berbasis waktu. `isActive(world)` menandakan ada proses yang berjalan.
-- `view(world)`: tampilan per benda untuk FE. Kunci yang dipakai saat ini: `label`, `color` (hex), `level` (0–1, tinggi isi), `reading` (bacaan alat ukur), `action` (teks tombol tap).
+- `view(world)`: tampilan per benda untuk FE. Kunci yang dipakai saat ini: `label`, `color` (hex), `level` (0–1, tinggi isi), `reading` (bacaan alat ukur), `action` (teks tombol tap). Fisika menambah `position` dan `progress` (posisi troli dalam m dan 0–1 di lintasan), `angle` (sudut bandul, derajat), `extension` dan `length` (pertambahan dan panjang pegas, m).
 - Semua nilai ilmiah (pH, warna, molaritas, percepatan) dihitung di file data, bukan di komponen FE. Angka diambil dari PRD; nilai yang perlu dicek guru diberi `TODO(cek guru)`.
 
 ### Mesin
