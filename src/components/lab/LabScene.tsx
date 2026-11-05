@@ -5,6 +5,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
 } from 'react'
@@ -24,9 +25,12 @@ import { SHELF } from '../../data/instruments'
 import type { Experiment } from '../../data/types'
 import type { useExperiment } from '../../hooks/useExperiment'
 import type { Hint } from '../../lib/engine'
-import type { Rect, SceneLayout } from '../../simulations/types'
+import type { LabelSide, Rect, SceneLayout } from '../../simulations/types'
+import Readout from './assets/Readout'
 import { innermostItemFirst } from './collision'
+import { DRAWS_OWN_READING } from './kinds'
 import LabAsset from './LabAsset'
+import { boundsOf, placeItem } from './placement'
 
 type LabApi = ReturnType<typeof useExperiment>
 
@@ -141,6 +145,9 @@ export default function LabScene(props: Props) {
           <ShelfArea />
           {Object.entries(layout.zones).map(([id, rect]) => (
             <ZoneArea key={id} id={id} rect={rect} />
+          ))}
+          {Object.entries(layout.displays ?? {}).map(([zone, rect]) => (
+            <ZoneDisplay key={zone} zone={zone} rect={rect} />
           ))}
           {exp.items.map((item) => (
             <SceneItem key={item.id} id={item.id} />
@@ -277,22 +284,58 @@ function ZoneArea({ id, rect }: { id: string; rect: Rect }) {
   )
 }
 
+// Layar yang sudah tergambar di background (mis. layar neraca) menampilkan
+// bacaan benda yang sedang berada di zona itu.
+function ZoneDisplay({ zone, rect }: { zone: string; rect: Rect }) {
+  const { lab } = useScene()
+  const id = Object.keys(lab.items).find((i) => lab.items[i].at === zone)
+  const reading = id ? lab.view[id]?.reading : undefined
+  if (reading === undefined) return null
+  return (
+    <div
+      aria-live="polite"
+      className="pointer-events-none absolute"
+      style={place(rect)}
+    >
+      <Readout text={String(reading)} width={rect.w} height={rect.h} />
+    </div>
+  )
+}
+
+const LABEL_SIDE: Record<LabelSide, string> = {
+  bottom: 'top-full left-1/2 mt-2 -translate-x-1/2',
+  top: 'bottom-full left-1/2 mb-2 -translate-x-1/2',
+  left: 'right-full top-1/2 mr-2 -translate-y-1/2',
+  right: 'left-full top-1/2 ml-2 -translate-y-1/2',
+}
+
 function SceneItem({ id }: { id: string }) {
-  const { exp, lab, layout, selected, hint, tap } = useScene()
+  const { exp, lab, layout, dragging, selected, hint, tap } = useScene()
   const def = exp.items.find((i) => i.id === id)!
+  const spot = placeItem(layout, lab.items, id)
+  // Benda yang diputar (mis. batang pengaduk di gelas) hanya diputar
+  // gambarnya; kotak luarnya tetap tegak agar ukuran DragOverlay benar.
+  // Kotak itu tidak sama dengan gambarnya, jadi tidak menerima klik dan tidak
+  // dipakai sebagai tujuan.
+  const rotate = spot?.rotate ?? 0
   const drag = useDraggable({
     id,
     disabled: def.fixed,
     attributes: { roleDescription: 'alat yang bisa diseret' },
   })
-  const target = useDroppable({ id })
+  const target = useDroppable({ id, disabled: rotate !== 0 })
 
-  const at = lab.items[id].at
-  const rect = layout.zones[at] ?? layout.home[id]
-  if (!rect) return null
+  if (!spot) return null
+  const { rect, parents } = spot
 
   const view = lab.view[id]
-  const label = view?.label === undefined ? undefined : String(view.label)
+  const reading = DRAWS_OWN_READING.has(def.kind) ? undefined : view?.reading
+  const tag = view?.label ?? reading
+  const label = tag === undefined ? undefined : String(tag)
+  const action = view?.action === undefined ? undefined : String(view.action)
+  // Benda yang menempel ikut redup saat induknya diseret.
+  const lifted =
+    drag.isDragging || (dragging !== null && parents.includes(dragging))
   const look =
     selected === id
       ? 'outline-4 outline-primary'
@@ -302,29 +345,84 @@ function SceneItem({ id }: { id: string }) {
           ? 'outline-4 outline-dashed outline-ink'
           : ''
 
+  // Benda yang menempel digambar di atas induknya.
+  const zIndex = parents.length || undefined
+
   return (
-    <div
-      ref={(node) => {
-        drag.setNodeRef(node)
-        target.setNodeRef(node)
-      }}
-      {...drag.listeners}
-      {...drag.attributes}
-      aria-label={label ? `${def.name}, ${label}` : def.name}
+    <>
+      <div
+        ref={(node) => {
+          drag.setNodeRef(node)
+          target.setNodeRef(node)
+        }}
+        {...drag.listeners}
+        {...drag.attributes}
+        aria-label={label ? `${def.name}, ${label}` : def.name}
+        onClick={(e) => {
+          e.stopPropagation()
+          tap(id)
+        }}
+        onKeyDown={onEnterOrSpace(() => tap(id))}
+        className={`absolute touch-none select-none ${rotate ? 'pointer-events-none' : ''} ${lifted ? 'opacity-40' : ''} ${def.fixed ? '' : 'cursor-grab'}`}
+        style={{ ...place(rect), zIndex }}
+      >
+        <div
+          className={`pointer-events-auto h-full w-full rounded-xl outline-offset-4 ${look}`}
+          style={rotate ? { transform: `rotate(${rotate}deg)` } : undefined}
+        >
+          <LabAsset kind={def.kind} name={def.name} view={view} />
+        </div>
+        {label && (
+          <span
+            className={`pointer-events-none absolute w-max max-w-28 rounded-lg border border-line bg-white/95 px-2 py-0.5 text-center text-[15px] leading-tight font-medium text-ink ${LABEL_SIDE[layout.labelSide?.[id] ?? 'bottom']}`}
+          >
+            {label}
+          </span>
+        )}
+      </div>
+      {action && (
+        <ActionButton id={id} name={def.name} action={action} spot={spot} />
+      )}
+    </>
+  )
+}
+
+// Tombol untuk aksi benda (mis. Aduk, Nyalakan, Mulai), di atas benda.
+// Dibuat terpisah dari benda agar tidak ikut memicu seret.
+function ActionButton({
+  id,
+  name,
+  action,
+  spot,
+}: {
+  id: string
+  name: string
+  action: string
+  spot: NonNullable<ReturnType<typeof placeItem>>
+}) {
+  const { lab, layout, onSelect } = useScene()
+  const b = boundsOf(spot)
+  const side = spot.parents.length ? 'top' : (layout.actionSide?.[id] ?? 'top')
+  const gap = 8
+  const at: Record<LabelSide, CSSProperties> = {
+    top: { left: b.x + b.w / 2, top: b.y - gap, translate: '-50% -100%' },
+    bottom: { left: b.x + b.w / 2, top: b.y + b.h + gap, translate: '-50% 0' },
+    left: { left: b.x - gap, top: b.y + b.h / 2, translate: '-100% -50%' },
+    right: { left: b.x + b.w + gap, top: b.y + b.h / 2, translate: '0 -50%' },
+  }
+  return (
+    <button
+      type="button"
+      aria-label={`${action} ${name}`}
       onClick={(e) => {
         e.stopPropagation()
-        tap(id)
+        onSelect(null)
+        lab.use(id)
       }}
-      onKeyDown={onEnterOrSpace(() => tap(id))}
-      className={`absolute touch-none rounded-xl outline-offset-4 select-none ${look} ${drag.isDragging ? 'opacity-40' : ''} ${def.fixed ? '' : 'cursor-grab'}`}
-      style={place(rect)}
+      className="absolute rounded-full bg-primary px-4 py-1 text-[15px] font-semibold whitespace-nowrap text-white shadow-md hover:opacity-90"
+      style={{ ...at[side], zIndex: spot.parents.length + 1 }}
     >
-      <LabAsset kind={def.kind} name={def.name} view={view} />
-      {label && (
-        <span className="pointer-events-none absolute top-full left-1/2 mt-2 w-max max-w-28 -translate-x-1/2 rounded-lg border border-line bg-white/95 px-2 py-0.5 text-center text-[15px] leading-tight font-medium text-ink">
-          {label}
-        </span>
-      )}
-    </div>
+      {action}
+    </button>
   )
 }

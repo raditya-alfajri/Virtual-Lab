@@ -299,3 +299,38 @@ describe('K2 Konsentrasi Larutan: educational rejections', () => {
     expect(hint(s)).toBe('Masukkan batang pengaduk ke gelas kimia dulu.')
   })
 })
+
+describe('K2 Konsentrasi Larutan: view keys for the lab scene', () => {
+  const view = (s: EngineState) => exp.view(s.world)
+
+  it('shows whether a spoon is full', () => {
+    expect(view(start())['spoon-small'].full).toBe(false)
+    const s = run(start(), drop('spoon-small', 'cuso4'))
+    expect(view(s)['spoon-small'].full).toBe(true)
+    expect(view(s)['spoon-large'].full).toBe(false)
+  })
+
+  it('gives the mass on the watch glass, on and off the balance', () => {
+    expect(view(start())['watch-glass'].mass).toBe(0)
+    let s = run(
+      start(),
+      ...setup,
+      ...scoop('spoon-large'),
+      ...scoop('spoon-small'),
+    )
+    expect(view(s)['watch-glass'].mass).toBe(5)
+    s = run(s, drop('watch-glass', 'bench'))
+    expect(view(s)['watch-glass'].mass).toBe(5)
+    s = run(s, drop('watch-glass', 'beaker'))
+    expect(view(s)['watch-glass'].mass).toBe(0)
+  })
+
+  it('marks the stirrer as stirring only while it dissolves CuSO₄', () => {
+    expect(view(start()).stirrer.stirring).toBe(false)
+    let s = run(start(), ...setup, ...weigh(4), ...measureWater(100))
+    s = run(s, drop('stirrer', 'beaker'))
+    expect(view(s).stirrer.stirring).toBe(true)
+    s = run(s, ...times(5, tick(1)))
+    expect(view(s).stirrer.stirring).toBe(false)
+  })
+})

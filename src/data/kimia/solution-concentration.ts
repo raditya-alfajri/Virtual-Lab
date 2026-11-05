@@ -1,4 +1,4 @@
-import type { Experiment, ItemDef, Result, World } from '../types'
+import type { Experiment, ItemDef, Result, Value, World } from '../types'
 import {
   bool,
   fmt,
@@ -388,7 +388,7 @@ export const solutionConcentration: Experiment = {
   view: (w) => {
     const glass = num(w, WATCH_GLASS, 'mass')
     const volume = num(w, CYLINDER, 'volume')
-    const view: Record<string, Record<string, string | number>> = {
+    const view: Record<string, Record<string, Value>> = {
       [BEAKER]: {
         label: beakerLabel(w),
         color: beakerColor(w),
@@ -396,18 +396,26 @@ export const solutionConcentration: Experiment = {
       },
       [WATCH_GLASS]:
         w.items[WATCH_GLASS].at === BALANCE
-          ? { label: 'Di neraca', reading: `${fmt(glass, 2)} g` }
-          : { label: glass ? `${show(glass, 2)} g CuSO₄` : 'Kosong' },
+          ? { label: 'Di neraca', reading: `${fmt(glass, 2)} g`, mass: glass }
+          : {
+              label: glass ? `${show(glass, 2)} g CuSO₄` : 'Kosong',
+              mass: glass,
+            },
       [CYLINDER]: {
         color: WATER_COLOR,
         level: volume / MAX_VOLUME,
         reading: `${volume} mL`,
       },
-      [STIRRER]: { action: 'Aduk' },
+      [STIRRER]: {
+        action: 'Aduk',
+        stirring: w.items[STIRRER].at === BEAKER && num(w, BEAKER, 'stir') > 0,
+      },
     }
     for (const s of SPOONS) {
+      const full = bool(w, s.id, 'full')
       view[s.id] = {
-        label: bool(w, s.id, 'full') ? `Berisi ${s.grams} g CuSO₄` : 'Kosong',
+        label: full ? `Berisi ${s.grams} g CuSO₄` : 'Kosong',
+        full,
       }
     }
     return view

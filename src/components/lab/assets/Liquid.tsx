@@ -8,6 +8,9 @@ type Props = {
   bottom: number
   level: number
   color: string
+  // Garis meniskus berwarna di permukaan, agar air bening (hampir sewarna
+  // kaca) tetap terlihat dan skalanya terbaca. Tidak tampil saat kosong.
+  meniscus?: string
 }
 
 const transition = { duration: 0.4, ease: 'easeOut' } as const
@@ -21,6 +24,7 @@ export default function Liquid({
   bottom,
   level,
   color,
+  meniscus,
 }: Props) {
   const y = bottom - Math.min(Math.max(level, 0), 1) * (bottom - top)
   return (
@@ -43,6 +47,17 @@ export default function Liquid({
         animate={{ y }}
         transition={transition}
       />
+      {meniscus && (
+        <motion.rect
+          x={0}
+          width={width}
+          height={5}
+          fill={meniscus}
+          initial={false}
+          animate={{ y, opacity: level > 0 ? 1 : 0 }}
+          transition={transition}
+        />
+      )}
     </g>
   )
 }

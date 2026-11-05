@@ -4,16 +4,16 @@ Virtual Lab adalah web app lab virtual untuk siswa SMA. MVP memuat 6 eksperimen 
 
 ## 1. Info dokumen
 
-| Item | Isi |
-| --- | --- |
-| Nama produk | Virtual Lab |
-| Versi dokumen | v0.3 |
-| Status | Draft |
-| Pemilik produk | PLUGIN |
-| Tim | 4 orang: 2 frontend, 2 backend |
-| Tanggal mulai | 26 Okt 2026 |
-| Target rilis MVP | 13 Nov 2026 |
-| Perubahan v0.3 | Lab diubah dari praktikum berlangkah menjadi sandbox bebas lewat drag-and-drop dengan proses bertahap. Dihapus dari MVP: panduan langkah wajib, slider/kontrol variabel, kuis, halaman hasil, skor, durasi, tingkat kesulitan, mode. Ditambah: alat ukur sebagai sumber data tabel, penjelasan tiga lapis, aturan penolakan yang mendidik |
+| Item             | Isi                                                                                                                                                                                                                                                                                                                                       |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Nama produk      | Virtual Lab                                                                                                                                                                                                                                                                                                                               |
+| Versi dokumen    | v0.3                                                                                                                                                                                                                                                                                                                                      |
+| Status           | Draft                                                                                                                                                                                                                                                                                                                                     |
+| Pemilik produk   | PLUGIN                                                                                                                                                                                                                                                                                                                                    |
+| Tim              | 4 orang: 2 frontend, 2 backend                                                                                                                                                                                                                                                                                                            |
+| Tanggal mulai    | 26 Okt 2026                                                                                                                                                                                                                                                                                                                               |
+| Target rilis MVP | 13 Nov 2026                                                                                                                                                                                                                                                                                                                               |
+| Perubahan v0.3   | Lab diubah dari praktikum berlangkah menjadi sandbox bebas lewat drag-and-drop dengan proses bertahap. Dihapus dari MVP: panduan langkah wajib, slider/kontrol variabel, kuis, halaman hasil, skor, durasi, tingkat kesulitan, mode. Ditambah: alat ukur sebagai sumber data tabel, penjelasan tiga lapis, aturan penolakan yang mendidik |
 
 ## 2. Ringkasan produk & latar belakang
 
@@ -48,23 +48,23 @@ Virtual Lab adalah web app lab virtual untuk siswa SMA. MVP memuat 6 eksperimen 
 
 **Metrik keberhasilan MVP:**
 
-| Metrik | Target | Cara mengukur |
-| --- | --- | --- |
-| Eksperimen yang selesai dibuat | 6 (3 kimia, 3 fisika) | Checklist fitur per eksperimen |
-| Penguji yang menghasilkan ≥ 3 baris data di satu eksperimen tanpa bantuan | ≥ 4 dari 5 orang | Observasi uji coba |
-| Penguji yang bisa menyebutkan kesimpulan eksperimen setelah mencoba | ≥ 4 dari 5 orang | Wawancara singkat setelah uji coba |
-| Penguji yang menemukan eksperimen lewat cari/filter | ≥ 4 dari 5 orang dalam ≤ 30 detik | Observasi uji coba |
-| Kepuasan penguji ("seru dipakai") | ≥ 4 dari 5 | Form feedback singkat |
+| Metrik                                                                    | Target                            | Cara mengukur                      |
+| ------------------------------------------------------------------------- | --------------------------------- | ---------------------------------- |
+| Eksperimen yang selesai dibuat                                            | 6 (3 kimia, 3 fisika)             | Checklist fitur per eksperimen     |
+| Penguji yang menghasilkan ≥ 3 baris data di satu eksperimen tanpa bantuan | ≥ 4 dari 5 orang                  | Observasi uji coba                 |
+| Penguji yang bisa menyebutkan kesimpulan eksperimen setelah mencoba       | ≥ 4 dari 5 orang                  | Wawancara singkat setelah uji coba |
+| Penguji yang menemukan eksperimen lewat cari/filter                       | ≥ 4 dari 5 orang dalam ≤ 30 detik | Observasi uji coba                 |
+| Kepuasan penguji ("seru dipakai")                                         | ≥ 4 dari 5                        | Form feedback singkat              |
 
 ## 5. Target pengguna & persona
 
 **Target utama:** siswa SMA kelas 10–11 dengan acuan Kurikulum Merdeka, mengakses lewat HP atau laptop.
 
-| Persona | Profil | Kebutuhan utama | Kendala saat ini |
-| --- | --- | --- | --- |
-| Raka, 16 th (siswa) | Kelas 11, lab sekolah terbatas, lebih sering belajar lewat HP | Memahami asam-basa serta gerak dan gaya dengan cara seru | Praktikum hanya dibaca dari buku |
-| Nadia, 15 th (siswa) | Kelas 10, suka visual dan game, cepat bosan dengan teks panjang | Belajar lewat mencoba dan melihat hasil langsung | Rumus fisika terasa abstrak |
-| Bu Sari, 34 th (guru, sekunder) | Guru kimia/fisika SMA | Media praktikum alternatif untuk kelas atau tugas rumah | Alat dan waktu praktikum terbatas |
+| Persona                         | Profil                                                          | Kebutuhan utama                                          | Kendala saat ini                  |
+| ------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------- |
+| Raka, 16 th (siswa)             | Kelas 11, lab sekolah terbatas, lebih sering belajar lewat HP   | Memahami asam-basa serta gerak dan gaya dengan cara seru | Praktikum hanya dibaca dari buku  |
+| Nadia, 15 th (siswa)            | Kelas 10, suka visual dan game, cepat bosan dengan teks panjang | Belajar lewat mencoba dan melihat hasil langsung         | Rumus fisika terasa abstrak       |
+| Bu Sari, 34 th (guru, sekunder) | Guru kimia/fisika SMA                                           | Media praktikum alternatif untuk kelas atau tugas rumah  | Alat dan waktu praktikum terbatas |
 
 ## 6. Ruang lingkup MVP
 
@@ -94,14 +94,14 @@ Virtual Lab adalah web app lab virtual untuk siswa SMA. MVP memuat 6 eksperimen 
 
 ## 7. Daftar eksperimen MVP
 
-| Pelajaran | Eksperimen | Topik | Tujuan pembelajaran | Prioritas |
-| --- | --- | --- | --- | --- |
-| Kimia | K1. Uji Asam & Basa | Asam & basa | Membedakan larutan asam, basa, dan netral lewat nilai pH | P1 |
-| Kimia | K2. Konsentrasi Larutan | Larutan | Menghitung dan membandingkan molaritas, termasuk pengenceran | P1 |
-| Kimia | K3. Laju Reaksi | Reaksi | Menyelidiki pengaruh suhu dan konsentrasi terhadap laju reaksi | P1 |
-| Fisika | F1. Hukum Newton | Gerak & gaya | Menemukan hubungan gaya, massa, dan percepatan | P1 |
-| Fisika | F2. Ayunan Sederhana | Getaran | Menyelidiki pengaruh panjang tali dan massa terhadap periode | P1 |
-| Fisika | F3. Hukum Hooke | Gerak & gaya | Menentukan konstanta pegas dari gaya dan pertambahan panjang | P1 |
+| Pelajaran | Eksperimen              | Topik        | Tujuan pembelajaran                                            | Prioritas |
+| --------- | ----------------------- | ------------ | -------------------------------------------------------------- | --------- |
+| Kimia     | K1. Uji Asam & Basa     | Asam & basa  | Membedakan larutan asam, basa, dan netral lewat nilai pH       | P1        |
+| Kimia     | K2. Konsentrasi Larutan | Larutan      | Menghitung dan membandingkan molaritas, termasuk pengenceran   | P1        |
+| Kimia     | K3. Laju Reaksi         | Reaksi       | Menyelidiki pengaruh suhu dan konsentrasi terhadap laju reaksi | P1        |
+| Fisika    | F1. Hukum Newton        | Gerak & gaya | Menemukan hubungan gaya, massa, dan percepatan                 | P1        |
+| Fisika    | F2. Ayunan Sederhana    | Getaran      | Menyelidiki pengaruh panjang tali dan massa terhadap periode   | P1        |
+| Fisika    | F3. Hukum Hooke         | Gerak & gaya | Menentukan konstanta pegas dari gaya dan pertambahan panjang   | P1        |
 
 Setiap eksperimen dijelaskan dengan pola yang sama: **benda** (yang bisa diseret), **zona** (tempat benda diletakkan), **proses** (apa yang terjadi bertahap), **pengukuran** (alat ukur dan kapan data tercatat), **aturan** (rumus dan nilai), **penolakan**, dan **tabel pengamatan**. Proses di bawah adalah contoh alur alami; siswa tidak wajib mengikutinya berurutan.
 
@@ -185,65 +185,65 @@ Setiap eksperimen dijelaskan dengan pola yang sama: **benda** (yang bisa diseret
 
 **Alur utama:** Beranda → Pilih laboratorium → Katalog (cari + filter) → Detail eksperimen → Halaman lab.
 
-| ID | User story | Kriteria diterima |
-| --- | --- | --- |
-| US-01 | Sebagai siswa, saya ingin memilih laboratorium agar langsung menemukan eksperimen yang saya butuhkan | Kartu Kimia dan Fisika tampil dengan jumlah eksperimen dari data; tombol "Jelajahi" membuka katalog |
-| US-02 | Sebagai siswa, saya ingin mencari dan memfilter eksperimen per topik | Pencarian menyaring kartu berdasarkan judul dan ringkasan; chip topik menyaring daftar; jumlah hasil ikut berubah |
-| US-03 | Sebagai siswa, saya ingin melihat konteks dan tujuan eksperimen sebelum mulai | Detail menampilkan pratinjau, konteks, tujuan, alat & bahan, tips; tombol "Mulai eksperimen" membuka lab |
-| US-04 | Sebagai siswa, saya ingin bebas memakai alat tanpa urutan yang dipaksakan | Tidak ada langkah wajib; aksi yang masuk akal secara fisik diterima dalam urutan apa pun |
-| US-05 | Sebagai siswa, saya ingin melihat proses praktikum, bukan hasil instan | Setiap fenomena dianimasikan bertahap (menetes, larut, panas, bergerak, berayun) |
-| US-06 | Sebagai siswa, saya ingin mengukur dengan alat ukur seperti di lab nyata | Data hanya tercatat lewat alat ukur yang sesuai |
-| US-07 | Sebagai siswa, saya ingin hasil pengukuran tercatat otomatis | Setiap pengukuran baru menambah satu baris; hasil yang sama tidak dicatat dua kali; baris bisa dihapus |
-| US-08 | Sebagai siswa, saya ingin tahu kenapa aksi saya ditolak | Penolakan menampilkan pesan singkat yang menjelaskan alasannya |
-| US-09 | Sebagai siswa, saya ingin memahami arti hasil | Panel penjelasan menampilkan arti hasil terakhir dan konsep di baliknya |
-| US-10 | Sebagai siswa, saya ingin mengulang dari awal | Reset mengembalikan meja kerja dan tabel ke kondisi awal |
-| US-11 | Sebagai siswa, saya ingin praktikum di HP | Semua aksi bisa dilakukan dengan sentuhan; tata letak rapi di 360–412 px |
-| US-12 | Sebagai siswa, saya ingin membuka eksperimen lain dari detail | Bagian "Eksperimen lainnya" menampilkan 2 kartu dari laboratorium yang sama |
+| ID    | User story                                                                                           | Kriteria diterima                                                                                                 |
+| ----- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| US-01 | Sebagai siswa, saya ingin memilih laboratorium agar langsung menemukan eksperimen yang saya butuhkan | Kartu Kimia dan Fisika tampil dengan jumlah eksperimen dari data; tombol "Jelajahi" membuka katalog               |
+| US-02 | Sebagai siswa, saya ingin mencari dan memfilter eksperimen per topik                                 | Pencarian menyaring kartu berdasarkan judul dan ringkasan; chip topik menyaring daftar; jumlah hasil ikut berubah |
+| US-03 | Sebagai siswa, saya ingin melihat konteks dan tujuan eksperimen sebelum mulai                        | Detail menampilkan pratinjau, konteks, tujuan, alat & bahan, tips; tombol "Mulai eksperimen" membuka lab          |
+| US-04 | Sebagai siswa, saya ingin bebas memakai alat tanpa urutan yang dipaksakan                            | Tidak ada langkah wajib; aksi yang masuk akal secara fisik diterima dalam urutan apa pun                          |
+| US-05 | Sebagai siswa, saya ingin melihat proses praktikum, bukan hasil instan                               | Setiap fenomena dianimasikan bertahap (menetes, larut, panas, bergerak, berayun)                                  |
+| US-06 | Sebagai siswa, saya ingin mengukur dengan alat ukur seperti di lab nyata                             | Data hanya tercatat lewat alat ukur yang sesuai                                                                   |
+| US-07 | Sebagai siswa, saya ingin hasil pengukuran tercatat otomatis                                         | Setiap pengukuran baru menambah satu baris; hasil yang sama tidak dicatat dua kali; baris bisa dihapus            |
+| US-08 | Sebagai siswa, saya ingin tahu kenapa aksi saya ditolak                                              | Penolakan menampilkan pesan singkat yang menjelaskan alasannya                                                    |
+| US-09 | Sebagai siswa, saya ingin memahami arti hasil                                                        | Panel penjelasan menampilkan arti hasil terakhir dan konsep di baliknya                                           |
+| US-10 | Sebagai siswa, saya ingin mengulang dari awal                                                        | Reset mengembalikan meja kerja dan tabel ke kondisi awal                                                          |
+| US-11 | Sebagai siswa, saya ingin praktikum di HP                                                            | Semua aksi bisa dilakukan dengan sentuhan; tata letak rapi di 360–412 px                                          |
+| US-12 | Sebagai siswa, saya ingin membuka eksperimen lain dari detail                                        | Bagian "Eksperimen lainnya" menampilkan 2 kartu dari laboratorium yang sama                                       |
 
 ## 9. Kebutuhan fungsional per halaman
 
-| Halaman | Fitur | Deskripsi | Prioritas |
-| --- | --- | --- | --- |
-| Global | Navigasi & footer | Logo "virtual lab.", menu Beranda dan Laboratorium, tombol "Butuh bantuan?", footer | P1 |
-| Beranda | Hero + Kenali laboratoriummu | Judul, deskripsi, tombol "Try Lab", dua kartu bidang | P1 |
-| Pilih laboratorium | Kartu laboratorium | Ikon, nama, jumlah eksperimen, deskripsi, topik, tombol "Jelajahi" | P1 |
-| Katalog | Cari, filter, kartu | Kolom cari, chip topik, kartu (ikon, topik, judul, ringkasan) | P1 |
-| Detail | Informasi eksperimen | Pratinjau, konteks, tujuan, alat & bahan (dari daftar benda), tips, "Eksperimen lainnya" | P1 |
-| Lab | Meja kerja & zona | Area tempat benda diletakkan dan proses dianimasikan | P1 |
-| Lab | Rak alat & bahan | Benda bisa diseret di desktop; di HP: tap benda lalu tap tujuan | P1 |
-| Lab | Alat ukur | Bacaan tampil di alat (neraca, termometer, stopwatch, mistar, kartu pH) | P1 |
-| Lab | Tabel pengamatan | Terisi otomatis dari pengukuran, tanpa duplikat, bisa hapus baris | P1 |
-| Lab | Panel penjelasan | Arti hasil terakhir dan konsep singkat | P1 |
-| Lab | Pesan penolakan | Muncul singkat di dekat zona saat aksi ditolak | P1 |
-| Lab | Reset & kecepatan waktu | Reset meja kerja; kecepatan 1× / 5× untuk proses yang lama | P1 |
-| Lab | Layar penuh & efek suara | Mode layar penuh; bunyi tetes, klik, sukses yang bisa dimatikan | P2 |
-| Bantuan | Butuh bantuan? | Cara memakai lab (drag, tap, alat ukur) dan FAQ | P2 |
+| Halaman            | Fitur                        | Deskripsi                                                                                | Prioritas |
+| ------------------ | ---------------------------- | ---------------------------------------------------------------------------------------- | --------- |
+| Global             | Navigasi & footer            | Logo "virtual lab.", menu Beranda dan Laboratorium, tombol "Butuh bantuan?", footer      | P1        |
+| Beranda            | Hero + Kenali laboratoriummu | Judul, deskripsi, tombol "Try Lab", dua kartu bidang                                     | P1        |
+| Pilih laboratorium | Kartu laboratorium           | Ikon, nama, jumlah eksperimen, deskripsi, topik, tombol "Jelajahi"                       | P1        |
+| Katalog            | Cari, filter, kartu          | Kolom cari, chip topik, kartu (ikon, topik, judul, ringkasan)                            | P1        |
+| Detail             | Informasi eksperimen         | Pratinjau, konteks, tujuan, alat & bahan (dari daftar benda), tips, "Eksperimen lainnya" | P1        |
+| Lab                | Meja kerja & zona            | Area tempat benda diletakkan dan proses dianimasikan                                     | P1        |
+| Lab                | Rak alat & bahan             | Benda bisa diseret di desktop; di HP: tap benda lalu tap tujuan                          | P1        |
+| Lab                | Alat ukur                    | Bacaan tampil di alat (neraca, termometer, stopwatch, mistar, kartu pH)                  | P1        |
+| Lab                | Tabel pengamatan             | Terisi otomatis dari pengukuran, tanpa duplikat, bisa hapus baris                        | P1        |
+| Lab                | Panel penjelasan             | Arti hasil terakhir dan konsep singkat                                                   | P1        |
+| Lab                | Pesan penolakan              | Muncul singkat di dekat zona saat aksi ditolak                                           | P1        |
+| Lab                | Reset & kecepatan waktu      | Reset meja kerja; kecepatan 1× / 5× untuk proses yang lama                               | P1        |
+| Lab                | Layar penuh & efek suara     | Mode layar penuh; bunyi tetes, klik, sukses yang bisa dimatikan                          | P2        |
+| Bantuan            | Butuh bantuan?               | Cara memakai lab (drag, tap, alat ukur) dan FAQ                                          | P2        |
 
 ## 10. Kebutuhan non-fungsional
 
-| Aspek | Kebutuhan | Target |
-| --- | --- | --- |
-| Performa | Lab cepat dimuat, animasi lancar | Muat < 3 detik di 4G; animasi ≥ 30 fps di HP kelas menengah |
-| Ukuran | Aset ringan (SVG/WebP) | ≤ 300 KB per gambar; total halaman lab < 2 MB |
-| Responsif | HP, tablet, laptop | Acuan 1440 px dan 412 px; rapi mulai 360 px |
-| Interaksi sentuh | Semua aksi tanpa drag juga bisa | Diuji di Chrome Android dan Safari iOS |
-| Aksesibilitas | Informasi tidak hanya lewat warna | Teks isi ≥ 14 px; kontras ≥ 4,5:1; warna indikator selalu berlabel |
-| Akurasi materi | Rumus dan nilai sesuai buku acuan | Dicek dengan buku paket atau guru sebelum 11 Nov |
-| Keandalan logika | Mesin dan aturan eksperimen teruji | Unit test untuk mesin dan setiap aturan; CI hijau sebelum merge |
-| Privasi & keamanan | Tidak mengumpulkan data pribadi | Tanpa akun, tanpa database; header keamanan di Vercel |
+| Aspek              | Kebutuhan                          | Target                                                             |
+| ------------------ | ---------------------------------- | ------------------------------------------------------------------ |
+| Performa           | Lab cepat dimuat, animasi lancar   | Muat < 3 detik di 4G; animasi ≥ 30 fps di HP kelas menengah        |
+| Ukuran             | Aset ringan (SVG/WebP)             | ≤ 300 KB per gambar; total halaman lab < 2 MB                      |
+| Responsif          | HP, tablet, laptop                 | Acuan 1440 px dan 412 px; rapi mulai 360 px                        |
+| Interaksi sentuh   | Semua aksi tanpa drag juga bisa    | Diuji di Chrome Android dan Safari iOS                             |
+| Aksesibilitas      | Informasi tidak hanya lewat warna  | Teks isi ≥ 14 px; kontras ≥ 4,5:1; warna indikator selalu berlabel |
+| Akurasi materi     | Rumus dan nilai sesuai buku acuan  | Dicek dengan buku paket atau guru sebelum 11 Nov                   |
+| Keandalan logika   | Mesin dan aturan eksperimen teruji | Unit test untuk mesin dan setiap aturan; CI hijau sebelum merge    |
+| Privasi & keamanan | Tidak mengumpulkan data pribadi    | Tanpa akun, tanpa database; header keamanan di Vercel              |
 
 ## 11. Desain & UI
 
-| Elemen | Keputusan |
-| --- | --- |
-| Gaya visual | Bersih dan lembut: latar krem, kartu putih border tipis, sudut 12–24 px, ilustrasi pastel |
-| Palet | Primer #7051DC · Tint #F0EBFF · Fisika #227C78 / #E6F3EF · Latar #FAFAF7 · Teks #252438 · Teks sekunder #777583 · Border #E8E6ED |
-| Font | Plus Jakarta Sans (judul), Inter (teks) |
-| Ikon | Lucide |
-| Lab | Gaya PhET: meja kerja luas, rak benda di samping atau bawah, alat ukur menampilkan angka langsung di alat |
-| Animasi | Tetesan, perubahan warna bertahap, pelarutan, kenaikan suhu, gerak troli, ayunan, osilasi pegas |
-| Breakpoint | Desktop 1440 px · Mobile 412 px |
-| Figma | https://www.figma.com/design/8B1RYTnlZIkEh9d2gtQ0Yf/Untitled |
+| Elemen      | Keputusan                                                                                                                        |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Gaya visual | Bersih dan lembut: latar krem, kartu putih border tipis, sudut 12–24 px, ilustrasi pastel                                        |
+| Palet       | Primer #7051DC · Tint #F0EBFF · Fisika #227C78 / #E6F3EF · Latar #FAFAF7 · Teks #252438 · Teks sekunder #777583 · Border #E8E6ED |
+| Font        | Plus Jakarta Sans (judul), Inter (teks)                                                                                          |
+| Ikon        | Lucide                                                                                                                           |
+| Lab         | Gaya PhET: meja kerja luas, rak benda di samping atau bawah, alat ukur menampilkan angka langsung di alat                        |
+| Animasi     | Tetesan, perubahan warna bertahap, pelarutan, kenaikan suhu, gerak troli, ayunan, osilasi pegas                                  |
+| Breakpoint  | Desktop 1440 px · Mobile 412 px                                                                                                  |
+| Figma       | https://www.figma.com/design/8B1RYTnlZIkEh9d2gtQ0Yf/Untitled                                                                     |
 
 **Daftar aset:**
 
@@ -258,18 +258,18 @@ Sementara aset belum siap, FE memakai bentuk sederhana berlabel; logika tidak be
 
 ## 12. Teknologi & arsitektur
 
-| Lapisan | Pilihan |
-| --- | --- |
-| Framework | React + Vite + TypeScript |
-| Routing | React Router |
-| Styling | Tailwind CSS v4 (token di `src/index.css`) |
-| Animasi | Motion |
-| Drag-and-drop | dnd-kit (mouse dan sentuh) |
-| Simulasi | SVG + perhitungan sendiri, tanpa physics engine |
-| State | React state lewat hook `useExperiment` |
-| Test | Vitest |
-| Penyimpanan | Tidak ada di MVP; Supabase di versi berikutnya |
-| Deploy | GitHub + Vercel |
+| Lapisan       | Pilihan                                         |
+| ------------- | ----------------------------------------------- |
+| Framework     | React + Vite + TypeScript                       |
+| Routing       | React Router                                    |
+| Styling       | Tailwind CSS v4 (token di `src/index.css`)      |
+| Animasi       | Motion                                          |
+| Drag-and-drop | dnd-kit (mouse dan sentuh)                      |
+| Simulasi      | SVG + perhitungan sendiri, tanpa physics engine |
+| State         | React state lewat hook `useExperiment`          |
+| Test          | Vitest                                          |
+| Penyimpanan   | Tidak ada di MVP; Supabase di versi berikutnya  |
+| Deploy        | GitHub + Vercel                                 |
 
 **Model sandbox:**
 
@@ -298,32 +298,32 @@ public/img/     gambar yang dirujuk dari data
 
 ## 13. Timeline & milestone
 
-| Hari | Tanggal | Fokus | Milestone |
-| --- | --- | --- | --- |
-| 1–2 | 26–27 Okt | Setup, mesin sandbox awal, fungsi data, PRD v0.3 | **M1:** web online (selesai) |
-| 3 | 28 Okt | Finalisasi PRD v0.3, desain halaman lab gaya sandbox di Figma, rancangan mesin berproses | Rancangan disetujui tim |
-| 4–5 | 29–30 Okt | Mesin berproses + test; halaman Beranda, Pilih lab, Katalog | |
-| 6–8 | 2–4 Nov | K1 lengkap dengan proses dan alat ukur; Detail eksperimen; kerangka lab dengan drag-and-drop | **M2:** K1 utuh |
-| 9 | 5 Nov | K2 dan F1 | |
-| 10 | 6 Nov | F2 dan K3 | |
-| 11–12 | 9–10 Nov | F3, panel penjelasan, Bantuan | **M3:** 6 eksperimen |
-| 13 | 11 Nov | Polish animasi, sentuhan di HP, cek akurasi materi | |
-| 14 | 12 Nov | Responsif, gambar pratinjau, performa | |
-| 15 | 13 Nov | Uji coba 3–5 orang, perbaikan bug, deploy final | **M4:** MVP rilis |
+| Hari  | Tanggal   | Fokus                                                                                        | Milestone                    |
+| ----- | --------- | -------------------------------------------------------------------------------------------- | ---------------------------- |
+| 1–2   | 26–27 Okt | Setup, mesin sandbox awal, fungsi data, PRD v0.3                                             | **M1:** web online (selesai) |
+| 3     | 28 Okt    | Finalisasi PRD v0.3, desain halaman lab gaya sandbox di Figma, rancangan mesin berproses     | Rancangan disetujui tim      |
+| 4–5   | 29–30 Okt | Mesin berproses + test; halaman Beranda, Pilih lab, Katalog                                  |                              |
+| 6–8   | 2–4 Nov   | K1 lengkap dengan proses dan alat ukur; Detail eksperimen; kerangka lab dengan drag-and-drop | **M2:** K1 utuh              |
+| 9     | 5 Nov     | K2 dan F1                                                                                    |                              |
+| 10    | 6 Nov     | F2 dan K3                                                                                    |                              |
+| 11–12 | 9–10 Nov  | F3, panel penjelasan, Bantuan                                                                | **M3:** 6 eksperimen         |
+| 13    | 11 Nov    | Polish animasi, sentuhan di HP, cek akurasi materi                                           |                              |
+| 14    | 12 Nov    | Responsif, gambar pratinjau, performa                                                        |                              |
+| 15    | 13 Nov    | Uji coba 3–5 orang, perbaikan bug, deploy final                                              | **M4:** MVP rilis            |
 
 ## 14. Risiko, asumsi & pertanyaan terbuka
 
 **Risiko:**
 
-| Risiko | Dampak | Mitigasi |
-| --- | --- | --- |
-| Proses berbasis waktu menambah kerumitan | Jadwal molor | Mesin umum dulu dan diuji; K1 sebagai pola; dahulukan K1, K2, F1, F2; K3 dan F3 berlabel "Segera hadir" jika molor |
-| Drag-and-drop di HP | Pengalaman buruk di perangkat utama | Mode tap benda lalu tap tujuan; tes di HP sejak awal |
-| Siswa bingung tanpa panduan langkah | Tidak menghasilkan data | Detail berisi tujuan dan tips; pesan penolakan yang menjelaskan; panel Bantuan |
-| Proses terlalu lama | Siswa bosan | Pengatur kecepatan waktu; jumlah aksi per percobaan dijaga wajar |
-| Materi kurang akurat | Salah konsep | Nilai hanya dari bagian 7; cek dengan buku paket atau guru |
-| Aset visual lambat | Tampilan lab tertunda | Bentuk sederhana berlabel dulu |
-| Perubahan kontrak kode di tengah jalan | Tim saling menunggu | Kontrak lewat pull request dengan bagian "Dampak ke tim" |
+| Risiko                                   | Dampak                              | Mitigasi                                                                                                           |
+| ---------------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Proses berbasis waktu menambah kerumitan | Jadwal molor                        | Mesin umum dulu dan diuji; K1 sebagai pola; dahulukan K1, K2, F1, F2; K3 dan F3 berlabel "Segera hadir" jika molor |
+| Drag-and-drop di HP                      | Pengalaman buruk di perangkat utama | Mode tap benda lalu tap tujuan; tes di HP sejak awal                                                               |
+| Siswa bingung tanpa panduan langkah      | Tidak menghasilkan data             | Detail berisi tujuan dan tips; pesan penolakan yang menjelaskan; panel Bantuan                                     |
+| Proses terlalu lama                      | Siswa bosan                         | Pengatur kecepatan waktu; jumlah aksi per percobaan dijaga wajar                                                   |
+| Materi kurang akurat                     | Salah konsep                        | Nilai hanya dari bagian 7; cek dengan buku paket atau guru                                                         |
+| Aset visual lambat                       | Tampilan lab tertunda               | Bentuk sederhana berlabel dulu                                                                                     |
+| Perubahan kontrak kode di tengah jalan   | Tim saling menunggu                 | Kontrak lewat pull request dengan bagian "Dampak ke tim"                                                           |
 
 **Asumsi:**
 

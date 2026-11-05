@@ -16,7 +16,6 @@ import { SHELF } from '../data/instruments'
 import type { Experiment, ItemState, Value, Zone } from '../data/types'
 import { useExperiment } from '../hooks/useExperiment'
 
-
 type LabApi = ReturnType<typeof useExperiment>
 type Playground = {
   exp: Experiment
