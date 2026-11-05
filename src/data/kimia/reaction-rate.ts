@@ -339,12 +339,18 @@ export const reactionRate: Experiment = {
       [BATH]: {
         label: on ? 'Pemanas menyala' : 'Pemanas mati',
         action: on ? 'Matikan' : 'Nyalakan',
+        on,
       },
       [THERMOMETER]: {
         reading:
           w.items[THERMOMETER].at === FLASK ? `${fmt(temp, 0)} °C` : '– °C',
+        // Untuk tinggi kolom: di luar labu termometer menunjukkan suhu ruang.
+        temp: w.items[THERMOMETER].at === FLASK ? temp : BASE_TEMP,
       },
-      [STOPWATCH]: stopwatchView(w, STOPWATCH),
+      [STOPWATCH]: {
+        ...stopwatchView(w, STOPWATCH),
+        elapsed: num(w, STOPWATCH, 'elapsed'),
+      },
     }
   },
 }
