@@ -1,3 +1,5 @@
-interface Props {}
+// interface Props {}
 
-export default function Button()
+export default function Button(): void {
+    // 
+}

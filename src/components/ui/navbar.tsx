@@ -6,7 +6,7 @@ export default function Navbar() {
   interface Path {
     label: string
     to: string
-    isActive: (path: any) => boolean
+    isActive: (path: string) => boolean
   }
 
   const { pathname } = useLocation()
