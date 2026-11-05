@@ -21,7 +21,7 @@ import { Link, useParams } from 'react-router'
 import type { Experiment } from '../data/types'
 import { getExperiment } from '../lib/experiments'
 
-// Kelas ditulis utuh supaya terbaca oleh Tailwind.
+
 const ACCENT = {
   kimia: { text: 'text-primary', tint: 'bg-primary-tint' },
   fisika: { text: 'text-fisika', tint: 'bg-fisika-tint' },
@@ -33,8 +33,7 @@ const SUBJECT = {
   fisika: { name: 'Laboratorium Fisika', icon: Gauge },
 }
 
-// TODO(BE): field ini belum ada di tipe Experiment. Pindahkan ke data
-// eksperimen (types.ts + data/*) lalu hapus tabel sementara ini.
+
 type Extra = {
   duration: string
   level: string
