@@ -1,6 +1,6 @@
 import {
   ArrowRightIcon,
-  DotIcon,
+  // DotIcon,
   FlaskConicalIcon,
   SparklesIcon,
 } from 'lucide-react'

@@ -1,12 +1,12 @@
 import clsx from 'clsx'
 import {
   ArrowRightIcon,
-  AtomIcon,
+  // AtomIcon,
   DotIcon,
   FlaskConicalIcon,
-  Sparkles,
+  // Sparkles,
   SparklesIcon,
-  TestTubes,
+  // TestTubes,
 } from 'lucide-react'
 import { Link } from 'react-router'
 import { labs } from '../data/lab'
