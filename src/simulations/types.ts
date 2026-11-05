@@ -2,13 +2,15 @@ export type Rect = { x: number; y: number; w: number; h: number }
 
 // Posisi benda yang menempel pada benda lain, relatif terhadap pojok kiri atas
 // kotak induknya. Ukuran default sama dengan kotak home benda itu. `rotate`
-// dalam derajat (searah jarum jam), diputar dari tengah kotak.
+// dalam derajat (searah jarum jam), diputar dari tengah kotak. `labelSide`
+// menggantikan sisi label benda selama menempel di induk ini.
 export type Offset = {
   x: number
   y: number
   w?: number
   h?: number
   rotate?: number
+  labelSide?: LabelSide
 }
 
 export type LabelSide = 'top' | 'bottom' | 'left' | 'right'

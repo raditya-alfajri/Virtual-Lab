@@ -28,6 +28,7 @@ import type { Hint } from '../../lib/engine'
 import type { LabelSide, Rect, SceneLayout } from '../../simulations/types'
 import Readout from './assets/Readout'
 import { innermostItemFirst } from './collision'
+import { dropTarget } from './dropTarget'
 import { DRAWS_OWN_READING } from './kinds'
 import LabAsset from './LabAsset'
 import { boundsOf, placeItem } from './placement'
@@ -44,6 +45,9 @@ type Props = {
 
 type Scene = Props & {
   dragging: string | null
+  // Tujuan yang akan menerima benda yang sedang diseret (setelah diteruskan
+  // dari benda yang menempel ke induknya).
+  over: string | null
   hint: Hint | null
   tap: (id: string) => void
 }
@@ -70,6 +74,7 @@ const onEnterOrSpace = (run: () => void) => (e: KeyboardEvent) => {
 export default function LabScene(props: Props) {
   const { exp, lab, layout, selected, onSelect } = props
   const [dragging, setDragging] = useState<string | null>(null)
+  const [over, setOver] = useState<string | null>(null)
   const [dismissed, setDismissed] = useState<Hint | null>(null)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -98,13 +103,18 @@ export default function LabScene(props: Props) {
       if (item && !item.fixed) onSelect(id)
       return
     }
-    if (selected !== id) lab.drop(selected, id)
+    if (selected !== id) lab.drop(selected, target(selected, id))
     onSelect(null)
   }
 
+  const target = (source: string, id: string) =>
+    dropTarget(exp, lab.items, source, id)
+
   const onDragEnd = ({ active, over }: DragEndEvent) => {
     setDragging(null)
-    if (over) lab.drop(String(active.id), String(over.id))
+    setOver(null)
+    if (over)
+      lab.drop(String(active.id), target(String(active.id), String(over.id)))
   }
 
   const announcements: Announcements = {
@@ -123,7 +133,7 @@ export default function LabScene(props: Props) {
   const draggingDef = exp.items.find((i) => i.id === dragging)
 
   return (
-    <SceneContext.Provider value={{ ...props, dragging, hint, tap }}>
+    <SceneContext.Provider value={{ ...props, dragging, over, hint, tap }}>
       <DndContext
         sensors={sensors}
         collisionDetection={collision}
@@ -138,7 +148,13 @@ export default function LabScene(props: Props) {
           setDragging(String(active.id))
           onSelect(null)
         }}
-        onDragCancel={() => setDragging(null)}
+        onDragOver={({ active, over }) =>
+          setOver(over ? target(String(active.id), String(over.id)) : null)
+        }
+        onDragCancel={() => {
+          setDragging(null)
+          setOver(null)
+        }}
         onDragEnd={onDragEnd}
       >
         <ScaledStage>
@@ -310,7 +326,7 @@ const LABEL_SIDE: Record<LabelSide, string> = {
 }
 
 function SceneItem({ id }: { id: string }) {
-  const { exp, lab, layout, dragging, selected, hint, tap } = useScene()
+  const { exp, lab, layout, dragging, over, selected, hint, tap } = useScene()
   const def = exp.items.find((i) => i.id === id)!
   const spot = placeItem(layout, lab.items, id)
   // Benda yang diputar (mis. batang pengaduk di gelas) hanya diputar
@@ -327,6 +343,10 @@ function SceneItem({ id }: { id: string }) {
 
   if (!spot) return null
   const { rect, parents } = spot
+  // Benda yang menempel atau diputar hanya bisa diklik dan diseret pada
+  // bagian yang tergambar, agar kotaknya yang kosong tidak menutupi induknya
+  // (mis. kotak termometer menutupi tengah labu).
+  const precise = rotate !== 0 || parents.length > 0
 
   const view = lab.view[id]
   const reading = DRAWS_OWN_READING.has(def.kind) ? undefined : view?.reading
@@ -339,7 +359,7 @@ function SceneItem({ id }: { id: string }) {
   const look =
     selected === id
       ? 'outline-4 outline-primary'
-      : target.isOver
+      : over === id
         ? 'bg-primary-tint/60 outline-4 outline-dashed outline-primary'
         : hint?.target === id
           ? 'outline-4 outline-dashed outline-ink'
@@ -363,18 +383,18 @@ function SceneItem({ id }: { id: string }) {
           tap(id)
         }}
         onKeyDown={onEnterOrSpace(() => tap(id))}
-        className={`absolute touch-none select-none ${rotate ? 'pointer-events-none' : ''} ${lifted ? 'opacity-40' : ''} ${def.fixed ? '' : 'cursor-grab'}`}
+        className={`absolute touch-none select-none ${precise ? 'pointer-events-none' : ''} ${lifted ? 'opacity-40' : ''} ${def.fixed ? '' : 'cursor-grab'}`}
         style={{ ...place(rect), zIndex }}
       >
         <div
-          className={`pointer-events-auto h-full w-full rounded-xl outline-offset-4 ${look}`}
+          className={`h-full w-full rounded-xl outline-offset-4 ${precise ? 'pointer-events-none [&_svg_*]:pointer-events-auto' : 'pointer-events-auto'} ${look}`}
           style={rotate ? { transform: `rotate(${rotate}deg)` } : undefined}
         >
           <LabAsset kind={def.kind} name={def.name} view={view} />
         </div>
         {label && (
           <span
-            className={`pointer-events-none absolute w-max max-w-28 rounded-lg border border-line bg-white/95 px-2 py-0.5 text-center text-[15px] leading-tight font-medium text-ink ${LABEL_SIDE[layout.labelSide?.[id] ?? 'bottom']}`}
+            className={`pointer-events-none absolute w-max max-w-28 rounded-lg border border-line bg-white/95 px-2 py-0.5 text-center text-[15px] leading-tight font-medium text-ink ${LABEL_SIDE[spot.labelSide ?? layout.labelSide?.[id] ?? 'bottom']}`}
           >
             {label}
           </span>

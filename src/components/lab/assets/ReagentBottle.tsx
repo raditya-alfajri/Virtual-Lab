@@ -5,7 +5,15 @@ import Liquid from './Liquid'
 const BODY =
   'M14 62 Q14 48 28 48 H62 Q76 48 76 62 V132 Q76 142 66 142 H24 Q14 142 14 132 Z'
 
-type Props = { name: string; level?: number; color?: string }
+type Props = {
+  name: string
+  level?: number
+  color?: string
+  // Warna tutup botol (default oranye seperti SVG aslinya).
+  capColor?: string
+  // Garis permukaan untuk larutan bening, lihat Liquid.
+  meniscus?: string
+}
 
 // Nama larutan dipecah jadi paling banyak 2 baris agar muat di label (lebar 42).
 function labelLines(name: string): string[] {
@@ -17,6 +25,8 @@ export default function ReagentBottle({
   name,
   level = 0.67,
   color = '#7CC6D9',
+  capColor = '#F4A340',
+  meniscus,
 }: Props) {
   const clipId = useId()
   const lines = labelLines(name)
@@ -43,6 +53,7 @@ export default function ReagentBottle({
         bottom={142}
         level={level}
         color={color}
+        meniscus={meniscus}
       />
       <path
         d={BODY}
@@ -68,7 +79,7 @@ export default function ReagentBottle({
         width={36}
         height={18}
         rx={4}
-        fill="#F4A340"
+        fill={capColor}
         stroke="#2B2D42"
         strokeWidth={3}
         strokeLinejoin="round"

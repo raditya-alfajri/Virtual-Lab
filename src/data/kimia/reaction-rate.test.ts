@@ -319,3 +319,27 @@ describe('K3 Laju Reaksi: educational rejections', () => {
     expect(s.world.items.flask).toEqual(start().world.items.flask)
   })
 })
+
+describe('K3 Laju Reaksi: view keys for the lab scene', () => {
+  const view = (s: EngineState) => exp.view(s.world)
+
+  it('tells whether the heater is on', () => {
+    expect(view(start()).bath.on).toBe(false)
+    const s = run(start(), tap('bath'))
+    expect(view(s).bath.on).toBe(true)
+    expect(view(run(s, tap('bath'))).bath.on).toBe(false)
+  })
+
+  it('gives the thermometer temperature, room temperature outside the flask', () => {
+    expect(view(start()).thermometer.temp).toBe(25)
+    const s = run(start(), ...fill('thio-020'), ...heat(10))
+    expect(view(s).thermometer.temp).toBe(30)
+    expect(view(s).thermometer.reading).toBe('30 °C')
+  })
+
+  it('gives the stopwatch time in seconds', () => {
+    expect(view(start()).stopwatch.elapsed).toBe(0)
+    const s = run(start(), tap('stopwatch'), ...seconds(2, 0.5))
+    expect(view(s).stopwatch.elapsed).toBeCloseTo(2, 10)
+  })
+})

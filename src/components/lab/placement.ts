@@ -1,10 +1,12 @@
-import type { Rect, SceneLayout } from '../../simulations/types'
+import type { LabelSide, Rect, SceneLayout } from '../../simulations/types'
 
 export type Placement = {
   rect: Rect
   rotate: number
   // Rantai induk, dari induk langsung sampai benda paling bawah.
   parents: string[]
+  // Sisi label selama menempel, kalau offset-nya menentukan.
+  labelSide?: LabelSide
 }
 
 type Items = Record<string, { at: string }>
@@ -46,6 +48,7 @@ export function placeItem(
           },
       rotate: offset?.rotate ?? 0,
       parents: [at, ...parent.parents],
+      ...(offset?.labelSide && { labelSide: offset.labelSide }),
     }
   }
 

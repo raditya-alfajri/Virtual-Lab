@@ -70,6 +70,16 @@ describe('placeItem', () => {
     )
   })
 
+  it('carries the label side of an offset', () => {
+    const own: SceneLayout = {
+      ...layout,
+      attach: { thermometer: { flask: { x: 0, y: 0, labelSide: 'left' } } },
+    }
+    const items = { flask: { at: 'shelf' }, thermometer: { at: 'flask' } }
+    expect(placeItem(own, items, 'thermometer')?.labelSide).toBe('left')
+    expect(placeItem(own, items, 'flask')?.labelSide).toBeUndefined()
+  })
+
   it('carries rotation and stops on cycles', () => {
     const items = { rod: { at: 'beaker' }, beaker: { at: 'bench' } }
     expect(placeItem(layout, items, 'rod')?.rotate).toBe(90)
