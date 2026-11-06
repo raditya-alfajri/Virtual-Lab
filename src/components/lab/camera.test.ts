@@ -1,7 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import { SHELF } from '../../data/instruments'
+import { acidBaseTest } from '../../data/kimia/acid-base-test'
+import { reactionRate } from '../../data/kimia/reaction-rate'
 import { solutionConcentration } from '../../data/kimia/solution-concentration'
+import type { Experiment } from '../../data/types'
+import { acidBaseLayout } from '../../simulations/acid-base-test/layout'
+import { reactionRateLayout } from '../../simulations/reaction-rate/layout'
 import { solutionConcentrationLayout } from '../../simulations/solution-concentration/layout'
+import type { SceneLayout } from '../../simulations/types'
 import {
   MIN_TOUCH,
   fitCamera,
@@ -254,5 +260,204 @@ describe('touch targets (K2)', () => {
     expect(pickTarget({ x: 1200, y: 600 }, targets)).toBe('spoon-small')
     expect(pickTarget({ x: 1200, y: 740 }, targets)).toBe('stirrer')
     expect(pickTarget({ x: 400, y: 900 }, targets)).toBeNull()
+  })
+})
+
+const startOf = (exp: Experiment) =>
+  Object.fromEntries(exp.items.map((i) => [i.id, { at: i.start ?? SHELF }]))
+const viewOf = (layout: SceneLayout, id: string) =>
+  layout.mobile!.views.find((v) => v.id === id)!.region
+
+describe('mobile views', () => {
+  const all: [string, SceneLayout][] = [
+    ['K1', acidBaseLayout],
+    ['K2', solutionConcentrationLayout],
+    ['K3', reactionRateLayout],
+  ]
+
+  it.each(all)('%s views stay on the 1440 × 1024 stage', (_, layout) => {
+    for (const { region } of layout.mobile!.views) {
+      expect(region.x).toBeGreaterThanOrEqual(0)
+      expect(region.y).toBeGreaterThanOrEqual(0)
+      expect(region.x + region.w).toBeLessThanOrEqual(layout.stage.width)
+      expect(region.y + region.h).toBeLessThanOrEqual(layout.stage.height)
+    }
+  })
+})
+
+describe('trayItems (K1)', () => {
+  const k1 = acidBaseTest
+  const bottles = ['cuka', 'air-jeruk', 'air-suling', 'air-sabun', 'naoh']
+
+  it('keeps only the wall-shelf bottles in the tray on the bench', () => {
+    expect(
+      trayItems(
+        k1,
+        acidBaseLayout,
+        startOf(k1),
+        viewOf(acidBaseLayout, 'meja'),
+      ),
+    ).toEqual(bottles)
+  })
+
+  it('offers the bench tools at the rack and pH card', () => {
+    const tray = trayItems(
+      k1,
+      acidBaseLayout,
+      startOf(k1),
+      viewOf(acidBaseLayout, 'rak-kartu'),
+    )
+    expect(tray).toEqual(['tube-1', 'pipette', ...bottles, 'indicator'])
+  })
+
+  it('offers the tubes at the sink, where pipette and indicator stand', () => {
+    const tray = trayItems(
+      k1,
+      acidBaseLayout,
+      startOf(k1),
+      viewOf(acidBaseLayout, 'wastafel'),
+    )
+    expect(tray).toEqual(['tube-1', 'tube-2', 'tube-3', ...bottles])
+  })
+
+  it('shows a racked tube at the rack, not on the bench', () => {
+    const items = { ...startOf(k1), 'tube-1': { at: 'rack-3' } }
+    expect(
+      trayItems(k1, acidBaseLayout, items, viewOf(acidBaseLayout, 'rak-kartu')),
+    ).not.toContain('tube-1')
+    expect(
+      trayItems(k1, acidBaseLayout, items, viewOf(acidBaseLayout, 'meja')),
+    ).toContain('tube-1')
+  })
+})
+
+describe('trayItems (K3)', () => {
+  const k3 = reactionRate
+  const bottles = ['thio-005', 'thio-010', 'thio-015', 'thio-020', 'hcl']
+
+  it('never lists the fixed paper and water bath', () => {
+    for (const { region } of reactionRateLayout.mobile!.views) {
+      const tray = trayItems(k3, reactionRateLayout, startOf(k3), region)
+      expect(tray).not.toContain('paper')
+      expect(tray).not.toContain('bath')
+    }
+  })
+
+  it('keeps only the wall-shelf bottles in the tray on the bench', () => {
+    expect(
+      trayItems(
+        k3,
+        reactionRateLayout,
+        startOf(k3),
+        viewOf(reactionRateLayout, 'meja'),
+      ),
+    ).toEqual(bottles)
+  })
+
+  it('offers the flask, thermometer and stopwatch at the water bath', () => {
+    expect(
+      trayItems(
+        k3,
+        reactionRateLayout,
+        startOf(k3),
+        viewOf(reactionRateLayout, 'penangas'),
+      ),
+    ).toEqual(['flask', ...bottles, 'thermometer', 'stopwatch'])
+  })
+
+  it('moves the flask and its thermometer along to the water bath', () => {
+    const items = {
+      ...startOf(k3),
+      flask: { at: 'bath' },
+      thermometer: { at: 'flask' },
+    }
+    const atBath = trayItems(
+      k3,
+      reactionRateLayout,
+      items,
+      viewOf(reactionRateLayout, 'penangas'),
+    )
+    expect(atBath).not.toContain('flask')
+    expect(atBath).not.toContain('thermometer')
+    const atBench = trayItems(
+      k3,
+      reactionRateLayout,
+      items,
+      viewOf(reactionRateLayout, 'meja'),
+    )
+    expect(atBench).toContain('flask')
+    expect(atBench).toContain('thermometer')
+  })
+})
+
+describe('touch targets (K3 attached items)', () => {
+  const k3 = reactionRate
+  const scale = 0.5
+  const onBath = {
+    ...startOf(k3),
+    flask: { at: 'bath' },
+    thermometer: { at: 'flask' },
+  }
+  const onPaper = {
+    ...startOf(k3),
+    flask: { at: 'paper' },
+    thermometer: { at: 'flask' },
+  }
+  // Labu di penangas: penangas (990, 522) + offset (77, -18).
+  const flaskOnBath = { x: 1067, y: 504, w: 132, h: 161 }
+  // Labu di kertas: kertas (330, 600) + offset (39, -60).
+  const flaskOnPaper = { x: 369, y: 540, w: 132, h: 161 }
+  const centre = (r: { x: number; y: number; w: number; h: number }) => ({
+    x: r.x + r.w / 2,
+    y: r.y + r.h / 2,
+  })
+  const targets = (items: Record<string, { at: string }>, selecting: boolean) =>
+    itemTouchTargets(k3, reactionRateLayout, items, scale, selecting)
+
+  it('gives every item at least MIN_TOUCH px in both set-ups', () => {
+    for (const items of [startOf(k3), onBath, onPaper]) {
+      for (const t of targets(items, true)) {
+        expect(t.hit.w * scale).toBeGreaterThanOrEqual(MIN_TOUCH - 1e-9)
+        expect(t.hit.h * scale).toBeGreaterThanOrEqual(MIN_TOUCH - 1e-9)
+      }
+    }
+  })
+
+  it('picks the flask, not the water bath under it', () => {
+    const p = centre(flaskOnBath)
+    expect(pickTarget(p, targets(onBath, false))).toBe('flask')
+    // Dengan benda terpilih (mis. HCl), labu tetap tujuannya.
+    expect(pickTarget(p, targets(onBath, true))).toBe('flask')
+  })
+
+  it('still reaches the water bath beside the flask when choosing a target', () => {
+    const p = { x: 1010, y: 700 }
+    expect(pickTarget(p, targets(onBath, true))).toBe('bath')
+    // Tanpa benda terpilih, penangas tidak bisa dipilih.
+    expect(pickTarget(p, targets(onBath, false))).toBeNull()
+  })
+
+  it('picks the flask, not the cross paper under it', () => {
+    const p = { x: 435, y: 670 }
+    expect(pickTarget(p, targets(onPaper, false))).toBe('flask')
+    expect(pickTarget(p, targets(onPaper, true))).toBe('flask')
+  })
+
+  it('keeps the thermometer off the flask body', () => {
+    for (const [items, flask] of [
+      [onBath, flaskOnBath],
+      [onPaper, flaskOnPaper],
+    ] as const) {
+      const thermometer = targets(items, false).find(
+        (t) => t.id === 'thermometer',
+      )!
+      // Area sentuh termometer berhenti di mulut labu.
+      expect(thermometer.hit.y + thermometer.hit.h).toBeCloseTo(flask.y)
+      expect(pickTarget(centre(flask), targets(items, false))).toBe('flask')
+      // Tepat di atas mulut labu, termometer yang terpilih.
+      expect(
+        pickTarget({ x: flask.x + 66, y: flask.y - 20 }, targets(items, false)),
+      ).toBe('thermometer')
+    }
   })
 })

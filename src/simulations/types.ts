@@ -41,10 +41,12 @@ export type SceneLayout = {
   actionSide?: Record<string, LabelSide>
   // Mode HP (< 768 px): adegan dibagi menjadi area kerja yang tampil satu per
   // satu, urut sesuai tab. Tanpa ini, adegan utuh diskalakan seperti di desktop.
-  // `actionSide` menggantikan sisi tombol aksi di mode HP, tempat tombol
-  // diperbesar agar mudah disentuh dan bisa keluar dari panggung.
+  // `actionSide` dan `labelSide` menggantikan sisi tombol aksi dan label di
+  // mode HP, tempat keduanya diperbesar agar terbaca dan mudah disentuh
+  // sehingga bisa keluar dari panggung atau menutupi label benda sebelahnya.
   mobile?: {
     views: MobileView[]
     actionSide?: Record<string, LabelSide>
+    labelSide?: Record<string, LabelSide>
   }
 }

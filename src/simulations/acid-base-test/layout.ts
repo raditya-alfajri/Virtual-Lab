@@ -1,6 +1,5 @@
 import type { Rect, SceneLayout } from '../types'
 
-// Semua angka dari Figma, dalam koordinat panggung 1440 × 1024.
 export const STAGE = { width: 1440, height: 1024 }
 
 export const BACKGROUND = '/img/lab/asam-basa-bg.svg'
@@ -31,4 +30,27 @@ export const acidBaseLayout: SceneLayout = {
   stage: STAGE,
   home: HOME,
   zones: ZONES,
+
+  mobile: {
+    views: [
+      {
+        id: 'meja',
+        label: 'Meja',
+        region: { x: 480, y: 420, w: 720, h: 604 },
+      },
+      {
+        id: 'rak-kartu',
+        label: 'Rak & kartu pH',
+        region: { x: 760, y: 420, w: 680, h: 604 },
+      },
+      {
+        id: 'wastafel',
+        label: 'Wastafel',
+        region: { x: 0, y: 200, w: 700, h: 600 },
+      },
+    ],
+    // Pipet dan tabung di meja berjarak ±45 px di HP; label berselang
+    // atas-bawah agar tidak saling menutupi.
+    labelSide: { pipette: 'top', 'tube-2': 'top' },
+  },
 }

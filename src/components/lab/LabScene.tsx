@@ -159,7 +159,10 @@ export default function LabScene(props: Props) {
     const k = box.width / layout.stage.width
     const p = { x: (e.clientX - box.left) / k, y: (e.clientY - box.top) / k }
     const id =
-      pickTarget(p, itemTouchTargets(exp, layout, lab.items, camera.scale)) ??
+      pickTarget(
+        p,
+        itemTouchTargets(exp, layout, lab.items, camera.scale, !!selected),
+      ) ??
       (selected ? pickTarget(p, zoneTouchTargets(layout, camera.scale)) : null)
     if (id) tap(id)
     else onSelect(null)
@@ -207,11 +210,18 @@ export default function LabScene(props: Props) {
 
   const entry = (id: string): TrayEntry => {
     const def = exp.items.find((i) => i.id === id)!
+    const view = lab.view[id]
+    // Label yang sama dengan di adegan (mis. isi tabung), agar benda
+    // bernama sama (tiga tabung reaksi K1) bisa dibedakan.
+    const detail =
+      view?.label ??
+      (DRAWS_OWN_READING.has(def.kind) ? undefined : view?.reading)
     return {
       id,
       kind: def.kind,
       name: def.name,
-      view: lab.view[id],
+      detail: detail === undefined ? undefined : String(detail),
+      view,
       home: layout.home[id],
     }
   }
@@ -577,6 +587,9 @@ const LABEL_SIDE: Record<LabelSide, string> = {
   right: 'left-full top-1/2 ml-2 -translate-y-1/2',
 }
 
+// Lebar maksimum label (max-w-28) dalam px panggung.
+const LABEL_MAX_WIDTH = 112
+
 // Mode HP: label dan tombol aksi diperbesar dari sisi yang menempel ke benda.
 const GROW_FROM: Record<LabelSide, string> = {
   bottom: '50% 0',
@@ -586,8 +599,19 @@ const GROW_FROM: Record<LabelSide, string> = {
 }
 
 function SceneItem({ id }: { id: string }) {
-  const { exp, lab, layout, dragging, over, selected, hint, tap, camera, ui } =
-    useScene()
+  const {
+    exp,
+    lab,
+    layout,
+    dragging,
+    over,
+    selected,
+    hint,
+    tap,
+    camera,
+    ui,
+    tapAt,
+  } = useScene()
   const def = exp.items.find((i) => i.id === id)!
   const spot = placeItem(layout, lab.items, id)
   // Benda yang diputar (mis. batang pengaduk di gelas) hanya diputar
@@ -628,7 +652,11 @@ function SceneItem({ id }: { id: string }) {
 
   // Benda yang menempel digambar di atas induknya.
   const zIndex = parents.length || undefined
-  const labelSide = spot.labelSide ?? layout.labelSide?.[id] ?? 'bottom'
+  const labelSide =
+    spot.labelSide ??
+    (camera && layout.mobile?.labelSide?.[id]) ??
+    layout.labelSide?.[id] ??
+    'bottom'
   // Mode HP: garis penanda tetap tebal walau panggung diperkecil.
   const outlineWidth = camera?.scale && look ? 3 / camera.scale : undefined
 
@@ -644,7 +672,10 @@ function SceneItem({ id }: { id: string }) {
         aria-label={label ? `${def.name}, ${label}` : def.name}
         onClick={(e) => {
           e.stopPropagation()
-          tap(id)
+          // Di HP, benda tetap (mis. penangas) meneruskan ketukan agar benda
+          // kecil di atasnya (mis. labu) bisa dipilih.
+          if (camera && def.fixed) tapAt(e)
+          else tap(id)
         }}
         onKeyDown={onEnterOrSpace(() => tap(id))}
         className={`absolute touch-none select-none ${precise ? 'pointer-events-none' : ''} ${lifted ? 'opacity-40' : ''} ${def.fixed ? '' : 'cursor-grab'}`}
@@ -668,7 +699,14 @@ function SceneItem({ id }: { id: string }) {
             className={`pointer-events-none absolute w-max max-w-28 rounded-lg border border-line bg-white/95 px-2 py-0.5 text-center text-[15px] leading-tight font-medium text-ink ${LABEL_SIDE[labelSide]}`}
             style={
               camera
-                ? { scale: ui, transformOrigin: GROW_FROM[labelSide] }
+                ? {
+                    scale: ui,
+                    transformOrigin: GROW_FROM[labelSide],
+                    // Lebar akhir tetap max-w-28 (112 px) panggung seperti
+                    // desktop: label membungkus ke bawah, bukan menutupi label
+                    // benda sebelahnya (mis. tabung di rak K1).
+                    maxWidth: LABEL_MAX_WIDTH / ui,
+                  }
                 : undefined
             }
           >

@@ -177,21 +177,33 @@ export function protrudingHitArea(
   return grow(strip, min / scale, anchor)
 }
 
-// Area sentuh semua benda yang tampil di panggung.
+// Area sentuh benda yang tampil di panggung. Benda tetap (mis. penangas)
+// tidak bisa dipilih, jadi hanya ikut dihitung sebagai tujuan saat ada benda
+// terpilih (`includeFixed`).
+//
+// Benda yang menempel pada benda biasa (mis. termometer di labu) hanya bisa
+// disentuh di bagian yang menonjol, agar induknya tetap bisa dipilih. Di atas
+// benda tetap (mis. labu di penangas atau kertas silang), seluruh kotaknya
+// bisa disentuh: induknya tidak bisa dipilih, dan kotak benda yang lebih kecil
+// menang atas induknya saat keduanya memuat titik ketukan.
 export function itemTouchTargets(
   exp: Experiment,
   layout: SceneLayout,
   items: Items,
   scale: number,
+  includeFixed = true,
 ): TouchTarget[] {
+  const fixed = (id: string) =>
+    exp.items.find((i) => i.id === id)?.fixed === true
   const targets: TouchTarget[] = []
   for (const item of exp.items) {
+    if (item.fixed && !includeFixed) continue
     const spot = placeItem(layout, items, item.id)
     if (!spot) continue
     const bounds = boundsOf(spot)
-    const parent = spot.parents.length
-      ? placeItem(layout, items, spot.parents[0])
-      : null
+    const parentId = spot.parents[0]
+    const parent =
+      parentId && !fixed(parentId) ? placeItem(layout, items, parentId) : null
     const hit = parent
       ? protrudingHitArea(bounds, boundsOf(parent), scale)
       : hitArea(bounds, scale)

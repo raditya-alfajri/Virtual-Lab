@@ -49,4 +49,25 @@ export const reactionRateLayout: SceneLayout = {
   labelSide: { paper: 'right', thermometer: 'right' },
   // Di atas penangas ada labu dan termometer saat dipanaskan.
   actionSide: { bath: 'right' },
+  // Botol Na₂S₂O₃ dan HCl di rak dinding tidak masuk area mana pun; diambil
+  // dari rak alat di bawah adegan.
+  mobile: {
+    views: [
+      {
+        id: 'meja',
+        label: 'Meja',
+        region: { x: 120, y: 420, w: 780, h: 560 },
+      },
+      {
+        id: 'penangas',
+        label: 'Penangas',
+        region: { x: 820, y: 400, w: 620, h: 560 },
+      },
+    ],
+    // Tombol Nyalakan yang diperbesar di kanan penangas keluar dari tepi
+    // panggung; di bawah penangas masih ada ruang meja.
+    actionSide: { bath: 'bottom' },
+    // Label penangas pindah dari bawah (tempat tombol Nyalakan) ke kanan.
+    labelSide: { bath: 'right' },
+  },
 }

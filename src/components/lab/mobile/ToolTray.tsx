@@ -6,6 +6,8 @@ export type TrayEntry = {
   id: string
   kind: string
   name: string
+  // Keterangan singkat di bawah nama (mis. isi tabung).
+  detail?: string
   view?: Record<string, Value>
   home?: Rect
 }
@@ -57,8 +59,19 @@ export default function ToolTray({
                     home={e.home}
                     size={32}
                   />
-                  <span className="line-clamp-3 min-w-0 text-[11px] leading-tight font-medium">
-                    {e.name}
+                  <span className="flex min-w-0 flex-col">
+                    <span
+                      className={`text-[11px] leading-tight font-medium ${e.detail ? 'line-clamp-2' : 'line-clamp-3'}`}
+                    >
+                      {e.name}
+                    </span>
+                    {e.detail && (
+                      <span
+                        className={`line-clamp-2 text-[10px] leading-tight ${active ? 'text-primary' : 'text-ink-muted'}`}
+                      >
+                        {e.detail}
+                      </span>
+                    )}
                   </span>
                 </button>
               </li>
