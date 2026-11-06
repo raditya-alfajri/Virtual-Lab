@@ -1,17 +1,20 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { ArrowLeft, RotateCcw, X } from 'lucide-react'
+import { ArrowLeft, RotateCcw } from 'lucide-react'
 import LabScene from '../components/lab/LabScene'
-import type { Column, Experiment, Explanation, Row, Value } from '../data/types'
+import MobileLab from '../components/lab/mobile/MobileLab'
+import {
+  ExplanationPanel,
+  ObservationTable,
+} from '../components/lab/ObservationPanels'
+import { PHONE_QUERY, useMediaQuery } from '../components/lab/useMediaQuery'
+import type { Experiment } from '../data/types'
 import { useExperiment } from '../hooks/useExperiment'
 import { getExperiment } from '../lib/experiments'
 import { getSceneLayout } from '../simulations'
 import type { SceneLayout } from '../simulations/types'
 
 const SPEEDS = [1, 5]
-
-const show = (v: Value) =>
-  typeof v === 'number' ? String(v).replace('.', ',') : String(v)
 
 export default function LabPage() {
   const { subject = '', id = '' } = useParams()
@@ -49,10 +52,28 @@ function Lab({ exp, layout }: { exp: Experiment; layout: SceneLayout }) {
   const [speed, setSpeed] = useState(1)
   const [selected, setSelected] = useState<string | null>(null)
   const lab = useExperiment(exp, speed)
+  // Mode HP hanya untuk eksperimen yang punya area kerja HP.
+  const phone = useMediaQuery(PHONE_QUERY) && layout.mobile !== undefined
 
   const reset = () => {
     lab.reset()
     setSelected(null)
+  }
+
+  if (phone) {
+    return (
+      <MobileLab
+        exp={exp}
+        lab={lab}
+        layout={layout}
+        speeds={SPEEDS}
+        speed={speed}
+        onSpeed={setSpeed}
+        selected={selected}
+        onSelect={setSelected}
+        onReset={reset}
+      />
+    )
   }
 
   return (
@@ -115,90 +136,6 @@ function Lab({ exp, layout }: { exp: Experiment; layout: SceneLayout }) {
         </aside>
       </div>
     </div>
-  )
-}
-
-function ExplanationPanel({
-  explanation,
-}: {
-  explanation: Explanation | null
-}) {
-  return (
-    <section className="rounded-2xl border border-line bg-white p-4 text-sm">
-      <h2 className="mb-2 font-heading text-base font-semibold">Penjelasan</h2>
-      {explanation ? (
-        <div className="space-y-2">
-          <p className="font-semibold">{explanation.result}</p>
-          <p>{explanation.reason}</p>
-          {explanation.formula && (
-            <p className="rounded-lg bg-primary-tint px-3 py-2 font-mono text-primary">
-              {explanation.formula}
-            </p>
-          )}
-        </div>
-      ) : (
-        <p className="text-ink-muted">
-          Penjelasan muncul setelah kamu melakukan pengukuran.
-        </p>
-      )}
-    </section>
-  )
-}
-
-function ObservationTable({
-  columns,
-  rows,
-  onRemove,
-}: {
-  columns: Column[]
-  rows: Row[]
-  onRemove: (index: number) => void
-}) {
-  return (
-    <section className="overflow-x-auto rounded-2xl border border-line bg-white p-4 text-sm">
-      <h2 className="mb-2 font-heading text-base font-semibold">
-        Tabel pengamatan
-      </h2>
-      <table className="w-full">
-        <thead>
-          <tr className="text-left text-ink-muted">
-            {columns.map((c) => (
-              <th key={c.key} className="pr-3 pb-1 font-medium">
-                {c.label}
-              </th>
-            ))}
-            <th>
-              <span className="sr-only">Aksi</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, i) => (
-            <tr key={i} className="border-t border-line">
-              {columns.map((c) => (
-                <td key={c.key} className="py-1.5 pr-3">
-                  {show(row[c.key])}
-                </td>
-              ))}
-              <td className="text-right">
-                <button
-                  onClick={() => onRemove(i)}
-                  aria-label={`Hapus baris ${i + 1}`}
-                  className="rounded p-1 text-ink-muted hover:bg-primary-tint hover:text-primary"
-                >
-                  <X size={16} />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {rows.length === 0 && (
-        <p className="mt-2 text-ink-muted">
-          Belum ada data. Hasil pengukuran akan tercatat di sini.
-        </p>
-      )}
-    </section>
   )
 }
 

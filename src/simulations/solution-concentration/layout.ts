@@ -41,4 +41,23 @@ export const solutionConcentrationLayout: SceneLayout = {
   labelSide: { 'spoon-small': 'right', 'spoon-large': 'right' },
   // Di atas batang pengaduk ada sendok besar.
   actionSide: { stirrer: 'right' },
+  // Botol air dan wadah CuSO₄ di rak dinding tidak masuk area mana pun;
+  // keduanya diambil dari rak alat di bawah adegan.
+  mobile: {
+    views: [
+      {
+        id: 'meja-timbang',
+        label: 'Meja timbang',
+        region: { x: 20, y: 340, w: 640, h: 560 },
+      },
+      {
+        id: 'meja-kerja',
+        label: 'Meja kerja',
+        region: { x: 620, y: 420, w: 820, h: 520 },
+      },
+    ],
+    // Tombol Aduk yang diperbesar di kanan batang pengaduk keluar dari tepi
+    // panggung dan menutupi label sendok besar.
+    actionSide: { stirrer: 'bottom' },
+  },
 }

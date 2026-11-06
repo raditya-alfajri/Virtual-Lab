@@ -15,6 +15,10 @@ export type Offset = {
 
 export type LabelSide = 'top' | 'bottom' | 'left' | 'right'
 
+// Satu area kerja di mode HP: bagian panggung yang diperbesar dan ditampilkan
+// sendiri (mis. meja timbang), dalam koordinat panggung.
+export type MobileView = { id: string; label: string; region: Rect }
+
 export type SceneLayout = {
   background: string
   stage: { width: number; height: number }
@@ -35,4 +39,14 @@ export type SceneLayout = {
   // Sisi tombol aksi (mis. Aduk, Nyalakan) saat benda tidak menempel pada
   // benda lain. Default dan untuk benda yang menempel: di atas benda.
   actionSide?: Record<string, LabelSide>
+  // Mode HP (< 768 px): adegan dibagi menjadi area kerja yang tampil satu per
+  // satu, urut sesuai tab. Tanpa ini, adegan utuh diskalakan seperti di desktop.
+  // `actionSide` dan `labelSide` menggantikan sisi tombol aksi dan label di
+  // mode HP, tempat keduanya diperbesar agar terbaca dan mudah disentuh
+  // sehingga bisa keluar dari panggung atau menutupi label benda sebelahnya.
+  mobile?: {
+    views: MobileView[]
+    actionSide?: Record<string, LabelSide>
+    labelSide?: Record<string, LabelSide>
+  }
 }
