@@ -1,73 +1,70 @@
-# React + TypeScript + Vite
+# Virtual Lab
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Lab virtual kimia untuk siswa SMA dengan Asisten Lab berbasis AI.
 
-Currently, two official plugins are available:
+## Tim
+Nama tim:
+- Muhammad Raditya Alfajri (Ketua Tim - BackEnd)
+- Muhammad Zidna Fadla (BackEnd)
+- Raihan Khairullah (FrontEnd)
+- Raja Aunur Rahman (FrontEnd)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Kategori
+WebApp — Logicodix 2026, subtema Smart & Fun Education
 
-## React Compiler
+## Masalah
+Praktikum kimia di banyak SMA masih terkendala. Alat dan bahan terbatas, waktunya sempit, dan beberapa bahan berbahaya kalau tidak diawasi. Akibatnya praktikum sering diganti dengan membaca langkah di buku atau menonton video, sehingga siswa tidak benar-benar mencoba.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Saat praktikum berlangsung pun, satu guru biasanya mendampingi satu kelas penuh. Siswa yang bingung jarang sempat bertanya, dan banyak yang hanya mengikuti prosedur tanpa tahu kenapa hasilnya seperti itu.
 
-## Expanding the ESLint configuration
+## Solusi
+Kami Membuat Platform Experiment Kimia & Fisika secara Virtual agar siswa bisa praktikum kapan saja dari HP atau laptop, mengulang percobaan sebanyak yang mereka mau, dan tetap punya teman belajar yang bisa ditanya.
+## Target pengguna
+- Siswa/Siswi SMA (main)
+- Pelajar SD/SMP 
+- Anak-anak
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Fitur utama
+Lab virtual Interaktif untuk siswa melakukan experiment Kimia dan Fisika
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Teknologi
+React, Vite, TypeScript, Tailwind CSS, React Router, dnd-kit, Motion, dan Vitest. Endpoint AI dan suara dibuat sebagai serverless function di Vercel.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Untuk AI, kami merencanakan Gemini API tingkat gratis dari Google AI Studio. Pilihan layanan diatur lewat variabel lingkungan, jadi bisa diganti tanpa mengubah kode. Untuk suara kami memakai ElevenLabs. Layanan dan model yang dipakai dicatat di README dan halaman Tentang AI.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Arsitektur dan alur data
+
+```
+Siswa menyeret benda
+  -> mesin simulasi memeriksa aturan
+  -> mesin memperbarui keadaan meja, tabel, dan daftar kejadian
+  -> tampilan menggambar ulang meja dan tabel
+  -> Labi bereaksi sesuai kejadian (ekspresi atau suara)
+
+Siswa bertanya ke Labi
+  -> aplikasi mengirim konteks praktikum ke /api/assistant
+  -> server memeriksa batas pemakaian lalu meneruskan ke layanan AI
+  -> jawaban tampil di panel Labi
+  -> kalau gagal, Labi memakai mode sederhana
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Mesin simulasi mengeluarkan daftar kejadian setiap kali ada aksi atau proses, misalnya `color-changed`, `dissolved`, `heater-on`, `reaction-started`, `record-added`, `rejected`, dan `action-ok`. Labi hanya membaca daftar ini, sehingga reaksinya tidak perlu diatur ulang di setiap eksperimen.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Menjalankan aplikasi
+1. `npm install`
+2. Salin `.env.example` menjadi `.env`, lalu isi nilainya
+3. `npm run dev`
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Variabel lingkungan
+| Nama | Keterangan |
+| --- | --- |
+| `AI_PROVIDER` | Layanan AI yang dipakai |
+| `AI_API_KEY` | API key layanan AI |
+| `AI_MODEL` | Model AI |
+| `AI_MAX_QUESTIONS_PER_SESSION` | Batas pertanyaan per sesi |
+| `ELEVENLABS_API_KEY` | API key ElevenLabs untuk suara maskot |
+| `ELEVENLABS_VOICE_ID` | Id suara ElevenLabs |
+
+## Penggunaan AI
+## Atribusi
+## Tautan aplikasi
