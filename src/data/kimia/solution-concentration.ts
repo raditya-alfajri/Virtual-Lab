@@ -22,7 +22,8 @@ export const solutionConcentration: Experiment = {
     { key: 'warna', label: 'Warna' },
   ],
   prediction: {
-    question: 'Kalau airnya ditambah dua kali lipat, warnanya jadi lebih pekat atau lebih pucat?',
+    question:
+      'Kalau airnya ditambah dua kali lipat, warnanya jadi lebih pekat atau lebih pucat?',
     options: ['Lebih pekat', 'Lebih pucat', 'Sama saja'],
   },
   lines: [],
