@@ -7,6 +7,7 @@ export type ItemDef = {
   name: string
   fixed?: boolean
   start?: string
+  state?: ItemState
 }
 
 export type Zone = {
