@@ -28,7 +28,7 @@ export type LabEventType =
   | 'color-changed'
   | 'stirring-started'
   | 'dissolved'
-  | 'dillution'
+  | 'dilution'
   | 'heater-on'
   | 'reaction-started'
   | 'record-added'
