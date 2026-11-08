@@ -11,7 +11,6 @@ import LabPage from './pages/LabPage'
 import AboutAI from './pages/AboutAI'
 import NotFound from './pages/NotFound'
 
-
 const router = createBrowserRouter([
   {
     element: <Layout />,
