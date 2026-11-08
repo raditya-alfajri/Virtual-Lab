@@ -1,4 +1,4 @@
-import { useMemo, useReducer, useState } from 'react'
+import { useEffect, useMemo, useReducer, useState } from 'react'
 import type { Experiment } from '../data/types'
 import {
   createInitialState,
@@ -10,6 +10,10 @@ import {
 
 export type Speed = 1 | 5
 
+// Longest real time a single frame may count for, so a hidden tab or a slow
+// frame does not make a process jump ahead.
+const MAX_FRAME_DT = 0.1
+
 export function useExperiment(exp: Experiment) {
   const [state, dispatch] = useReducer(
     (s: EngineState, a: EngineAction) => runEngine(exp, s, a),
@@ -18,6 +22,23 @@ export function useExperiment(exp: Experiment) {
   )
   const [speed, setSpeed] = useState<Speed>(1)
   const view = useMemo(() => getView(exp, state), [exp, state])
+  const hasTick = exp.tick !== undefined
+
+  useEffect(() => {
+    if (!hasTick) return
+    let frame = 0
+    let last: number | null = null
+    const loop = (now: number) => {
+      if (last !== null) {
+        const raw = Math.min((now - last) / 1000, MAX_FRAME_DT)
+        dispatch({ type: 'tick', dt: raw * speed })
+      }
+      last = now
+      frame = requestAnimationFrame(loop)
+    }
+    frame = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(frame)
+  }, [hasTick, speed])
 
   return {
     world: state.world,
@@ -31,7 +52,7 @@ export function useExperiment(exp: Experiment) {
     setSpeed,
     drop: (sourceId: string, targetId: string) =>
       dispatch({ type: 'drop', sourceId, targetId }),
-    use: (itemId: string) => dispatch({ type: 'use', itemId }),
+    tap: (itemId: string) => dispatch({ type: 'use', itemId }),
     removeRow: (index: number) => dispatch({ type: 'removeRow', index }),
     reset: () => dispatch({ type: 'reset' }),
   }
