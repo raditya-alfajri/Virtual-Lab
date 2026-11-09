@@ -43,7 +43,7 @@ function playLog(
 
 const eventTypes = (s: EngineState) => s.events.map((e) => e.type)
 
-/** Spoon CuSO₄ onto the watch glass (assumed on the balance): 4 g first, then 1 g. */
+/** Assumes the watch glass is already on the balance. */
 function weigh(grams: number): EngineAction[] {
   const out: EngineAction[] = []
   for (let i = 0; i < Math.floor(grams / 4); i++) {

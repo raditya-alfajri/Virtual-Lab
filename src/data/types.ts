@@ -54,6 +54,8 @@ export type Outcome = {
   events?: LabEvent[]
   record?: Row
   explanation?: Explanation
+  /** Shown instead of `explanation` when `record` is already in the table. */
+  duplicateNote?: Explanation
 }
 export type Result = Outcome | { reject: string }
 
