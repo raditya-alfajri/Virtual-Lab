@@ -6,7 +6,6 @@ import type { Rect } from '../../simulations/types'
 import type { DropData } from './drop-target'
 import { onActivateKey } from './keyboard'
 import LabAsset from './LabAsset'
-import { useStageScale } from './stage-scale'
 
 type Props = {
   item: ItemDef
@@ -27,7 +26,6 @@ export default function StageItem({
   onClick,
   onAction,
 }: Props) {
-  const scale = useStageScale()
   const fixed = item.fixed === true
   const drag = useDraggable({ id: item.id, disabled: fixed })
   const dropData: DropData = { layer: 'item', order: zIndex }
@@ -42,21 +40,15 @@ export default function StageItem({
     [setDragRef, setDropRef],
   )
 
-  const offset = drag.transform
-
   return (
     <div
-      className="absolute"
+      className={clsx('absolute', drag.isDragging && 'opacity-30')}
       style={{
         left: rect.x,
         top: rect.y,
         width: rect.w,
         height: rect.h,
-        zIndex: drag.isDragging ? 1000 : zIndex,
-        // dnd-kit measures in screen pixels, but this lives inside the scaled stage.
-        transform: offset
-          ? `translate3d(${offset.x / scale}px, ${offset.y / scale}px, 0)`
-          : undefined,
+        zIndex,
       }}
     >
       <div

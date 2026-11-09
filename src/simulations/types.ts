@@ -9,4 +9,8 @@ export type SceneLayout = {
   zones: Record<string, Rect>
   /** Keyed by the attached item's id, relative to its parent's top-left. */
   attach: Record<string, Offset>
+  /** Corner of the stage each floating panel sits in, away from busy parts of the scene. */
+  panels: { explanation: PanelCorner }
 }
+
+export type PanelCorner = 'top-left' | 'top-right'

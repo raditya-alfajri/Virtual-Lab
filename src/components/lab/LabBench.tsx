@@ -8,9 +8,11 @@ import {
   type Announcements,
   type CollisionDetection,
   type DragEndEvent,
+  type DragStartEvent,
   type UniqueIdentifier,
 } from '@dnd-kit/core'
 import clsx from 'clsx'
+import { Table2 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import type { Experiment } from '../../data/types'
 import type { useExperiment } from '../../hooks/useExperiment'
@@ -18,12 +20,15 @@ import { SHELF } from '../../lib/engine'
 import { getBackgroundUrl } from '../../simulations'
 import { attachDepth, resolveItemRect } from '../../simulations/position'
 import type { SceneLayout } from '../../simulations/types'
+import DragPreview from './DragPreview'
 import { pickDropTarget, type DropData } from './drop-target'
+import ExplanationCard from './ExplanationCard'
 import { onActivateKey } from './keyboard'
 import LabHint from './LabHint'
 import LabStage from './LabStage'
 import StageItem from './StageItem'
 import StageZone from './StageZone'
+import TableDrawer from './TableDrawer'
 
 type Props = {
   experiment: Experiment
@@ -47,15 +52,17 @@ const collisionDetection: CollisionDetection = (args) => {
 
 export default function LabBench({ experiment, layout, lab }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [dragging, setDragging] = useState(false)
+  const [activeId, setActiveId] = useState<string | null>(null)
   const [hintClosed, setHintClosed] = useState(false)
+  const [tableOpen, setTableOpen] = useState(false)
   const suppressClick = useRef(false)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   )
 
   const itemCount = experiment.items.length
-  const held = dragging || selectedId !== null
+  const held = activeId !== null || selectedId !== null
+  const activeItem = experiment.items.find((item) => item.id === activeId)
 
   const nameOf = (id: UniqueIdentifier) =>
     id === SHELF
@@ -91,9 +98,14 @@ export default function LabBench({ experiment, layout, lab }: Props) {
     }
   }
 
+  const handleDragStart = ({ active }: DragStartEvent) => {
+    setSelectedId(null)
+    setActiveId(String(active.id))
+  }
+
   // The browser still fires a click right after a drag ends; ignore that one.
   const endDrag = () => {
-    setDragging(false)
+    setActiveId(null)
     suppressClick.current = true
     setTimeout(() => {
       suppressClick.current = false
@@ -118,14 +130,44 @@ export default function LabBench({ experiment, layout, lab }: Props) {
     onDragCancel: ({ active }) => `Batal memindahkan ${nameOf(active.id)}.`,
   }
 
+  const overlay = (
+    <>
+      <ExplanationCard
+        explanation={lab.explanation}
+        objectives={experiment.objectives}
+        tips={experiment.tips}
+        corner={layout.panels.explanation}
+      />
+      <LabHint
+        hint={hintClosed ? null : lab.hint}
+        onClose={() => setHintClosed(true)}
+      />
+      <div className="pointer-events-auto absolute bottom-3 left-3 flex items-stretch gap-2">
+        <Shelf highlight={held} onClick={() => handlePlaceClick(SHELF)} />
+        <button
+          type="button"
+          onClick={() => setTableOpen(true)}
+          className="flex items-center gap-2 rounded-xl border border-line bg-bg px-4 py-2 text-sm font-semibold shadow-md hover:bg-primary-tint"
+        >
+          <Table2 size={18} className="text-primary" />
+          Tabel ({lab.rows.length})
+        </button>
+      </div>
+      <TableDrawer
+        open={tableOpen}
+        columns={lab.columns}
+        rows={lab.rows}
+        onRemove={lab.removeRow}
+        onClose={() => setTableOpen(false)}
+      />
+    </>
+  )
+
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={collisionDetection}
-      onDragStart={() => {
-        setSelectedId(null)
-        setDragging(true)
-      }}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragCancel={endDrag}
       accessibility={{
@@ -139,12 +181,7 @@ export default function LabBench({ experiment, layout, lab }: Props) {
       <LabStage
         background={getBackgroundUrl(experiment.id)}
         onBackgroundClick={() => setSelectedId(null)}
-        overlay={
-          <LabHint
-            hint={hintClosed ? null : lab.hint}
-            onClose={() => setHintClosed(true)}
-          />
-        }
+        overlay={overlay}
       >
         {experiment.zones.map((zone) => {
           const rect = layout.zones[zone.id]
@@ -179,8 +216,15 @@ export default function LabBench({ experiment, layout, lab }: Props) {
             />
           )
         })}
+        <DragPreview
+          item={activeItem}
+          rect={
+            activeItem &&
+            resolveItemRect(layout, lab.world.items, activeItem.id)
+          }
+          view={activeItem && lab.view[activeItem.id]}
+        />
       </LabStage>
-      <Shelf highlight={held} onClick={() => handlePlaceClick(SHELF)} />
     </DndContext>
   )
 }
@@ -202,17 +246,17 @@ function Shelf({
       onClick={onClick}
       onKeyDown={onActivateKey(onClick)}
       className={clsx(
-        'mt-3 flex items-baseline gap-3 rounded-2xl border-2 border-dashed px-5 py-4 transition-colors',
+        'flex flex-col justify-center rounded-xl border-2 border-dashed px-4 py-1.5 shadow-md transition-colors',
         isOver
           ? 'border-primary bg-primary-tint'
           : highlight
-            ? 'border-primary/60 bg-primary-tint/50'
-            : 'border-line',
+            ? 'border-primary/60 bg-primary-tint/80'
+            : 'border-line bg-bg',
       )}
     >
-      <p className="font-heading font-bold">{SHELF_NAME}</p>
-      <p className="text-sm text-ink-muted">
-        Taruh benda di sini untuk mengembalikannya ke tempat awal.
+      <p className="font-heading text-sm font-bold">{SHELF_NAME}</p>
+      <p className="text-xs text-ink-muted">
+        Taruh benda di sini untuk mengembalikannya.
       </p>
     </div>
   )

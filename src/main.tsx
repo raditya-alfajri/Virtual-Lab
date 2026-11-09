@@ -7,11 +7,12 @@ import Home from './pages/Home'
 import LabList from './pages/LabList'
 import ExperimentCatalog from './pages/ExperimentCatalog'
 import ExperimentDetail from './pages/ExperimentDetail'
-import LabPage from './pages/LabPage'
+import LazyLabPage from './pages/LazyLabPage'
 import AboutAI from './pages/AboutAI'
 import NotFound from './pages/NotFound'
 
 const router = createBrowserRouter([
+  { path: '/lab/:subject/:id/mulai', element: <LazyLabPage /> },
   {
     element: <Layout />,
     children: [
@@ -19,7 +20,6 @@ const router = createBrowserRouter([
       { path: '/lab', element: <LabList /> },
       { path: '/lab/:subject', element: <ExperimentCatalog /> },
       { path: '/lab/:subject/:id', element: <ExperimentDetail /> },
-      { path: '/lab/:subject/:id/mulai', element: <LabPage /> },
       { path: '/tentang-ai', element: <AboutAI /> },
       { path: '*', element: <NotFound /> },
     ],
