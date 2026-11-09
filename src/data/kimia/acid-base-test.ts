@@ -7,15 +7,12 @@ import type {
   World,
 } from '../types'
 
-/** Seconds the universal indicator needs to reach its final colour. */
 export const COLOR_CHANGE_SECONDS = 1
 
 type Solution = {
   name: string
-  /** Name used mid-sentence. */
   inline: string
   ph: number
-  /** Colour of the liquid before the indicator reacts. */
   color: string
   reason: string
 }
