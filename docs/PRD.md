@@ -8,15 +8,15 @@ Virtual Lab adalah web praktikum kimia untuk siswa SMA. Di dalamnya ada meja lab
 
 Selama praktikum, siswa ditemani Labi, robot asisten lab. Labi mengajak siswa menebak hasil sebelum mencoba, menjawab pertanyaan saat praktikum berjalan, dan membantu menyimpulkan setelah data terkumpul. Di momen-momen tertentu Labi juga berbicara untuk menjelaskan apa yang baru saja terjadi.
 
-| Item | Keterangan |
-| --- | --- |
-| Lomba | Logicodix 2026 Hackathon |
-| Subtema | Smart & Fun Education |
-| Kategori | Web |
-| Tim | 4 orang |
-| Masa pengerjaan | 7 – 14 November 2026 (code freeze 14 November, 23.59 WIB) |
-| Target aplikasi jadi | Selasa, 10 November 2026 |
-| Batas internal | Jumat, 13 November 2026 |
+| Item                 | Keterangan                                                |
+| -------------------- | --------------------------------------------------------- |
+| Lomba                | Logicodix 2026 Hackathon                                  |
+| Subtema              | Smart & Fun Education                                     |
+| Kategori             | Web                                                       |
+| Tim                  | 4 orang                                                   |
+| Masa pengerjaan      | 7 – 14 November 2026 (code freeze 14 November, 23.59 WIB) |
+| Target aplikasi jadi | Selasa, 10 November 2026                                  |
+| Batas internal       | Jumat, 13 November 2026                                   |
 
 ## 2. Latar Belakang
 
@@ -34,13 +34,13 @@ Kami ingin siswa bisa praktikum kapan saja dari HP atau laptop, mengulang percob
 
 Ukuran yang kami pakai saat uji coba dengan 3–5 siswa:
 
-| Yang diukur | Target |
-| --- | --- |
-| Siswa yang berhasil mendapatkan minimal 3 data tanpa dibantu | 4 dari 5 |
-| Siswa yang bisa menyebutkan kesimpulan setelah praktikum | 4 dari 5 |
-| Siswa yang merasa Labi membantu | 4 dari 5 |
-| Siswa yang menemukan eksperimen dalam 30 detik | 4 dari 5 |
-| Nilai rata-rata "seru dipakai" | minimal 4 dari 5 |
+| Yang diukur                                                  | Target           |
+| ------------------------------------------------------------ | ---------------- |
+| Siswa yang berhasil mendapatkan minimal 3 data tanpa dibantu | 4 dari 5         |
+| Siswa yang bisa menyebutkan kesimpulan setelah praktikum     | 4 dari 5         |
+| Siswa yang merasa Labi membantu                              | 4 dari 5         |
+| Siswa yang menemukan eksperimen dalam 30 detik               | 4 dari 5         |
+| Nilai rata-rata "seru dipakai"                               | minimal 4 dari 5 |
 
 ## 4. Pengguna
 
@@ -90,11 +90,11 @@ Beberapa aturan yang kami pegang:
 
 ### 7.1 Tiga tahap belajar
 
-| Tahap | Waktu | Yang dilakukan Labi |
-| --- | --- | --- |
-| Tebak | Saat praktikum dibuka | Menanyakan dugaan siswa, misalnya "Menurutmu cuka asam, basa, atau netral? Kenapa?" Jawaban siswa disimpan dan ditampilkan sebagai pengingat. |
-| Amati | Selama praktikum | Menjawab pertanyaan siswa sesuai isi meja dan tabel. Labi lebih sering memancing dengan pertanyaan balik daripada langsung memberi jawaban. |
-| Simpulkan | Setelah ada data | Membandingkan dugaan dengan hasil, lalu meminta siswa menjelaskan dengan kata-katanya sendiri. Labi memberi tanggapan dan meluruskan kalau ada yang keliru. |
+| Tahap     | Waktu                 | Yang dilakukan Labi                                                                                                                                         |
+| --------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tebak     | Saat praktikum dibuka | Menanyakan dugaan siswa, misalnya "Menurutmu cuka asam, basa, atau netral? Kenapa?" Jawaban siswa disimpan dan ditampilkan sebagai pengingat.               |
+| Amati     | Selama praktikum      | Menjawab pertanyaan siswa sesuai isi meja dan tabel. Labi lebih sering memancing dengan pertanyaan balik daripada langsung memberi jawaban.                 |
+| Simpulkan | Setelah ada data      | Membandingkan dugaan dengan hasil, lalu meminta siswa menjelaskan dengan kata-katanya sendiri. Labi memberi tanggapan dan meluruskan kalau ada yang keliru. |
 
 ### 7.2 Batasan Labi
 
@@ -112,13 +112,13 @@ Kalau layanan AI sedang tidak bisa dipakai, praktikum tetap berjalan normal. Lab
 
 Labi tidak berbicara di setiap aksi. Sebagian besar waktu Labi hanya berekspresi, dan baru berbicara di momen yang penting.
 
-| Kejadian | Reaksi Labi | Bersuara |
-| --- | --- | --- |
-| Ada perubahan penting (warna berubah, zat larut, suhu naik) | Kagum, lalu menjelaskan kenapa itu terjadi dan menyarankan langkah berikutnya | Ya |
-| Proses sedang berjalan dan siswa perlu menunggu | Menunggu, lalu memberi tahu apa yang perlu diperhatikan | Ya, sekali per proses |
-| Data tercatat di tabel | Senang, lalu menjelaskan arti hasilnya | Ya |
-| Aksi berhasil | Kagum sebentar | Tidak |
-| Aksi ditolak | Bingung, disertai teks alasan | Tidak |
+| Kejadian                                                    | Reaksi Labi                                                                   | Bersuara              |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------- | --------------------- |
+| Ada perubahan penting (warna berubah, zat larut, suhu naik) | Kagum, lalu menjelaskan kenapa itu terjadi dan menyarankan langkah berikutnya | Ya                    |
+| Proses sedang berjalan dan siswa perlu menunggu             | Menunggu, lalu memberi tahu apa yang perlu diperhatikan                       | Ya, sekali per proses |
+| Data tercatat di tabel                                      | Senang, lalu menjelaskan arti hasilnya                                        | Ya                    |
+| Aksi berhasil                                               | Kagum sebentar                                                                | Tidak                 |
+| Aksi ditolak                                                | Bingung, disertai teks alasan                                                 | Tidak                 |
 
 Aturan suara:
 
@@ -133,43 +133,43 @@ Kalimat Labi selalu terdiri dari tiga bagian: apa yang terjadi, kenapa itu terja
 
 **Uji Asam & Basa**
 
-| Momen | Kalimat |
-| --- | --- |
+| Momen                                      | Kalimat                                                                                                                                                    |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Warna berubah setelah indikator diteteskan | "Warnanya berubah! Indikator universal adalah campuran pewarna yang warnanya mengikuti tingkat keasaman larutan. Coba cocokkan tabungnya dengan kartu pH." |
-| Hasil cuka | "pH 3, cuka bersifat asam karena mengandung banyak ion H⁺ dari asam asetat. Coba uji larutan lain dan bandingkan warnanya." |
-| Hasil air jeruk | "pH 4, air jeruk bersifat asam karena mengandung asam sitrat. Menurutmu, mana yang lebih asam, cuka atau air jeruk?" |
-| Hasil air suling | "pH 7, air suling bersifat netral karena jumlah ion H⁺ dan OH⁻-nya seimbang. Coba sekarang larutan yang menurutmu basa." |
-| Hasil air sabun | "pH 10, air sabun bersifat basa karena lebih banyak mengandung ion OH⁻. Itu sebabnya sabun terasa licin di tangan." |
-| Hasil NaOH encer | "pH 13, NaOH bersifat basa kuat karena melepaskan banyak ion OH⁻ di air. Lihat tabelmu, larutan mana yang paling asam dan paling basa?" |
+| Hasil cuka                                 | "pH 3, cuka bersifat asam karena mengandung banyak ion H⁺ dari asam asetat. Coba uji larutan lain dan bandingkan warnanya."                                |
+| Hasil air jeruk                            | "pH 4, air jeruk bersifat asam karena mengandung asam sitrat. Menurutmu, mana yang lebih asam, cuka atau air jeruk?"                                       |
+| Hasil air suling                           | "pH 7, air suling bersifat netral karena jumlah ion H⁺ dan OH⁻-nya seimbang. Coba sekarang larutan yang menurutmu basa."                                   |
+| Hasil air sabun                            | "pH 10, air sabun bersifat basa karena lebih banyak mengandung ion OH⁻. Itu sebabnya sabun terasa licin di tangan."                                        |
+| Hasil NaOH encer                           | "pH 13, NaOH bersifat basa kuat karena melepaskan banyak ion OH⁻ di air. Lihat tabelmu, larutan mana yang paling asam dan paling basa?"                    |
 
 **Konsentrasi Larutan**
 
-| Momen | Kalimat |
-| --- | --- |
-| Mulai mengaduk | "Kristal CuSO₄ mulai larut. Mengaduk membantu partikelnya menyebar merata ke seluruh air. Terus aduk sampai larut sempurna." |
-| Larut sempurna | "Larut sempurna! Warna biru berasal dari ion tembaga di dalam larutan. Makin banyak zat terlarut, makin pekat birunya. Lihat konsentrasinya di tabel." |
-| Pengenceran | "Airnya bertambah, jadi zat terlarut tersebar di volume yang lebih besar dan konsentrasinya turun. Aduk lagi, lalu bandingkan warnanya dengan sebelumnya." |
+| Momen          | Kalimat                                                                                                                                                    |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mulai mengaduk | "Kristal CuSO₄ mulai larut. Mengaduk membantu partikelnya menyebar merata ke seluruh air. Terus aduk sampai larut sempurna."                               |
+| Larut sempurna | "Larut sempurna! Warna biru berasal dari ion tembaga di dalam larutan. Makin banyak zat terlarut, makin pekat birunya. Lihat konsentrasinya di tabel."     |
+| Pengenceran    | "Airnya bertambah, jadi zat terlarut tersebar di volume yang lebih besar dan konsentrasinya turun. Aduk lagi, lalu bandingkan warnanya dengan sebelumnya." |
 
 **Laju Reaksi**
 
-| Momen | Kalimat |
-| --- | --- |
-| Pemanas menyala | "Pemanas menyala. Panas dari air penangas berpindah ke larutan, jadi partikelnya bergerak makin cepat. Matikan pemanas saat suhunya sesuai tujuanmu." |
-| Reaksi dimulai | "Reaksi dimulai! Na₂S₂O₃ bereaksi dengan HCl membentuk endapan belerang yang membuat larutan keruh. Perhatikan tanda silang di bawah labu." |
+| Momen               | Kalimat                                                                                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Pemanas menyala     | "Pemanas menyala. Panas dari air penangas berpindah ke larutan, jadi partikelnya bergerak makin cepat. Matikan pemanas saat suhunya sesuai tujuanmu."        |
+| Reaksi dimulai      | "Reaksi dimulai! Na₂S₂O₃ bereaksi dengan HCl membentuk endapan belerang yang membuat larutan keruh. Perhatikan tanda silang di bawah labu."                  |
 | Tanda silang hilang | "Tanda silangnya hilang karena endapan belerang sudah cukup banyak menutupi pandangan. Waktunya tercatat. Coba ulangi dengan suhu atau konsentrasi berbeda." |
 
 Labi hanya menjelaskan kejadian yang baru terjadi. Kesimpulan besar, seperti hubungan suhu dengan kecepatan reaksi, tetap dicari sendiri oleh siswa di tahap Simpulkan.
 
 ## 8. Halaman
 
-| Alamat | Isi |
-| --- | --- |
-| `/` | Beranda |
-| `/lab` | Pilih laboratorium |
-| `/lab/:subject` | Katalog eksperimen |
-| `/lab/:subject/:id` | Detail eksperimen |
-| `/lab/:subject/:id/mulai` | Praktikum bersama Labi |
-| `/tentang-ai` | Penjelasan penggunaan AI di aplikasi |
+| Alamat                    | Isi                                  |
+| ------------------------- | ------------------------------------ |
+| `/`                       | Beranda                              |
+| `/lab`                    | Pilih laboratorium                   |
+| `/lab/:subject`           | Katalog eksperimen                   |
+| `/lab/:subject/:id`       | Detail eksperimen                    |
+| `/lab/:subject/:id/mulai` | Praktikum bersama Labi               |
+| `/tentang-ai`             | Penjelasan penggunaan AI di aplikasi |
 
 Id eksperimen: `uji-asam-basa`, `konsentrasi-larutan`, `laju-reaksi`, dan `hukum-newton` (opsional).
 
@@ -179,11 +179,11 @@ Di laptop, meja lab tampil di sisi kiri. Di sisi kanan ada panel dengan tiga tab
 
 Di HP, meja lab dibagi menjadi beberapa area kerja yang bisa dipilih lewat tab, supaya alat tetap cukup besar untuk disentuh. Benda yang tidak terlihat di area aktif muncul di rak alat bagian bawah. Panel Labi, Tabel, dan Penjelasan ada di panel bawah yang bisa ditarik ke atas. Saat HP dalam posisi tegak, muncul saran untuk memutar HP.
 
-| Eksperimen | Area kerja di HP |
-| --- | --- |
-| Uji Asam & Basa | Meja, Rak & kartu pH, Wastafel |
-| Konsentrasi Larutan | Meja timbang, Meja kerja |
-| Laju Reaksi | Meja, Penangas |
+| Eksperimen          | Area kerja di HP               |
+| ------------------- | ------------------------------ |
+| Uji Asam & Basa     | Meja, Rak & kartu pH, Wastafel |
+| Konsentrasi Larutan | Meja timbang, Meja kerja       |
+| Laju Reaksi         | Meja, Penangas                 |
 
 ## 9. Eksperimen
 
@@ -191,47 +191,47 @@ Di HP, meja lab dibagi menjadi beberapa area kerja yang bisa dipilih lewat tab, 
 
 Siswa menguji lima larutan dengan indikator universal untuk mengetahui sifat asam, basa, atau netral.
 
-| | |
-| --- | --- |
-| Alat dan bahan | 3 tabung reaksi, pipet tetes, 5 botol larutan, botol indikator universal |
-| Tempat menaruh | Rak tabung, kartu skala pH, wastafel |
-| Alur umum | Ambil larutan dengan pipet, teteskan ke tabung, tambahkan indikator, lalu cocokkan tabung dengan kartu pH. Tabung dikosongkan di wastafel. |
-| Data tercatat | Saat tabung berindikator dicocokkan ke kartu pH |
-| Nilai | Cuka pH 3, air jeruk pH 4, air suling pH 7, air sabun pH 10, NaOH encer pH 13 |
-| Ditolak | Larutan kedua dimasukkan ke tabung yang sudah berisi larutan |
-| Kolom tabel | Larutan, warna, pH, sifat |
-| Pertanyaan tebakan | "Menurutmu cuka bersifat asam, basa, atau netral?" |
+|                    |                                                                                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Alat dan bahan     | 3 tabung reaksi, pipet tetes, 5 botol larutan, botol indikator universal                                                                   |
+| Tempat menaruh     | Rak tabung, kartu skala pH, wastafel                                                                                                       |
+| Alur umum          | Ambil larutan dengan pipet, teteskan ke tabung, tambahkan indikator, lalu cocokkan tabung dengan kartu pH. Tabung dikosongkan di wastafel. |
+| Data tercatat      | Saat tabung berindikator dicocokkan ke kartu pH                                                                                            |
+| Nilai              | Cuka pH 3, air jeruk pH 4, air suling pH 7, air sabun pH 10, NaOH encer pH 13                                                              |
+| Ditolak            | Larutan kedua dimasukkan ke tabung yang sudah berisi larutan                                                                               |
+| Kolom tabel        | Larutan, warna, pH, sifat                                                                                                                  |
+| Pertanyaan tebakan | "Menurutmu cuka bersifat asam, basa, atau netral?"                                                                                         |
 
 ### 9.2 Konsentrasi Larutan
 
 Siswa membuat larutan CuSO₄, menghitung konsentrasinya, lalu mencoba pengenceran.
 
-| | |
-| --- | --- |
-| Alat dan bahan | Wadah CuSO₄, sendok kecil (1 g), sendok besar (4 g), kaca arloji, botol air suling, gelas ukur 250 mL, gelas kimia, batang pengaduk |
-| Tempat menaruh | Neraca digital, meja kerja |
-| Alur umum | Timbang CuSO₄ di atas kaca arloji, ukur air dengan gelas ukur (50 mL sekali isi), campurkan di gelas kimia, lalu aduk sampai larut. |
-| Data tercatat | Saat zat larut sempurna. Menambah air lalu mengaduk lagi akan menghasilkan data baru. |
-| Rumus | Mr CuSO₄ = 160, M = (massa ÷ Mr) ÷ volume dalam liter. Contoh: 16 g dalam 100 mL = 1 M. |
-| Ditolak | Kaca arloji tidak di atas neraca saat diisi, massa lebih dari 16 g, volume lebih dari 250 mL, air dituang langsung dari botol ke gelas kimia, mengaduk tanpa batang pengaduk |
-| Kolom tabel | Massa (g), volume (mL), mol, konsentrasi (M), warna |
-| Pertanyaan tebakan | "Kalau airnya ditambah dua kali lipat, warnanya jadi lebih pekat atau lebih pucat?" |
+|                    |                                                                                                                                                                              |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Alat dan bahan     | Wadah CuSO₄, sendok kecil (1 g), sendok besar (4 g), kaca arloji, botol air suling, gelas ukur 250 mL, gelas kimia, batang pengaduk                                          |
+| Tempat menaruh     | Neraca digital, meja kerja                                                                                                                                                   |
+| Alur umum          | Timbang CuSO₄ di atas kaca arloji, ukur air dengan gelas ukur (50 mL sekali isi), campurkan di gelas kimia, lalu aduk sampai larut.                                          |
+| Data tercatat      | Saat zat larut sempurna. Menambah air lalu mengaduk lagi akan menghasilkan data baru.                                                                                        |
+| Rumus              | Mr CuSO₄ = 160, M = (massa ÷ Mr) ÷ volume dalam liter. Contoh: 16 g dalam 100 mL = 1 M.                                                                                      |
+| Ditolak            | Kaca arloji tidak di atas neraca saat diisi, massa lebih dari 16 g, volume lebih dari 250 mL, air dituang langsung dari botol ke gelas kimia, mengaduk tanpa batang pengaduk |
+| Kolom tabel        | Massa (g), volume (mL), mol, konsentrasi (M), warna                                                                                                                          |
+| Pertanyaan tebakan | "Kalau airnya ditambah dua kali lipat, warnanya jadi lebih pekat atau lebih pucat?"                                                                                          |
 
 ### 9.3 Laju Reaksi
 
 Siswa mencari tahu pengaruh suhu dan konsentrasi terhadap kecepatan reaksi Na₂S₂O₃ dan HCl.
 
-| | |
-| --- | --- |
-| Alat dan bahan | Labu Erlenmeyer, 4 botol Na₂S₂O₃ (0,05 / 0,1 / 0,15 / 0,2 M), botol HCl, termometer, stopwatch |
-| Benda tetap | Penangas air dengan sakelar, kertas bertanda silang |
-| Alur umum | Isi labu dengan Na₂S₂O₃, pasang termometer, panaskan di penangas sampai suhu yang diinginkan, pindahkan labu ke kertas silang, jalankan stopwatch, lalu tuang HCl. |
-| Data tercatat | Saat tanda silang sudah tidak terlihat |
-| Rumus | t = 60 × (0,2 ÷ C) × 2^(−(T − 25) ÷ 10). Contoh: 0,2 M pada 25 °C = 60 detik. |
-| Catatan | Suhu naik 0,5 °C per detik. Suhu yang dicatat adalah suhu saat HCl dituang, dibulatkan. Termometer ikut berpindah bersama labu. |
-| Ditolak | HCl dituang saat labu tidak di atas kertas silang, termometer belum dipasang, atau stopwatch belum berjalan. Suhu tidak bisa lebih dari 55 °C. |
-| Kolom tabel | Suhu (°C), konsentrasi (M), waktu (s), laju relatif (1/t) |
-| Pertanyaan tebakan | "Kalau suhunya dinaikkan, reaksinya jadi lebih cepat atau lebih lambat?" |
+|                    |                                                                                                                                                                    |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Alat dan bahan     | Labu Erlenmeyer, 4 botol Na₂S₂O₃ (0,05 / 0,1 / 0,15 / 0,2 M), botol HCl, termometer, stopwatch                                                                     |
+| Benda tetap        | Penangas air dengan sakelar, kertas bertanda silang                                                                                                                |
+| Alur umum          | Isi labu dengan Na₂S₂O₃, pasang termometer, panaskan di penangas sampai suhu yang diinginkan, pindahkan labu ke kertas silang, jalankan stopwatch, lalu tuang HCl. |
+| Data tercatat      | Saat tanda silang sudah tidak terlihat                                                                                                                             |
+| Rumus              | t = 60 × (0,2 ÷ C) × 2^(−(T − 25) ÷ 10). Contoh: 0,2 M pada 25 °C = 60 detik.                                                                                      |
+| Catatan            | Suhu naik 0,5 °C per detik. Suhu yang dicatat adalah suhu saat HCl dituang, dibulatkan. Termometer ikut berpindah bersama labu.                                    |
+| Ditolak            | HCl dituang saat labu tidak di atas kertas silang, termometer belum dipasang, atau stopwatch belum berjalan. Suhu tidak bisa lebih dari 55 °C.                     |
+| Kolom tabel        | Suhu (°C), konsentrasi (M), waktu (s), laju relatif (1/t)                                                                                                          |
+| Pertanyaan tebakan | "Kalau suhunya dinaikkan, reaksinya jadi lebih cepat atau lebih lambat?"                                                                                           |
 
 ### 9.4 Hukum Newton (opsional)
 
@@ -265,62 +265,62 @@ Mesin simulasi mengeluarkan daftar kejadian setiap kali ada aksi atau proses, mi
 
 ### 10.3 Struktur folder
 
-| Folder | Isi |
-| --- | --- |
-| `src/data/` | Data tiap eksperimen: benda, tempat menaruh, aturan, rumus, kalimat Labi |
-| `src/lib/` | Mesin simulasi dan fungsi pendukung |
-| `src/pages/` | Halaman aplikasi |
-| `src/components/lab/` | Meja lab dan aset alat |
-| `src/components/assistant/` | Panel tanya-jawab Labi |
-| `src/components/mascot/` | Karakter Labi dan ekspresinya |
-| `src/simulations/` | Posisi benda di meja tiap eksperimen |
-| `api/` | Endpoint AI dan suara |
-| `public/img/lab/` | Latar meja lab |
-| `public/audio/` | Rekaman suara Labi |
-| `docs/` | Dokumen proyek |
+| Folder                      | Isi                                                                      |
+| --------------------------- | ------------------------------------------------------------------------ |
+| `src/data/`                 | Data tiap eksperimen: benda, tempat menaruh, aturan, rumus, kalimat Labi |
+| `src/lib/`                  | Mesin simulasi dan fungsi pendukung                                      |
+| `src/pages/`                | Halaman aplikasi                                                         |
+| `src/components/lab/`       | Meja lab dan aset alat                                                   |
+| `src/components/assistant/` | Panel tanya-jawab Labi                                                   |
+| `src/components/mascot/`    | Karakter Labi dan ekspresinya                                            |
+| `src/simulations/`          | Posisi benda di meja tiap eksperimen                                     |
+| `api/`                      | Endpoint AI dan suara                                                    |
+| `public/img/lab/`           | Latar meja lab                                                           |
+| `public/audio/`             | Rekaman suara Labi                                                       |
+| `docs/`                     | Dokumen proyek                                                           |
 
 ### 10.4 Variabel lingkungan
 
-| Nama | Keterangan |
-| --- | --- |
-| `AI_PROVIDER` | Layanan AI yang dipakai |
-| `AI_API_KEY` | Kunci API layanan AI |
-| `AI_MODEL` | Model AI |
+| Nama                           | Keterangan                            |
+| ------------------------------ | ------------------------------------- |
+| `AI_PROVIDER`                  | Layanan AI yang dipakai               |
+| `AI_API_KEY`                   | Kunci API layanan AI                  |
+| `AI_MODEL`                     | Model AI                              |
 | `AI_MAX_QUESTIONS_PER_SESSION` | Batas pertanyaan per sesi (bawaan 10) |
-| `ELEVENLABS_API_KEY` | Kunci API ElevenLabs |
-| `ELEVENLABS_VOICE_ID` | Id suara Labi |
+| `ELEVENLABS_API_KEY`           | Kunci API ElevenLabs                  |
+| `ELEVENLABS_VOICE_ID`          | Id suara Labi                         |
 
 Kunci API hanya disimpan di file `.env` dan pengaturan Vercel, tidak pernah ditulis di kode.
 
 ## 11. Desain
 
-| Bagian | Ketentuan |
-| --- | --- |
-| Gaya alat | Ilustrasi datar dengan garis tepi tebal #2B2D42, kaca terang dengan pantulan putih, cairan biru muda |
-| Warna utama | Ungu #7051DC, ungu muda #F0EBFF, latar #FAFAF7, teks #252438, teks sekunder #6A6876, garis #E8E6ED |
-| Warna meja lab | Dinding #F7FEFF, lantai #CBF3F7, kayu #F0C25F dan #D4A94C |
-| Huruf | Plus Jakarta Sans untuk judul, Inter untuk teks |
-| Ukuran frame | Laptop 1440 × 1024 |
+| Bagian         | Ketentuan                                                                                            |
+| -------------- | ---------------------------------------------------------------------------------------------------- |
+| Gaya alat      | Ilustrasi datar dengan garis tepi tebal #2B2D42, kaca terang dengan pantulan putih, cairan biru muda |
+| Warna utama    | Ungu #7051DC, ungu muda #F0EBFF, latar #FAFAF7, teks #252438, teks sekunder #6A6876, garis #E8E6ED   |
+| Warna meja lab | Dinding #F7FEFF, lantai #CBF3F7, kayu #F0C25F dan #D4A94C                                            |
+| Huruf          | Plus Jakarta Sans untuk judul, Inter untuk teks                                                      |
+| Ukuran frame   | Laptop 1440 × 1024                                                                                   |
 
 Desain meja lab untuk ketiga eksperimen sudah dibuat di Figma. Nama setiap layer disamakan dengan id benda di data, dan latar dipisahkan dari benda yang bisa dipindah.
 
 ## 12. Pembagian Tugas
 
-| Anggota | Tugas |
-| --- | --- |
-| BE 1 (mesin) | Setup repo dan CI, mesin simulasi, halaman praktikum, tampilan HP, deploy |
+| Anggota             | Tugas                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------ |
+| BE 1 (mesin)        | Setup repo dan CI, mesin simulasi, halaman praktikum, tampilan HP, deploy                  |
 | BE 2 (kimia dan AI) | Data dan rumus ketiga eksperimen, kalimat Labi, endpoint AI, mode sederhana, rekaman suara |
-| FE 1 | Navbar, footer, beranda, pilih laboratorium, katalog, detail, Tentang AI, README |
-| FE 2 | Aset alat, karakter dan ekspresi Labi, panel Labi untuk laptop dan HP |
+| FE 1                | Navbar, footer, beranda, pilih laboratorium, katalog, detail, Tentang AI, README           |
+| FE 2                | Aset alat, karakter dan ekspresi Labi, panel Labi untuk laptop dan HP                      |
 
 ## 13. Jadwal
 
-| Hari | BE 1 | BE 2 | FE 1 | FE 2 |
-| --- | --- | --- | --- | --- |
-| Sabtu, 7 Nov | Repo, setup, CI, mulai mesin | Teks eksperimen, rancangan instruksi AI | Navbar, footer, beranda | Aset alat |
-| Minggu, 8 Nov | Mesin selesai, praktikum Uji Asam & Basa | Data Uji Asam & Basa dan Konsentrasi Larutan | Pilih laboratorium, katalog, detail | Karakter Labi, panel Labi |
-| Senin, 9 Nov | Praktikum dua eksperimen lain, tampilan HP | Data Laju Reaksi, endpoint AI, mode sederhana, rekaman suara | Halaman Tentang AI, README | Menghubungkan Labi ke endpoint dan kejadian |
-| Selasa, 10 Nov | Deploy, uji semua alur | Cek jawaban AI dan materi | README lengkap | Merapikan tampilan, uji di HP |
+| Hari           | BE 1                                       | BE 2                                                         | FE 1                                | FE 2                                        |
+| -------------- | ------------------------------------------ | ------------------------------------------------------------ | ----------------------------------- | ------------------------------------------- |
+| Sabtu, 7 Nov   | Repo, setup, CI, mulai mesin               | Teks eksperimen, rancangan instruksi AI                      | Navbar, footer, beranda             | Aset alat                                   |
+| Minggu, 8 Nov  | Mesin selesai, praktikum Uji Asam & Basa   | Data Uji Asam & Basa dan Konsentrasi Larutan                 | Pilih laboratorium, katalog, detail | Karakter Labi, panel Labi                   |
+| Senin, 9 Nov   | Praktikum dua eksperimen lain, tampilan HP | Data Laju Reaksi, endpoint AI, mode sederhana, rekaman suara | Halaman Tentang AI, README          | Menghubungkan Labi ke endpoint dan kejadian |
+| Selasa, 10 Nov | Deploy, uji semua alur                     | Cek jawaban AI dan materi                                    | README lengkap                      | Merapikan tampilan, uji di HP               |
 
 Rabu dan Kamis dipakai untuk uji coba dengan siswa, memperbaiki bug, dan fitur opsional kalau sempat. Jumat untuk merekam video, menyiapkan surat orisinalitas, dan mengecek semua tautan. Sabtu hanya cadangan, dan submission dilakukan paling lambat siang hari.
 
@@ -372,25 +372,25 @@ Rabu dan Kamis dipakai untuk uji coba dengan siswa, memperbaiki bug, dan fitur o
 
 ## 16. Kebutuhan Lain
 
-| Aspek | Target |
-| --- | --- |
-| Kecepatan | Halaman terbuka kurang dari 3 detik, animasi lancar, jawaban Labi kurang dari 8 detik |
-| Tampilan | Rapi dari lebar 360 px sampai 1440 px |
-| Keterbacaan | Teks minimal 14 px, kontras cukup, warna selalu disertai angka atau label |
-| Keamanan | Kunci API hanya di server, input dibatasi, permintaan per alamat IP dibatasi |
-| Privasi | Tanpa akun dan tanpa data pribadi, percakapan tidak disimpan |
-| Keandalan | Test untuk mesin dan eksperimen, CI harus lolos sebelum merge |
+| Aspek       | Target                                                                                |
+| ----------- | ------------------------------------------------------------------------------------- |
+| Kecepatan   | Halaman terbuka kurang dari 3 detik, animasi lancar, jawaban Labi kurang dari 8 detik |
+| Tampilan    | Rapi dari lebar 360 px sampai 1440 px                                                 |
+| Keterbacaan | Teks minimal 14 px, kontras cukup, warna selalu disertai angka atau label             |
+| Keamanan    | Kunci API hanya di server, input dibatasi, permintaan per alamat IP dibatasi          |
+| Privasi     | Tanpa akun dan tanpa data pribadi, percakapan tidak disimpan                          |
+| Keandalan   | Test untuk mesin dan eksperimen, CI harus lolos sebelum merge                         |
 
 ## 17. Risiko
 
-| Risiko | Antisipasi |
-| --- | --- |
-| Waktu tidak cukup | Dikerjakan paralel sejak hari pertama. Kalau Senin malam Laju Reaksi belum jalan, eksperimen ini diberi label "Segera hadir". |
-| Layanan AI gagal saat demo | Mode sederhana dan batas pemakaian |
-| Kuota AI atau kredit suara habis | Batas pertanyaan, suara direkam sekali, cadangan suara browser |
-| Jawaban AI keliru | Angka selalu dari simulasi, instruksi yang ketat, dan label di setiap jawaban |
-| Kredit ElevenLabs bukan milik tim | Memastikan akun tetap aktif sampai pengumuman akhir |
-| Bentrok kode antaranggota | Pembagian folder yang jelas |
+| Risiko                            | Antisipasi                                                                                                                    |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Waktu tidak cukup                 | Dikerjakan paralel sejak hari pertama. Kalau Senin malam Laju Reaksi belum jalan, eksperimen ini diberi label "Segera hadir". |
+| Layanan AI gagal saat demo        | Mode sederhana dan batas pemakaian                                                                                            |
+| Kuota AI atau kredit suara habis  | Batas pertanyaan, suara direkam sekali, cadangan suara browser                                                                |
+| Jawaban AI keliru                 | Angka selalu dari simulasi, instruksi yang ketat, dan label di setiap jawaban                                                 |
+| Kredit ElevenLabs bukan milik tim | Memastikan akun tetap aktif sampai pengumuman akhir                                                                           |
+| Bentrok kode antaranggota         | Pembagian folder yang jelas                                                                                                   |
 
 ## 18. Yang Masih Perlu Diputuskan
 
