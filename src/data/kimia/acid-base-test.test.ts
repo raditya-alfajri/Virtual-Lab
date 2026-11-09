@@ -75,6 +75,16 @@ describe('pH and nature of each solution', () => {
     expect(exp.lines.some((l) => l.id === `k1-result-${solution}`)).toBe(true)
   })
 
+  it.each([
+    ['cuka', 'pH = 3 < 7 → asam\n[H⁺] = 10⁻³ M'],
+    ['jeruk', 'pH = 4 < 7 → asam\n[H⁺] = 10⁻⁴ M'],
+    ['suling', 'pH = 7 → netral\n[H⁺] = [OH⁻] = 10⁻⁷ M'],
+    ['sabun', 'pH = 10 > 7 → basa\n[OH⁻] = 10⁻⁴ M'],
+    ['naoh', 'pH = 13 > 7 → basa\n[OH⁻] = 10⁻¹ M'],
+  ])('explains %s with a pH formula', (solution, formula) => {
+    expect(play(testWithPipette(solution)).explanation?.formula).toBe(formula)
+  })
+
   it('records all five solutions across reused tubes', () => {
     const empty = (tube: string) => drop(tube, 'sink')
     const s = play([
@@ -143,6 +153,9 @@ describe('gradual colour change', () => {
     ])
     expect(exp.lines.some((l) => l.id === 'k1-color-changed')).toBe(true)
     expect(done.explanation?.result).toBe('Air sabun berubah menjadi biru.')
+    expect(done.explanation?.formula).toBe(
+      'pH 1–3 merah, 4–5 jingga, 6 kuning, 7 hijau, 8–10 biru, 11–14 ungu',
+    )
 
     const later = runEngine(exp, done, tick(0.1))
     expect(later.events).toEqual([])

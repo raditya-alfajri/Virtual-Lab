@@ -86,6 +86,19 @@ function indicatorColor(ph: number): string {
   return 'Ungu'
 }
 
+const COLOR_SCALE =
+  'pH 1–3 merah, 4–5 jingga, 6 kuning, 7 hijau, 8–10 biru, 11–14 ungu'
+
+const SUPERSCRIPT_DIGITS = '⁰¹²³⁴⁵⁶⁷⁸⁹'
+const tenToMinus = (exponent: number) =>
+  `10⁻${[...String(exponent)].map((d) => SUPERSCRIPT_DIGITS[Number(d)]).join('')}`
+
+function phFormula(ph: number): string {
+  if (ph < 7) return `pH = ${ph} < 7 → asam\n[H⁺] = ${tenToMinus(ph)} M`
+  if (ph > 7) return `pH = ${ph} > 7 → basa\n[OH⁻] = ${tenToMinus(14 - ph)} M`
+  return `pH = 7 → netral\n[H⁺] = [OH⁻] = ${tenToMinus(7)} M`
+}
+
 function natureOf(ph: number): string {
   if (ph < 7) return 'Asam'
   if (ph > 7) return 'Basa'
@@ -314,6 +327,7 @@ export const acidBaseTest: Experiment = {
           explanation: {
             result: `pH ${ph}, ${solution.inline} bersifat ${nature.toLowerCase()}.`,
             reason: solution.reason,
+            formula: phFormula(ph),
           },
         }
       },
@@ -361,6 +375,7 @@ export const acidBaseTest: Experiment = {
           result: `${solution.name} berubah menjadi ${color}.`,
           reason:
             'Indikator universal adalah campuran pewarna yang warnanya mengikuti tingkat keasaman larutan.',
+          formula: COLOR_SCALE,
         }
       }
     }
