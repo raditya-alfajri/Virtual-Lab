@@ -182,11 +182,14 @@ function applyResult(
     return { ...state, hint: result.reject, events: [{ type: 'rejected' }] }
   }
 
-  const { world, record, explanation } = result
-  const newRecord =
-    record !== undefined && !state.rows.some((row) => sameRow(row, record))
-      ? record
-      : undefined
+  const { world, record } = result
+  const duplicate =
+    record !== undefined && state.rows.some((row) => sameRow(row, record))
+  const newRecord = duplicate ? undefined : record
+  const explanation =
+    duplicate && result.duplicateNote
+      ? result.duplicateNote
+      : result.explanation
   const events = settleRecordEvents(
     result.events ?? [],
     newRecord !== undefined,

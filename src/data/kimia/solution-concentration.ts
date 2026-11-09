@@ -7,25 +7,18 @@ import type {
   World,
 } from '../types'
 
-/** Molar mass of CuSO₄ in g/mol. */
 export const MR_CUSO4 = 160
 /**
- * Most CuSO₄ the watch glass, and the beaker in total, may hold.
+ * Limit for the watch glass and for the beaker in total.
  * TODO(cek guru): 16 g in a small volume (e.g. 50 mL) may exceed the
  * solubility of CuSO₄ at room temperature. Kept at 16 g for now.
  */
 export const MAX_MASS = 16
-/** Capacity of both the measuring cylinder and the beaker, in mL. */
 export const MAX_VOLUME = 250
-/** Water added to the cylinder by one pour from the bottle, in mL. */
 export const POUR_VOLUME = 50
-/** Taps on the stirrer needed to dissolve the CuSO₄ completely. */
 export const DISSOLVE_STIRS = 5
 
-/**
- * Solution colour by concentration (M). Ordered from darkest; the first level
- * whose `min` the concentration reaches wins.
- */
+/** Ordered from darkest; the first level whose `min` is reached wins. */
 export const COLOR_LEVELS = [
   { min: 1, name: 'Biru tua', hex: '#0d47a1' },
   { min: 0.5, name: 'Biru', hex: '#1e88e5' },
@@ -122,10 +115,7 @@ function patchItem(world: World, id: string, patch: ItemState): World {
   }
 }
 
-/**
- * Adds CuSO₄ or water to the beaker. Adding to a fully dissolved solution
- * starts a new dissolving process from what was already dissolved.
- */
+/** Adding to a fully dissolved solution starts a new dissolving process. */
 function addToBeaker(
   world: World,
   add: { mass?: number; volume?: number },

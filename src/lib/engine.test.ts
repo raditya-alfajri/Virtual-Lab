@@ -236,6 +236,38 @@ describe('records', () => {
     expect(eventTypes(s)).toEqual(['action-ok'])
   })
 
+  it('shows duplicateNote instead of the explanation for a duplicate row', () => {
+    const note = {
+      result: 'Data ini sudah ada di tabel.',
+      reason: 'Coba lagi.',
+    }
+    const withNote: Experiment = {
+      ...exp,
+      interactions: exp.interactions.map((it) =>
+        it.source === 'meter'
+          ? {
+              ...it,
+              run: (world, sourceId, targetId) => {
+                const result = it.run(world, sourceId, targetId)
+                return 'reject' in result
+                  ? result
+                  : { ...result, duplicateNote: note }
+              },
+            }
+          : it,
+      ),
+    }
+    const first = play(
+      [drop('dye', 'tube-1'), drop('meter', 'tube-1')],
+      withNote,
+    )
+    expect(first.explanation?.result).toBe('Warna tercatat: biru.')
+
+    const again = runEngine(withNote, first, drop('meter', 'tube-1'))
+    expect(again.rows).toHaveLength(1)
+    expect(again.explanation).toBe(note)
+  })
+
   it('rejects measuring an empty tube without recording', () => {
     const s = play([drop('meter', 'tube-1')])
     expect(s.rows).toEqual([])
