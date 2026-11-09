@@ -1,0 +1,29 @@
+export type DropLayer = 'item' | 'zone' | 'shelf'
+
+export type DropData = {
+  layer: DropLayer
+  /** Stacking order among items; the higher one is on top. */
+  order?: number
+}
+
+export type DropCandidate = DropData & { id: string }
+
+const RANK: Record<DropLayer, number> = { item: 2, zone: 1, shelf: 0 }
+
+/** Picks the drop target among everything under the pointer: item > zone > shelf. */
+export function pickDropTarget(
+  candidates: DropCandidate[],
+  activeId: string,
+): string | undefined {
+  let best: DropCandidate | undefined
+  for (const candidate of candidates) {
+    if (candidate.id === activeId) continue
+    if (!best || isAbove(candidate, best)) best = candidate
+  }
+  return best?.id
+}
+
+function isAbove(a: DropCandidate, b: DropCandidate): boolean {
+  if (RANK[a.layer] !== RANK[b.layer]) return RANK[a.layer] > RANK[b.layer]
+  return (a.order ?? 0) > (b.order ?? 0)
+}
