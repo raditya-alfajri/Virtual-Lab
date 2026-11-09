@@ -12,7 +12,6 @@ import {
   type UniqueIdentifier,
 } from '@dnd-kit/core'
 import clsx from 'clsx'
-import { Table2 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import type { Experiment } from '../../data/types'
 import type { useExperiment } from '../../hooks/useExperiment'
@@ -22,13 +21,12 @@ import { attachDepth, resolveItemRect } from '../../simulations/position'
 import type { SceneLayout } from '../../simulations/types'
 import DragPreview from './DragPreview'
 import { pickDropTarget, type DropData } from './drop-target'
-import ExplanationCard from './ExplanationCard'
 import { onActivateKey } from './keyboard'
 import LabHint from './LabHint'
+import LabPanel from './LabPanel'
 import LabStage from './LabStage'
 import StageItem from './StageItem'
 import StageZone from './StageZone'
-import TableDrawer from './TableDrawer'
 
 type Props = {
   experiment: Experiment
@@ -54,7 +52,6 @@ export default function LabBench({ experiment, layout, lab }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [hintClosed, setHintClosed] = useState(false)
-  const [tableOpen, setTableOpen] = useState(false)
   const suppressClick = useRef(false)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -130,39 +127,6 @@ export default function LabBench({ experiment, layout, lab }: Props) {
     onDragCancel: ({ active }) => `Batal memindahkan ${nameOf(active.id)}.`,
   }
 
-  const overlay = (
-    <>
-      <ExplanationCard
-        explanation={lab.explanation}
-        objectives={experiment.objectives}
-        tips={experiment.tips}
-        corner={layout.panels.explanation}
-      />
-      <LabHint
-        hint={hintClosed ? null : lab.hint}
-        onClose={() => setHintClosed(true)}
-      />
-      <div className="pointer-events-auto absolute bottom-3 left-3 flex items-stretch gap-2">
-        <Shelf highlight={held} onClick={() => handlePlaceClick(SHELF)} />
-        <button
-          type="button"
-          onClick={() => setTableOpen(true)}
-          className="flex items-center gap-2 rounded-xl border border-line bg-bg px-4 py-2 text-sm font-semibold shadow-md hover:bg-primary-tint"
-        >
-          <Table2 size={18} className="text-primary" />
-          Tabel ({lab.rows.length})
-        </button>
-      </div>
-      <TableDrawer
-        open={tableOpen}
-        columns={lab.columns}
-        rows={lab.rows}
-        onRemove={lab.removeRow}
-        onClose={() => setTableOpen(false)}
-      />
-    </>
-  )
-
   return (
     <DndContext
       sensors={sensors}
@@ -178,53 +142,75 @@ export default function LabBench({ experiment, layout, lab }: Props) {
         },
       }}
     >
-      <LabStage
-        background={getBackgroundUrl(experiment.id)}
-        onBackgroundClick={() => setSelectedId(null)}
-        overlay={overlay}
-      >
-        {experiment.zones.map((zone) => {
-          const rect = layout.zones[zone.id]
-          return (
-            rect && (
-              <StageZone
-                key={zone.id}
-                zone={zone}
-                rect={rect}
-                highlight={held}
-                onClick={handlePlaceClick}
+      <div className="flex min-h-0 min-w-0 flex-1">
+        <div className="relative min-w-0 flex-1">
+          <LabStage
+            background={getBackgroundUrl(experiment.id)}
+            onBackgroundClick={() => setSelectedId(null)}
+            overlay={
+              <LabHint
+                hint={hintClosed ? null : lab.hint}
+                onClose={() => setHintClosed(true)}
               />
-            )
-          )
-        })}
-        {experiment.items.map((item, index) => {
-          const rect = resolveItemRect(layout, lab.world.items, item.id)
-          if (!rect) return null
-          return (
-            <StageItem
-              key={item.id}
-              item={item}
-              rect={rect}
-              // Attached items must sit above every item they could rest on.
-              zIndex={
-                1 + attachDepth(lab.world.items, item.id) * itemCount + index
+            }
+            footer={
+              <Shelf highlight={held} onClick={() => handlePlaceClick(SHELF)} />
+            }
+          >
+            {experiment.zones.map((zone) => {
+              const rect = layout.zones[zone.id]
+              return (
+                rect && (
+                  <StageZone
+                    key={zone.id}
+                    zone={zone}
+                    rect={rect}
+                    highlight={held}
+                    onClick={handlePlaceClick}
+                  />
+                )
+              )
+            })}
+            {experiment.items.map((item, index) => {
+              const rect = resolveItemRect(layout, lab.world.items, item.id)
+              if (!rect) return null
+              return (
+                <StageItem
+                  key={item.id}
+                  item={item}
+                  rect={rect}
+                  // Attached items must sit above every item they could rest on.
+                  zIndex={
+                    1 +
+                    attachDepth(lab.world.items, item.id) * itemCount +
+                    index
+                  }
+                  view={lab.view[item.id]}
+                  selected={selectedId === item.id}
+                  onClick={handleItemClick}
+                  onAction={tapItem}
+                />
+              )
+            })}
+            <DragPreview
+              item={activeItem}
+              rect={
+                activeItem &&
+                resolveItemRect(layout, lab.world.items, activeItem.id)
               }
-              view={lab.view[item.id]}
-              selected={selectedId === item.id}
-              onClick={handleItemClick}
-              onAction={tapItem}
+              view={activeItem && lab.view[activeItem.id]}
             />
-          )
-        })}
-        <DragPreview
-          item={activeItem}
-          rect={
-            activeItem &&
-            resolveItemRect(layout, lab.world.items, activeItem.id)
-          }
-          view={activeItem && lab.view[activeItem.id]}
+          </LabStage>
+        </div>
+        <LabPanel
+          explanation={lab.explanation}
+          objectives={experiment.objectives}
+          tips={experiment.tips}
+          columns={lab.columns}
+          rows={lab.rows}
+          onRemoveRow={lab.removeRow}
         />
-      </LabStage>
+      </div>
     </DndContext>
   )
 }
@@ -246,17 +232,17 @@ function Shelf({
       onClick={onClick}
       onKeyDown={onActivateKey(onClick)}
       className={clsx(
-        'flex flex-col justify-center rounded-xl border-2 border-dashed px-4 py-1.5 shadow-md transition-colors',
+        'flex size-full items-center justify-center gap-3 rounded-xl border-2 border-dashed transition-colors',
         isOver
           ? 'border-primary bg-primary-tint'
           : highlight
-            ? 'border-primary/60 bg-primary-tint/80'
-            : 'border-line bg-bg',
+            ? 'border-primary/60 bg-primary-tint/60'
+            : 'border-line',
       )}
     >
       <p className="font-heading text-sm font-bold">{SHELF_NAME}</p>
-      <p className="text-xs text-ink-muted">
-        Taruh benda di sini untuk mengembalikannya.
+      <p className="text-sm text-ink-muted">
+        Taruh benda di sini untuk mengembalikannya ke tempat awal.
       </p>
     </div>
   )

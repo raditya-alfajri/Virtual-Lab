@@ -26,7 +26,6 @@ const layout: SceneLayout = {
     flask: { x: 5, y: -20 },
     thermometer: { x: 20, y: -50 },
   },
-  panels: { explanation: 'top-left' },
 }
 
 describe('resolveItemRect', () => {

@@ -3,10 +3,15 @@ import { STAGE_HEIGHT, STAGE_WIDTH } from '../../simulations/types'
 import { fitStage } from './fit-stage'
 import { StageScaleContext } from './stage-scale'
 
+const FOOTER_HEIGHT = 56
+const FOOTER_GAP = 8
+
 type Props = {
   background: string
-  /** Laid over the visible stage without scaling, so text stays readable. */
+  /** Laid over the stage without scaling, so text stays readable. */
   overlay?: ReactNode
+  /** Shown right below the stage, as wide as the stage. */
+  footer?: ReactNode
   onBackgroundClick?: () => void
   children?: ReactNode
 }
@@ -14,6 +19,7 @@ type Props = {
 export default function LabStage({
   background,
   overlay,
+  footer,
   onBackgroundClick,
   children,
 }: Props) {
@@ -31,46 +37,47 @@ export default function LabStage({
     return () => observer.disconnect()
   }, [])
 
-  const { scale, left, top } = fitStage(size.width, size.height)
+  const { scale, left } = fitStage(
+    size.width,
+    size.height - FOOTER_HEIGHT - FOOTER_GAP,
+  )
 
   return (
-    <div
-      ref={containerRef}
-      className="relative size-full overflow-hidden bg-wall"
-    >
+    <div ref={containerRef} className="absolute inset-3">
       {scale > 0 && (
-        <>
+        <div
+          className="absolute top-0"
+          style={{ left, width: STAGE_WIDTH * scale }}
+        >
           <div
-            className="absolute origin-top-left"
-            style={{
-              left,
-              top,
-              width: STAGE_WIDTH,
-              height: STAGE_HEIGHT,
-              transform: `scale(${scale})`,
-            }}
+            className="relative overflow-hidden rounded-xl"
+            style={{ height: STAGE_HEIGHT * scale }}
           >
-            <img
-              src={background}
-              alt=""
-              draggable={false}
-              onClick={onBackgroundClick}
-              className="absolute inset-0 size-full select-none"
-            />
-            <StageScaleContext value={scale}>{children}</StageScaleContext>
+            <div
+              className="absolute top-0 left-0 origin-top-left"
+              style={{
+                width: STAGE_WIDTH,
+                height: STAGE_HEIGHT,
+                transform: `scale(${scale})`,
+              }}
+            >
+              <img
+                src={background}
+                alt=""
+                draggable={false}
+                onClick={onBackgroundClick}
+                className="absolute inset-0 size-full select-none"
+              />
+              <StageScaleContext value={scale}>{children}</StageScaleContext>
+            </div>
+            <div className="pointer-events-none absolute inset-0 z-10">
+              {overlay}
+            </div>
           </div>
-          <div
-            className="pointer-events-none absolute"
-            style={{
-              left,
-              top,
-              width: STAGE_WIDTH * scale,
-              height: STAGE_HEIGHT * scale,
-            }}
-          >
-            {overlay}
+          <div style={{ height: FOOTER_HEIGHT, marginTop: FOOTER_GAP }}>
+            {footer}
           </div>
-        </>
+        </div>
       )}
     </div>
   )

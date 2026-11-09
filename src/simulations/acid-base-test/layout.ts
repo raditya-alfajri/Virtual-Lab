@@ -21,5 +21,4 @@ export const acidBaseTestLayout: SceneLayout = {
     sink: { x: 0, y: 230, w: 427, h: 356 },
   },
   attach: {},
-  panels: { explanation: 'top-left' },
 }

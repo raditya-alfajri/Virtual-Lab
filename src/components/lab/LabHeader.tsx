@@ -65,7 +65,6 @@ export default function LabHeader({
         <RotateCcw size={16} />
         Reset
       </button>
-      <div data-slot="labi" aria-hidden className="h-9 w-24" />
     </header>
   )
 }

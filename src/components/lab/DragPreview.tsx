@@ -12,8 +12,8 @@ type Props = {
 }
 
 /**
- * The copy of an item that follows the pointer. It lives in a portal so it is
- * drawn above the panels and the shelf, which sit on top of the stage.
+ * The copy of an item that follows the pointer. It lives in a portal so the
+ * stage does not clip it on its way to the shelf strip below.
  */
 export default function DragPreview({ item, rect, view }: Props) {
   const scale = useStageScale()

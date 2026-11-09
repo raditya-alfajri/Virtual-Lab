@@ -65,7 +65,7 @@ function LabSession({
         onSpeedChange={lab.setSpeed}
         onReset={requestReset}
       />
-      <main className="relative min-h-0 flex-1">
+      <main className="flex min-h-0 flex-1">
         <LabBench experiment={experiment} layout={layout} lab={lab} />
       </main>
       <ResetDialog
