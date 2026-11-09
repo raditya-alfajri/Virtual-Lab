@@ -36,3 +36,14 @@ export function resolveItemRect(
 
   return home
 }
+
+/** How many items deep an item is attached; 0 when it is not on another item. */
+export function attachDepth(items: World['items'], itemId: string): number {
+  let depth = 0
+  let at = items[itemId]?.at
+  while (at !== undefined && Object.hasOwn(items, at) && depth < 10) {
+    depth++
+    at = items[at].at
+  }
+  return depth
+}

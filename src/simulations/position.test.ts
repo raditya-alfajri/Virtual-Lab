@@ -4,7 +4,7 @@ import type { World } from '../data/types'
 import { createInitialState } from '../lib/engine'
 import { acidBaseTestLayout } from './acid-base-test/layout'
 import { getBackgroundUrl, getSceneLayout } from '.'
-import { resolveItemRect } from './position'
+import { attachDepth, resolveItemRect } from './position'
 import type { SceneLayout } from './types'
 
 const itemsAt = (places: Record<string, string>): World['items'] =>
@@ -87,6 +87,23 @@ describe('resolveItemRect', () => {
     expect(resolveItemRect(layout, items, 'stirrer')).toBeUndefined()
     expect(resolveItemRect(layout, items, 'ghost')).toBeUndefined()
     expect(resolveItemRect(layout, items, 'missing')).toBeUndefined()
+  })
+})
+
+describe('attachDepth', () => {
+  it('counts the attach chain and stops on a cycle', () => {
+    const items = itemsAt({
+      bath: 'bench',
+      flask: 'bath',
+      thermometer: 'flask',
+      a: 'b',
+      b: 'a',
+    })
+    expect(attachDepth(items, 'bath')).toBe(0)
+    expect(attachDepth(items, 'flask')).toBe(1)
+    expect(attachDepth(items, 'thermometer')).toBe(2)
+    expect(attachDepth(items, 'missing')).toBe(0)
+    expect(attachDepth(items, 'a')).toBe(10)
   })
 })
 
