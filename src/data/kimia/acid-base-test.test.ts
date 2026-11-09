@@ -3,6 +3,7 @@ import {
   createInitialState,
   getView,
   runEngine,
+  SHELF,
   type EngineAction,
   type EngineState,
 } from '../../lib/engine'
@@ -37,10 +38,10 @@ const testWithPipette = (solution: string, tube = 'tube-1') => [
 ]
 
 describe('setup', () => {
-  it('starts tubes in their racks and bottles with their pH', () => {
+  it('starts tubes on the bench, not in the racks, and bottles with their pH', () => {
     const s = createInitialState(exp)
-    expect(s.world.items['tube-1'].at).toBe('rack-1')
-    expect(s.world.items['tube-3'].at).toBe('rack-3')
+    expect(s.world.items['tube-1'].at).toBe(SHELF)
+    expect(s.world.items['tube-3'].at).toBe(SHELF)
     expect(s.world.items['bottle-cuka'].state).toEqual({
       solution: 'cuka',
       ph: 3,
@@ -241,7 +242,10 @@ describe('rejections', () => {
     )
     expectRejected(play([drop('tube-1', 'sink')]), 'Tabung ini sudah kosong.')
     expectRejected(play([drop('pipette', 'sink')]), 'Pipet sudah kosong.')
-    expectRejected(play([drop('tube-1', 'rack-2')]), 'Rak tabung sudah penuh.')
+    expectRejected(
+      play([drop('tube-2', 'rack-2'), drop('tube-1', 'rack-2')]),
+      'Rak tabung sudah penuh.',
+    )
     expectRejected(
       play([drop('bottle-cuka', 'sink')]),
       'Wastafel tidak bisa menampung Cuka.',
@@ -255,7 +259,7 @@ describe('sink', () => {
     const emptied = runEngine(exp, used, drop('tube-1', 'sink'))
     expect(eventTypes(emptied)).toEqual(['action-ok'])
     expect(emptied.world.items['tube-1']).toEqual({
-      at: 'rack-1',
+      at: SHELF,
       state: { solution: '', ph: 0, indicator: false, progress: 0 },
     })
     expect(getView(exp, emptied)['tube-1']).toMatchObject({
@@ -293,8 +297,29 @@ describe('records', () => {
   })
 
   it('leaves the tube where it was after matching', () => {
-    const s = play(testWithPipette('suling', 'tube-3'))
-    expect(s.world.items['tube-3'].at).toBe('rack-3')
+    const onBench = play(testWithPipette('suling', 'tube-3'))
+    expect(onBench.world.items['tube-3'].at).toBe(SHELF)
+
+    const inRack = play([
+      drop('tube-3', 'rack-3'),
+      ...testWithPipette('suling', 'tube-3'),
+    ])
+    expect(inRack.world.items['tube-3'].at).toBe('rack-3')
+    expect(inRack.rows).toHaveLength(1)
+  })
+})
+
+describe('racks', () => {
+  it('moves a tube from the bench to a rack and back, keeping its contents', () => {
+    const filled = play([drop('bottle-cuka', 'tube-1')])
+
+    const racked = runEngine(exp, filled, drop('tube-1', 'rack-1'))
+    expect(eventTypes(racked)).toEqual(['action-ok'])
+    expect(racked.world.items['tube-1'].at).toBe('rack-1')
+
+    const back = runEngine(exp, racked, drop('tube-1', SHELF))
+    expect(eventTypes(back)).toEqual(['action-ok'])
+    expect(back.world.items['tube-1']).toEqual(filled.world.items['tube-1'])
   })
 })
 

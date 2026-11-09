@@ -190,7 +190,6 @@ export const acidBaseTest: Experiment = {
       id,
       kind: 'tube',
       name: `Tabung ${i + 1}`,
-      start: `rack-${i + 1}`,
       state: EMPTY_TUBE,
     })),
     {

@@ -124,16 +124,23 @@ describe('acid-base layout', () => {
     }
   })
 
-  it('draws tubes in their racks and bottles at home', () => {
-    expect(resolveItemRect(acidBaseTestLayout, items, 'tube-2')).toEqual({
+  it('starts tubes and bottles at home', () => {
+    expect(resolveItemRect(acidBaseTestLayout, items, 'tube-2')).toEqual(
+      acidBaseTestLayout.home['tube-2'],
+    )
+    expect(resolveItemRect(acidBaseTestLayout, items, 'bottle-naoh')).toEqual(
+      acidBaseTestLayout.home['bottle-naoh'],
+    )
+  })
+
+  it('draws a tube in the rack it was put in', () => {
+    const moved = { ...items, 'tube-2': { ...items['tube-2'], at: 'rack-2' } }
+    expect(resolveItemRect(acidBaseTestLayout, moved, 'tube-2')).toEqual({
       x: 1162,
       y: 520,
       w: 80,
       h: 170,
     })
-    expect(resolveItemRect(acidBaseTestLayout, items, 'bottle-naoh')).toEqual(
-      acidBaseTestLayout.home['bottle-naoh'],
-    )
   })
 
   it('centres a tube at the bottom of the large sink zone', () => {
