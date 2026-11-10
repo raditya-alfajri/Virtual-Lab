@@ -77,7 +77,7 @@ export default function StageItem({
         <button
           type="button"
           onClick={() => onAction(item.id)}
-          className="absolute top-full left-1/2 mt-6 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-sm font-semibold whitespace-nowrap text-bg shadow hover:brightness-110"
+          className="absolute top-full left-1/2 mt-9 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-sm font-semibold whitespace-nowrap text-bg shadow hover:brightness-110"
         >
           {view.action}
         </button>

@@ -389,7 +389,7 @@ export const solutionConcentration: Experiment = {
       name: 'Kaca arloji',
       state: { mass: 0 },
     },
-    { id: 'water', kind: 'bottle', name: 'Botol air suling' },
+    { id: 'water', kind: 'water', name: 'Botol air suling' },
     {
       id: 'cylinder',
       kind: 'cylinder',
