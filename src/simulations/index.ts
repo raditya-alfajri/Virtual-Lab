@@ -1,8 +1,10 @@
 import { acidBaseTestLayout } from './acid-base-test/layout'
+import { solutionConcentrationLayout } from './solution-concentration/layout'
 import type { SceneLayout } from './types'
 
 const LAYOUTS: Record<string, SceneLayout> = {
   'uji-asam-basa': acidBaseTestLayout,
+  'konsentrasi-larutan': solutionConcentrationLayout,
 }
 
 export function getSceneLayout(id: string): SceneLayout | undefined {

@@ -1,6 +1,7 @@
 import clsx from 'clsx'
-import type { ComponentType } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import type { ItemView } from '../../data/types'
+import type { LabelSide } from '../../simulations/types'
 import AssetLabel from './assets/AssetLabel'
 import Beaker from './assets/Beaker'
 import CrossPaper from './assets/CrossPaper'
@@ -59,25 +60,63 @@ const ASSETS: Partial<Record<string, AssetEntry>> = {
   paper: { component: CrossPaper },
 }
 
+/** The drawing's own size and how far it is turned inside the item's box. */
+export type AssetTurn = { w: number; h: number; rotate: number }
+
 type Props = {
   kind: string
   name: string
   view?: ItemView
+  turn?: AssetTurn
+  labelSide?: LabelSide
+  /** False when the reading is shown elsewhere, e.g. on a screen in the scene. */
+  showReading?: boolean
 }
 
-export default function LabAsset({ kind, name, view = {} }: Props) {
+export default function LabAsset({
+  kind,
+  name,
+  view = {},
+  turn,
+  labelSide,
+  showReading = true,
+}: Props) {
   const entry = ASSETS[kind]
-  if (!entry) return <PlaceholderAsset name={name} view={view} />
+  if (!entry) {
+    return (
+      <Turned turn={turn}>
+        <PlaceholderAsset name={name} view={view} />
+      </Turned>
+    )
+  }
   const { component: Asset, ownLabel, ownReading } = entry
   return (
     <div className="relative size-full">
-      <Asset name={name} view={view} />
+      <Turned turn={turn}>
+        <Asset name={name} view={view} />
+      </Turned>
       {!ownLabel && view.label !== undefined && (
-        <AssetLabel text={view.label} />
+        <AssetLabel text={view.label} side={labelSide} />
       )}
-      {!ownReading && view.reading !== undefined && (
+      {showReading && !ownReading && view.reading !== undefined && (
         <ReadingDisplay text={view.reading} />
       )}
+    </div>
+  )
+}
+
+function Turned({ turn, children }: { turn?: AssetTurn; children: ReactNode }) {
+  if (!turn) return children
+  return (
+    <div
+      className="absolute top-1/2 left-1/2"
+      style={{
+        width: turn.w,
+        height: turn.h,
+        transform: `translate(-50%, -50%) rotate(${turn.rotate}deg)`,
+      }}
+    >
+      {children}
     </div>
   )
 }

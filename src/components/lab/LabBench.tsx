@@ -17,15 +17,21 @@ import type { Experiment } from '../../data/types'
 import type { useExperiment } from '../../hooks/useExperiment'
 import { SHELF } from '../../lib/engine'
 import { getBackgroundUrl } from '../../simulations'
-import { attachDepth, resolveItemRect } from '../../simulations/position'
-import type { SceneLayout } from '../../simulations/types'
-import DragPreview from './DragPreview'
+import {
+  attachDepth,
+  carriedBy,
+  resolveItemRect,
+} from '../../simulations/position'
+import type { Placement, SceneLayout } from '../../simulations/types'
+import DragPreview, { type PreviewPiece } from './DragPreview'
 import { pickDropTarget, type DropData } from './drop-target'
 import { onActivateKey } from './keyboard'
+import type { AssetTurn } from './LabAsset'
 import LabHint from './LabHint'
 import LabPanel from './LabPanel'
 import LabStage from './LabStage'
 import StageItem from './StageItem'
+import StageScreen from './StageScreen'
 import StageZone from './StageZone'
 
 type Props = {
@@ -61,7 +67,38 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
 
   const itemCount = experiment.items.length
   const held = activeId !== null || selectedId !== null
-  const activeItem = experiment.items.find((item) => item.id === activeId)
+  const items = lab.world.items
+  const carried = new Set(activeId === null ? [] : carriedBy(items, activeId))
+  const screens = Object.entries(layout.screens ?? {})
+
+  const showsReading = (itemId: string) =>
+    !screens.some(([zoneId]) => items[itemId]?.at === zoneId)
+
+  const turnOf = (itemId: string, rect: Placement): AssetTurn | undefined => {
+    const home = layout.home[itemId]
+    return rect.rotate
+      ? { w: home.w, h: home.h, rotate: rect.rotate }
+      : undefined
+  }
+
+  const previewPieces: PreviewPiece[] =
+    activeId === null
+      ? []
+      : [activeId, ...carried].flatMap((id) => {
+          const item = experiment.items.find((it) => it.id === id)
+          const rect = resolveItemRect(layout, items, id)
+          if (!item || !rect) return []
+          return [
+            {
+              item,
+              rect,
+              turn: turnOf(id, rect),
+              labelSide: layout.labelSide?.[id],
+              view: lab.view[id],
+              showReading: showsReading(id),
+            },
+          ]
+        })
 
   const nameOf = (id: UniqueIdentifier) =>
     id === SHELF
@@ -174,35 +211,48 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
                 )
               )
             })}
+            {screens.map(([zoneId, rect]) => {
+              const shown = experiment.items.find(
+                (item) =>
+                  items[item.id]?.at === zoneId &&
+                  lab.view[item.id]?.reading !== undefined,
+              )
+              const reading = shown && lab.view[shown.id]?.reading
+              return (
+                reading !== undefined && (
+                  <StageScreen
+                    key={zoneId}
+                    rect={rect}
+                    text={reading}
+                    label={`Layar ${nameOf(zoneId).toLowerCase()}`}
+                  />
+                )
+              )
+            })}
             {experiment.items.map((item, index) => {
-              const rect = resolveItemRect(layout, lab.world.items, item.id)
+              const rect = resolveItemRect(layout, items, item.id)
               if (!rect) return null
+              const depth = attachDepth(items, item.id)
               return (
                 <StageItem
                   key={item.id}
                   item={item}
                   rect={rect}
+                  turn={turnOf(item.id, rect)}
+                  labelSide={layout.labelSide?.[item.id]}
                   // Attached items must sit above every item they could rest on.
-                  zIndex={
-                    1 +
-                    attachDepth(lab.world.items, item.id) * itemCount +
-                    index
-                  }
+                  zIndex={1 + depth * itemCount + index}
                   view={lab.view[item.id]}
                   selected={selectedId === item.id}
+                  carried={carried.has(item.id)}
+                  showReading={showsReading(item.id)}
+                  actionAbove={depth > 0}
                   onClick={handleItemClick}
                   onAction={tapItem}
                 />
               )
             })}
-            <DragPreview
-              item={activeItem}
-              rect={
-                activeItem &&
-                resolveItemRect(layout, lab.world.items, activeItem.id)
-              }
-              view={activeItem && lab.view[activeItem.id]}
-            />
+            <DragPreview pieces={previewPieces} />
           </LabStage>
         </div>
         <LabPanel
