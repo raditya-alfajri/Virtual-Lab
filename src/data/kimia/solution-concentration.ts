@@ -41,7 +41,6 @@ type Beaker = {
   mass: number
   volume: number
   stirs: number
-  /** Mass and volume that were already dissolved before the last addition. */
   baseMass: number
   baseVolume: number
 }
@@ -68,12 +67,10 @@ function readBeaker(world: World): Beaker {
 const isDissolved = (b: Beaker) => b.stirs >= DISSOLVE_STIRS
 const molOf = (mass: number) => mass / MR_CUSO4
 
-/** Written as one division so whole-number inputs give exact results. */
 function concentrationOf(mass: number, volume: number): number {
   return volume > 0 ? (mass * 1000) / (MR_CUSO4 * volume) : 0
 }
 
-/** Rounds half up and uses a decimal comma, e.g. 0.0125 → "0,013". */
 function formatDecimal(value: number, digits: number): string {
   const factor = 10 ** digits
   const rounded = Math.round(value * factor + 1e-9) / factor
@@ -115,7 +112,6 @@ function patchItem(world: World, id: string, patch: ItemState): World {
   }
 }
 
-/** Adding to a fully dissolved solution starts a new dissolving process. */
 function addToBeaker(
   world: World,
   add: { mass?: number; volume?: number },
@@ -162,7 +158,7 @@ function stir(world: World): Result {
     }
   }
   if (stirs < DISSOLVE_STIRS) return { world: next }
-
+  // stirs === DISSOLVE_STIRS
   const concentration = concentrationOf(b.mass, b.volume)
   const color = colorLevel(concentration).name
   const mol = formatDecimal(molOf(b.mass), 3)
@@ -393,7 +389,7 @@ export const solutionConcentration: Experiment = {
       name: 'Kaca arloji',
       state: { mass: 0 },
     },
-    { id: 'water', kind: 'bottle', name: 'Botol air suling' },
+    { id: 'water', kind: 'water', name: 'Botol air suling' },
     {
       id: 'cylinder',
       kind: 'cylinder',

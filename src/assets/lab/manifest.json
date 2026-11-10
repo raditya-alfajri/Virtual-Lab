@@ -1,0 +1,200 @@
+[
+  {
+    "slug": "test-tube",
+    "name": "Tabung reaksi",
+    "group": "K1 Uji Asam & Basa",
+    "dyn": "liquid: level (0–1) → tinggi, color → warna"
+  },
+  {
+    "slug": "tube-rack",
+    "name": "Rak tabung",
+    "group": "K1 Uji Asam & Basa",
+    "dyn": "slot-1..3: titik letak tabung"
+  },
+  {
+    "slug": "dropper",
+    "name": "Pipet tetes",
+    "group": "K1 Uji Asam & Basa",
+    "dyn": "liquid: level, color (isi pipet)"
+  },
+  {
+    "slug": "reagent-bottle",
+    "name": "Botol larutan / pereaksi",
+    "group": "K1 · K3",
+    "dyn": "liquid: color; label: teks nama larutan"
+  },
+  {
+    "slug": "indicator-bottle",
+    "name": "Botol indikator universal",
+    "group": "K1 Uji Asam & Basa",
+    "dyn": "statis"
+  },
+  {
+    "slug": "ph-card",
+    "name": "Kartu skala warna pH",
+    "group": "K1 Uji Asam & Basa",
+    "dyn": "statis; dipakai sebagai target pembacaan pH"
+  },
+  {
+    "slug": "sink",
+    "name": "Wastafel",
+    "group": "K1 Uji Asam & Basa",
+    "dyn": "statis; target untuk mengosongkan"
+  },
+  {
+    "slug": "cuso4-jar",
+    "name": "Wadah CuSO₄",
+    "group": "K2 Konsentrasi Larutan",
+    "dyn": "statis"
+  },
+  {
+    "slug": "spoon",
+    "name": "Sendok",
+    "group": "K2 Konsentrasi Larutan",
+    "dyn": "contents: tampil jika sendok berisi (opacity 1)"
+  },
+  {
+    "slug": "watch-glass",
+    "name": "Kaca arloji",
+    "group": "K2 Konsentrasi Larutan",
+    "dyn": "contents: tumpukan CuSO₄ di cawan, tampil & membesar sesuai massa"
+  },
+  {
+    "slug": "digital-balance",
+    "name": "Neraca digital",
+    "group": "K2 Konsentrasi Larutan",
+    "dyn": "reading: teks layar; pan (y≈30) titik letak kaca arloji"
+  },
+  {
+    "slug": "graduated-cylinder",
+    "name": "Gelas ukur 250 mL",
+    "group": "K2 Konsentrasi Larutan",
+    "dyn": "liquid: level, color; skala statis"
+  },
+  {
+    "slug": "beaker",
+    "name": "Gelas kimia",
+    "group": "K2 · K3",
+    "dyn": "liquid: level, color (biru makin pekat)"
+  },
+  {
+    "slug": "wash-bottle",
+    "name": "Botol air suling",
+    "group": "K2 Konsentrasi Larutan",
+    "dyn": "liquid: level"
+  },
+  {
+    "slug": "stirring-rod",
+    "name": "Batang pengaduk",
+    "group": "K2 Konsentrasi Larutan",
+    "dyn": "statis; animasi aduk diputar dari tengah atas"
+  },
+  {
+    "slug": "erlenmeyer",
+    "name": "Labu Erlenmeyer",
+    "group": "K3 Laju Reaksi",
+    "dyn": "liquid: level, color (keruh → putih kekuningan)"
+  },
+  {
+    "slug": "cross-paper",
+    "name": "Kertas tanda silang",
+    "group": "K3 Laju Reaksi",
+    "dyn": "cross: opacity 1 → 0 saat reaksi berjalan"
+  },
+  {
+    "slug": "water-bath",
+    "name": "Penangas air + pemanas",
+    "group": "K3 Laju Reaksi",
+    "dyn": "liquid: color; coil: oranye saat menyala; switch-knob geser kanan & heater-light merah saat ON"
+  },
+  {
+    "slug": "thermometer",
+    "name": "Termometer",
+    "group": "K3 Laju Reaksi",
+    "dyn": "column: tinggi sesuai suhu (reading)"
+  },
+  {
+    "slug": "stopwatch",
+    "name": "Stopwatch",
+    "group": "K3 · F2",
+    "dyn": "reading: teks waktu; hand: rotasi = (detik % 60) × 6°"
+  },
+  {
+    "slug": "track",
+    "name": "Lintasan troli",
+    "group": "F1 Hukum Newton",
+    "dyn": "statis; posisi troli = 30 + progress × 380"
+  },
+  {
+    "slug": "cart",
+    "name": "Troli",
+    "group": "F1 Hukum Newton",
+    "dyn": "statis; beban ditumpuk di atas (y≈22)"
+  },
+  {
+    "slug": "mass-block",
+    "name": "Beban 0,5 / 1 kg",
+    "group": "F1 Hukum Newton",
+    "dyn": "label: massa"
+  },
+  {
+    "slug": "fan",
+    "name": "Kipas pendorong",
+    "group": "F1 Hukum Newton",
+    "dyn": "blades: berputar saat aktif; label: gaya"
+  },
+  {
+    "slug": "photogate",
+    "name": "Sensor gerak",
+    "group": "F1 Hukum Newton",
+    "dyn": "reading: waktu tempuh; light hijau→merah saat terpicu"
+  },
+  {
+    "slug": "retort-stand",
+    "name": "Statif + penjepit",
+    "group": "F2 · F3",
+    "dyn": "anchor (x≈146, y≈72): titik gantung tali/pegas"
+  },
+  {
+    "slug": "string",
+    "name": "Gulungan tali",
+    "group": "F2 Ayunan Sederhana",
+    "dyn": "label: panjang; di lab digambar sebagai garis dari anchor"
+  },
+  {
+    "slug": "pendulum-bob",
+    "name": "Bandul",
+    "group": "F2 Ayunan Sederhana",
+    "dyn": "label: massa; rotasi tali+bandul = angle dari anchor"
+  },
+  {
+    "slug": "protractor",
+    "name": "Busur derajat",
+    "group": "F2 Ayunan Sederhana",
+    "dyn": "statis; dipasang di anchor, membaca angle"
+  },
+  {
+    "slug": "spring",
+    "name": "Pegas",
+    "group": "F3 Hukum Hooke",
+    "dyn": "coil: skala vertikal sesuai length; hook bawah ikut turun"
+  },
+  {
+    "slug": "mass-hanger",
+    "name": "Gantungan beban",
+    "group": "F3 Hukum Hooke",
+    "dyn": "statis; beban ditumpuk di atas piringan"
+  },
+  {
+    "slug": "slotted-mass",
+    "name": "Beban 50 g",
+    "group": "F3 Hukum Hooke",
+    "dyn": "statis; ditumpuk (maks 5)"
+  },
+  {
+    "slug": "ruler",
+    "name": "Mistar",
+    "group": "F3 Hukum Hooke",
+    "dyn": "marker: garis baca panjang pegas (y sesuai reading)"
+  }
+]
