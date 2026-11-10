@@ -12,7 +12,7 @@ import {
   type UniqueIdentifier,
 } from '@dnd-kit/core'
 import clsx from 'clsx'
-import { useRef, useState } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import type { Experiment } from '../../data/types'
 import type { useExperiment } from '../../hooks/useExperiment'
 import { SHELF } from '../../lib/engine'
@@ -32,6 +32,8 @@ type Props = {
   experiment: Experiment
   layout: SceneLayout
   lab: ReturnType<typeof useExperiment>
+  /** Sits above the stage, in the stage's column. */
+  header?: ReactNode
 }
 
 const SHELF_NAME = 'Rak alat'
@@ -48,7 +50,7 @@ const collisionDetection: CollisionDetection = (args) => {
   return hits.filter((hit) => hit.id === target)
 }
 
-export default function LabBench({ experiment, layout, lab }: Props) {
+export default function LabBench({ experiment, layout, lab, header }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [hintClosed, setHintClosed] = useState(false)
@@ -142,8 +144,9 @@ export default function LabBench({ experiment, layout, lab }: Props) {
         },
       }}
     >
-      <div className="flex min-h-0 min-w-0 flex-1">
-        <div className="relative min-w-0 flex-1">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+        <div className="min-w-0 flex-1">
+          {header}
           <LabStage
             background={getBackgroundUrl(experiment.id)}
             onBackgroundClick={() => setSelectedId(null)}
@@ -232,7 +235,7 @@ function Shelf({
       onClick={onClick}
       onKeyDown={onActivateKey(onClick)}
       className={clsx(
-        'flex size-full items-center justify-center gap-3 rounded-xl border-2 border-dashed transition-colors',
+        'flex h-11 items-center justify-center gap-2 rounded-xl border border-dashed px-4 text-sm transition-colors',
         isOver
           ? 'border-primary bg-primary-tint'
           : highlight
@@ -240,8 +243,8 @@ function Shelf({
             : 'border-line',
       )}
     >
-      <p className="font-heading text-sm font-bold">{SHELF_NAME}</p>
-      <p className="text-sm text-ink-muted">
+      <p className="font-semibold text-ink">{SHELF_NAME}</p>
+      <p className="truncate text-ink-muted">
         Taruh benda di sini untuk mengembalikannya ke tempat awal.
       </p>
     </div>

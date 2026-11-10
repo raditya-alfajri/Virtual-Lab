@@ -1,10 +1,6 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { STAGE_HEIGHT, STAGE_WIDTH } from '../../simulations/types'
-import { fitStage } from './fit-stage'
 import { StageScaleContext } from './stage-scale'
-
-const FOOTER_HEIGHT = 56
-const FOOTER_GAP = 8
 
 type Props = {
   background: string
@@ -16,6 +12,7 @@ type Props = {
   children?: ReactNode
 }
 
+/** The stage always spans the column's width; the page scrolls for height. */
 export default function LabStage({
   background,
   overlay,
@@ -23,62 +20,52 @@ export default function LabStage({
   onBackgroundClick,
   children,
 }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [size, setSize] = useState({ width: 0, height: 0 })
+  const cardRef = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
 
   useLayoutEffect(() => {
-    const container = containerRef.current
-    if (!container) return
+    const card = cardRef.current
+    if (!card) return
     const observer = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect
-      setSize({ width, height })
+      setWidth(entry.contentRect.width)
     })
-    observer.observe(container)
+    observer.observe(card)
     return () => observer.disconnect()
   }, [])
 
-  const { scale, left } = fitStage(
-    size.width,
-    size.height - FOOTER_HEIGHT - FOOTER_GAP,
-  )
+  const scale = width / STAGE_WIDTH
 
   return (
-    <div ref={containerRef} className="absolute inset-3">
-      {scale > 0 && (
-        <div
-          className="absolute top-0"
-          style={{ left, width: STAGE_WIDTH * scale }}
-        >
+    <div>
+      <div
+        ref={cardRef}
+        className="relative box-content overflow-hidden rounded-2xl border border-line bg-bg"
+        style={{ height: STAGE_HEIGHT * scale }}
+      >
+        {scale > 0 && (
           <div
-            className="relative overflow-hidden rounded-xl"
-            style={{ height: STAGE_HEIGHT * scale }}
+            className="absolute top-0 left-0 origin-top-left"
+            style={{
+              width: STAGE_WIDTH,
+              height: STAGE_HEIGHT,
+              transform: `scale(${scale})`,
+            }}
           >
-            <div
-              className="absolute top-0 left-0 origin-top-left"
-              style={{
-                width: STAGE_WIDTH,
-                height: STAGE_HEIGHT,
-                transform: `scale(${scale})`,
-              }}
-            >
-              <img
-                src={background}
-                alt=""
-                draggable={false}
-                onClick={onBackgroundClick}
-                className="absolute inset-0 size-full select-none"
-              />
-              <StageScaleContext value={scale}>{children}</StageScaleContext>
-            </div>
-            <div className="pointer-events-none absolute inset-0 z-10">
-              {overlay}
-            </div>
+            <img
+              src={background}
+              alt=""
+              draggable={false}
+              onClick={onBackgroundClick}
+              className="absolute inset-0 size-full select-none"
+            />
+            <StageScaleContext value={scale}>{children}</StageScaleContext>
           </div>
-          <div style={{ height: FOOTER_HEIGHT, marginTop: FOOTER_GAP }}>
-            {footer}
-          </div>
+        )}
+        <div className="pointer-events-none absolute inset-0 z-10">
+          {overlay}
         </div>
-      )}
+      </div>
+      {footer && <div className="mt-3">{footer}</div>}
     </div>
   )
 }

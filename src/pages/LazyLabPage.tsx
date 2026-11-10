@@ -7,9 +7,7 @@ export default function LazyLabPage() {
   return (
     <Suspense
       fallback={
-        <p className="grid h-dvh place-items-center text-ink-muted">
-          Memuat praktikum…
-        </p>
+        <p className="py-24 text-center text-ink-muted">Memuat praktikum…</p>
       }
     >
       <LabPage />
