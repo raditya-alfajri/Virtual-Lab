@@ -158,7 +158,7 @@ function stir(world: World): Result {
     }
   }
   if (stirs < DISSOLVE_STIRS) return { world: next }
-
+  // stirs === DISSOLVE_STIRS
   const concentration = concentrationOf(b.mass, b.volume)
   const color = colorLevel(concentration).name
   const mol = formatDecimal(molOf(b.mass), 3)
