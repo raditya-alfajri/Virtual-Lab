@@ -9,8 +9,8 @@ const LINKS = [
 
 export default function Navbar() {
   return (
-    <header className="border-b border-line bg-bg">
-      <div className="mx-auto max-w-[1600px] px-6">
+    <header className="border-b border-line bg-bg pt-2">
+      <div className="mx-auto max-w-[1600px] px-6 sm:px-10 md:px-14 lg:px-20 xl:px-24 2xl:px-28">
         <div className="flex h-16 items-center">
           <Link
             to="/"
