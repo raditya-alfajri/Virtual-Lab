@@ -14,7 +14,7 @@ export const labs = [
     subject: 'fisika',
     icon: AtomIcon,
     caption: 'Uji Konsep dan temukan cara dunia bekerja.',
-    tags: ['Gerak & gaya', 'Energi', 'Listrik'],
+    tags: ['Gerak & gaya', 'Energi'],
     color: 'green',
   },
 ]
