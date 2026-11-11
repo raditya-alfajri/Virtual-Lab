@@ -425,16 +425,27 @@ describe('view', () => {
     })
   })
 
-  it('labels the spoons and the stirrer', () => {
-    const s = play([drop('spoon-large', 'cuso4'), drop('stirrer', 'beaker')])
+  it('labels the spoons', () => {
+    const s = play([drop('spoon-large', 'cuso4')])
     const view = getView(exp, s)
     expect(view['spoon-large'].label).toBe('Berisi 4 g')
     expect(view['spoon-small'].label).toBe('Kosong')
-    expect(view.stirrer).toEqual({
-      label: 'Ketuk untuk mengaduk',
+  })
+
+  it('offers the Aduk action only while the stirrer is in the beaker', () => {
+    const inBeaker = play([drop('stirrer', 'beaker')])
+    expect(getView(exp, inBeaker).stirrer).toEqual({
+      action: 'Aduk',
       active: true,
     })
-    expect(getView(exp, createInitialState(exp)).stirrer.active).toBe(false)
+
+    const onBench = runEngine(exp, inBeaker, drop('stirrer', 'bench'))
+    expect(onBench.world.items.stirrer.at).toBe('bench')
+    expect(getView(exp, onBench).stirrer).toEqual({
+      action: undefined,
+      active: false,
+    })
+    expect(getView(exp, createInitialState(exp)).stirrer.action).toBeUndefined()
   })
 
   it('shows the beaker going from clear water to blue while dissolving', () => {

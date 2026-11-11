@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { pickDropTarget, type DropCandidate } from './drop-target'
+import { reactionRate } from '../../data/kimia/reaction-rate'
+import type { Interaction, ItemDef } from '../../data/types'
+import {
+  isInteractionTarget,
+  pickDropTarget,
+  type DropCandidate,
+} from './drop-target'
 
 const item = (id: string, order: number): DropCandidate => ({
   id,
@@ -41,5 +47,48 @@ describe('pickDropTarget', () => {
 
   it('returns undefined when nothing is under the pointer', () => {
     expect(pickDropTarget([], 'pipette')).toBeUndefined()
+  })
+})
+
+describe('isInteractionTarget', () => {
+  const rule = (source: string, target: string): Interaction => ({
+    source,
+    target,
+    run: (world) => ({ world }),
+  })
+  const interactions = [rule('hcl', 'flask'), rule('thio', 'flask-kind')]
+  const def = (id: string, kind: string): ItemDef => ({ id, kind, name: id })
+
+  it('is true when an interaction targets the item by id or by kind', () => {
+    expect(isInteractionTarget(interactions, def('flask', 'x'))).toBe(true)
+    expect(isInteractionTarget(interactions, def('y', 'flask-kind'))).toBe(true)
+  })
+
+  it('is false for items that are only ever a source', () => {
+    expect(isInteractionTarget(interactions, def('hcl', 'hcl'))).toBe(false)
+    expect(isInteractionTarget(interactions, def('thermometer', 'x'))).toBe(
+      false,
+    )
+  })
+})
+
+describe('isInteractionTarget on the reaction-rate scene', () => {
+  const targetable = (id: string) => {
+    const item = reactionRate.items.find((it) => it.id === id)
+    return (
+      item !== undefined && isInteractionTarget(reactionRate.interactions, item)
+    )
+  }
+
+  it('lets drops pass through the thermometer onto the flask under it', () => {
+    expect(targetable('thermometer')).toBe(false)
+    expect(targetable('flask')).toBe(true)
+  })
+
+  it('keeps the paper and the bath as places for the flask', () => {
+    expect(targetable('paper')).toBe(true)
+    expect(targetable('bath')).toBe(true)
+    expect(targetable('hcl')).toBe(false)
+    expect(targetable('stopwatch')).toBe(false)
   })
 })
