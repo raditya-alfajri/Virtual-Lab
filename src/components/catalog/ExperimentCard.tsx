@@ -1,13 +1,28 @@
 import { FlaskConical, Target } from 'lucide-react'
 import { Link } from 'react-router'
 import type { Experiment } from '../../data/types'
-import {
-  ACCENT,
-  FALLBACK_ICON,
-  TOPIC_ICON,
-  type ComingSoon,
-  type Subject,
-} from './experimentMeta'
+import { ACCENT, type ComingSoon, type Subject } from './experimentMeta'
+import { ScenePreview } from './ScenePreview'
+import { TopicIcon } from './TopicIcon'
+
+function CardThumbnail({
+  id,
+  subject,
+  topic,
+}: {
+  id: string
+  subject: Subject
+  topic: string
+}) {
+  const accent = ACCENT[subject]
+  return (
+    <div
+      className={`relative mb-4 aspect-video overflow-hidden rounded-2xl ${accent.tint}`}
+    >
+      <ScenePreview id={id} topic={topic} accent={accent} />
+    </div>
+  )
+}
 
 function CardHeader({
   subject,
@@ -19,13 +34,12 @@ function CardHeader({
   title: string
 }) {
   const accent = ACCENT[subject]
-  const Icon = TOPIC_ICON[topic.toLowerCase()] ?? FALLBACK_ICON
   return (
     <div className="flex items-start gap-3">
       <span
         className={`grid size-12 shrink-0 place-items-center rounded-2xl ${accent.tint} ${accent.text}`}
       >
-        <Icon className="size-6" />
+        <TopicIcon topic={topic} className="size-6" />
       </span>
       <div className="min-w-0">
         <p
@@ -45,6 +59,7 @@ export function ExperimentCard({ exp }: { exp: Experiment }) {
       to={`/lab/${exp.subject}/${exp.id}`}
       className="block rounded-3xl border border-line bg-white p-5 transition hover:border-primary/40 hover:shadow-sm"
     >
+      <CardThumbnail id={exp.id} subject={exp.subject} topic={exp.topic} />
       <CardHeader subject={exp.subject} topic={exp.topic} title={exp.title} />
       <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-ink-muted">
         {exp.summary}
@@ -75,6 +90,7 @@ export function ComingSoonCard({
       aria-disabled="true"
       className="rounded-3xl border border-line bg-white p-5 opacity-70"
     >
+      <CardThumbnail id={item.id} subject={subject} topic={item.topic} />
       <CardHeader subject={subject} topic={item.topic} title={item.title} />
       <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-ink-muted">
         {item.summary}

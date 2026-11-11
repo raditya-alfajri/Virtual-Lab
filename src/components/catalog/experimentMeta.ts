@@ -1,4 +1,3 @@
-import { Beaker, Droplets, FlaskConical, type LucideIcon } from 'lucide-react'
 import type { Experiment } from '../../data/types'
 
 export type Subject = Experiment['subject']
@@ -16,14 +15,6 @@ export const ACCENT = {
   },
 }
 export type Accent = (typeof ACCENT)[Subject]
-
-export const TOPIC_ICON: Record<string, LucideIcon> = {
-  'asam & basa': Droplets,
-  larutan: Beaker,
-  'reaksi kimia': FlaskConical,
-  reaksi: FlaskConical,
-}
-export const FALLBACK_ICON: LucideIcon = FlaskConical
 
 export type ComingSoon = {
   id: string

@@ -11,6 +11,7 @@ import {
   COMING_SOON,
   type Subject,
 } from '../components/catalog/experimentMeta'
+import { ScenePreview } from '../components/catalog/ScenePreview'
 import {
   filterByTopic,
   getExperiments,
@@ -77,7 +78,7 @@ function Catalog({ subject }: { subject: Subject }) {
         item.summary.toLowerCase().includes(k)),
   )
 
-  const hero = all[0]?.previewImage
+  const first = all[0]
   const isEmpty = results.length === 0 && soon.length === 0
 
   return (
@@ -100,12 +101,8 @@ function Catalog({ subject }: { subject: Subject }) {
       <div
         className={`relative aspect-[2/1] overflow-hidden rounded-3xl md:aspect-[3/1] ${accent.tint}`}
       >
-        {hero && (
-          <img
-            src={hero}
-            alt=""
-            className="absolute inset-0 size-full object-cover"
-          />
+        {first && (
+          <ScenePreview id={first.id} topic={first.topic} accent={accent} />
         )}
         <span className="absolute top-4 left-4 flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-semibold shadow-sm">
           <FlaskConical className={`size-4 ${accent.text}`} />
@@ -167,13 +164,13 @@ function Catalog({ subject }: { subject: Subject }) {
         )}
       </section>
 
-      {all[0] && (
+      {first && (
         <aside className={`flex gap-3 rounded-3xl p-5 ${accent.tint}`}>
           <Lightbulb className={`mt-0.5 size-5 shrink-0 ${accent.text}`} />
           <div className="space-y-1">
             <p className="font-semibold">Mulai dari yang sederhana</p>
             <p className="text-sm text-ink-muted">
-              Coba {all[0].title} untuk mengenal alat dan langkah praktikum
+              Coba {first.title} untuk mengenal alat dan langkah praktikum
               pertamamu.
             </p>
           </div>

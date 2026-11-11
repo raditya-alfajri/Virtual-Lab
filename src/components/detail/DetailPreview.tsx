@@ -2,6 +2,7 @@ import { Eye, Maximize2, Play } from 'lucide-react'
 import { Link } from 'react-router'
 import type { Experiment } from '../../data/types'
 import type { Accent } from '../catalog/experimentMeta'
+import { ScenePreview } from '../catalog/ScenePreview'
 
 export function DetailPreview({
   exp,
@@ -16,11 +17,7 @@ export function DetailPreview({
       aria-label="Mulai eksperimen"
       className="group relative block aspect-video overflow-hidden rounded-3xl bg-ink"
     >
-      <img
-        src={exp.previewImage}
-        alt=""
-        className="absolute inset-0 size-full object-cover"
-      />
+      <ScenePreview id={exp.id} topic={exp.topic} accent={accent} />
       <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
 
       <span className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium">
@@ -29,7 +26,7 @@ export function DetailPreview({
       </span>
       <span className="absolute top-3 right-3 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium">
         <span className="size-1.5 rounded-full bg-green-500" />
-        Interaktif 3D
+        Interaktif
       </span>
 
       <span className="absolute top-1/2 left-1/2 grid size-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white shadow-lg transition-transform group-hover:scale-105">

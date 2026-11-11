@@ -10,11 +10,8 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { Link, useParams } from 'react-router'
-import {
-  ACCENT,
-  FALLBACK_ICON,
-  TOPIC_ICON,
-} from '../components/catalog/experimentMeta'
+import { ACCENT } from '../components/catalog/experimentMeta'
+import { TopicIcon } from '../components/catalog/TopicIcon'
 import { LAB_NAME } from '../components/detail/detailMeta'
 import { DetailPreview } from '../components/detail/DetailPreview'
 import { SectionCard } from '../components/detail/SectionCard'
@@ -49,7 +46,6 @@ export default function ExperimentDetail() {
 
 function Detail({ exp }: { exp: Experiment }) {
   const accent = ACCENT[exp.subject]
-  const TopicIcon = TOPIC_ICON[exp.topic.toLowerCase()] ?? FALLBACK_ICON
 
   const stats: { icon: LucideIcon; label: string; value: string }[] = [
     { icon: BookOpen, label: 'Topik', value: exp.topic },
@@ -79,7 +75,7 @@ function Detail({ exp }: { exp: Experiment }) {
             <span
               className={`grid size-12 place-items-center rounded-2xl ${accent.tint} ${accent.text}`}
             >
-              <TopicIcon className="size-6" />
+              <TopicIcon topic={exp.topic} className="size-6" />
             </span>
             <p
               className={`text-xs font-semibold tracking-wide uppercase ${accent.text}`}
