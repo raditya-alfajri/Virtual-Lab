@@ -1,5 +1,5 @@
 import type { World } from '../data/types'
-import type { Placement, Rect, SceneLayout } from './types'
+import type { Placement, Rect, SceneLayout, Side } from './types'
 
 const MAX_ATTACH_DEPTH = 10
 
@@ -24,7 +24,7 @@ export function resolveItemRect(
   }
 
   if (Object.hasOwn(items, item.at)) {
-    const attach = layout.attach[itemId]
+    const attach = layout.attach[itemId]?.[item.at]
     if (!attach || visiting.has(itemId)) return undefined
     const parent = resolveItemRect(
       layout,
@@ -82,4 +82,18 @@ export function carriedBy(items: World['items'], itemId: string): string[] {
   return Object.keys(items)
     .filter((id) => id !== itemId && attachChain(items, id).includes(itemId))
     .sort((a, b) => attachDepth(items, a) - attachDepth(items, b))
+}
+
+/** Where the item's label and action button go in its current spot. */
+export function itemSides(
+  layout: SceneLayout,
+  items: World['items'],
+  itemId: string,
+): { labelSide: Side; actionSide: Side } {
+  const at = items[itemId]?.at
+  const attach = at === undefined ? undefined : layout.attach[itemId]?.[at]
+  return {
+    labelSide: attach?.labelSide ?? layout.labelSide?.[itemId] ?? 'below',
+    actionSide: attach?.actionSide ?? 'below',
+  }
 }

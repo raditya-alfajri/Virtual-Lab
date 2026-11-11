@@ -1,7 +1,7 @@
 import { DragOverlay } from '@dnd-kit/core'
 import { createPortal } from 'react-dom'
 import type { ItemDef, ItemView } from '../../data/types'
-import type { LabelSide, Placement } from '../../simulations/types'
+import type { Placement, Side } from '../../simulations/types'
 import LabAsset, { type AssetTurn } from './LabAsset'
 import { useStageScale } from './stage-scale'
 
@@ -9,7 +9,7 @@ export type PreviewPiece = {
   item: ItemDef
   rect: Placement
   turn?: AssetTurn
-  labelSide?: LabelSide
+  labelSide?: Side
   view?: ItemView
   showReading: boolean
 }

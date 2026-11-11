@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import type { ComponentType, ReactNode } from 'react'
 import type { ItemView } from '../../data/types'
-import type { LabelSide } from '../../simulations/types'
+import type { Side } from '../../simulations/types'
 import AssetLabel from './assets/AssetLabel'
 import Beaker from './assets/Beaker'
 import CrossPaper from './assets/CrossPaper'
@@ -68,7 +68,7 @@ type Props = {
   name: string
   view?: ItemView
   turn?: AssetTurn
-  labelSide?: LabelSide
+  labelSide?: Side
   /** False when the reading is shown elsewhere, e.g. on a screen in the scene. */
   showReading?: boolean
 }

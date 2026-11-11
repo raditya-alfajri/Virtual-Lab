@@ -17,7 +17,8 @@ export const solutionConcentrationLayout: SceneLayout = {
   attach: {
     // Nearly upright against the right wall, its foot near the bottom of the
     // glass, so it leaves the middle of the beaker free as a drop target.
-    stirrer: { x: 11, y: 43, rotate: 96 },
+    // The action button goes above, clear of the beaker's own label.
+    stirrer: { beaker: { x: 11, y: 43, rotate: 96, actionSide: 'above' } },
   },
   screens: {
     balance: { x: 193, y: 516, w: 114, h: 36 },

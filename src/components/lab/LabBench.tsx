@@ -12,7 +12,7 @@ import {
   type UniqueIdentifier,
 } from '@dnd-kit/core'
 import clsx from 'clsx'
-import { useRef, useState, type ReactNode } from 'react'
+import { Fragment, useRef, useState, type ReactNode } from 'react'
 import type { Experiment } from '../../data/types'
 import type { useExperiment } from '../../hooks/useExperiment'
 import { SHELF } from '../../lib/engine'
@@ -20,16 +20,22 @@ import { getBackgroundUrl } from '../../simulations'
 import {
   attachDepth,
   carriedBy,
+  itemSides,
   resolveItemRect,
 } from '../../simulations/position'
 import type { Placement, SceneLayout } from '../../simulations/types'
 import DragPreview, { type PreviewPiece } from './DragPreview'
-import { pickDropTarget, type DropData } from './drop-target'
+import {
+  isInteractionTarget,
+  pickDropTarget,
+  type DropData,
+} from './drop-target'
 import { onActivateKey } from './keyboard'
 import type { AssetTurn } from './LabAsset'
 import LabHint from './LabHint'
 import LabPanel from './LabPanel'
 import LabStage from './LabStage'
+import StageFront from './StageFront'
 import StageItem from './StageItem'
 import StageScreen from './StageScreen'
 import StageZone from './StageZone'
@@ -93,7 +99,7 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
               item,
               rect,
               turn: turnOf(id, rect),
-              labelSide: layout.labelSide?.[id],
+              labelSide: itemSides(layout, items, id).labelSide,
               view: lab.view[id],
               showReading: showsReading(id),
             },
@@ -233,23 +239,47 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
               const rect = resolveItemRect(layout, items, item.id)
               if (!rect) return null
               const depth = attachDepth(items, item.id)
+              const { labelSide, actionSide } = itemSides(
+                layout,
+                items,
+                item.id,
+              )
+              // A front layer covers everything resting in its item.
+              const frontDepth = Math.max(
+                depth,
+                ...carriedBy(items, item.id).map((id) =>
+                  attachDepth(items, id),
+                ),
+              )
               return (
-                <StageItem
-                  key={item.id}
-                  item={item}
-                  rect={rect}
-                  turn={turnOf(item.id, rect)}
-                  labelSide={layout.labelSide?.[item.id]}
-                  // Attached items must sit above every item they could rest on.
-                  zIndex={1 + depth * itemCount + index}
-                  view={lab.view[item.id]}
-                  selected={selectedId === item.id}
-                  carried={carried.has(item.id)}
-                  showReading={showsReading(item.id)}
-                  actionAbove={depth > 0}
-                  onClick={handleItemClick}
-                  onAction={tapItem}
-                />
+                <Fragment key={item.id}>
+                  <StageItem
+                    item={item}
+                    rect={rect}
+                    turn={turnOf(item.id, rect)}
+                    labelSide={labelSide}
+                    // Attached items must sit above every item they could rest on.
+                    zIndex={1 + depth * itemCount + index}
+                    view={lab.view[item.id]}
+                    selected={selectedId === item.id}
+                    droppable={isInteractionTarget(
+                      experiment.interactions,
+                      item,
+                    )}
+                    carried={carried.has(item.id)}
+                    showReading={showsReading(item.id)}
+                    actionSide={actionSide}
+                    grabByDrawing={depth > 0}
+                    onClick={handleItemClick}
+                    onAction={tapItem}
+                  />
+                  <StageFront
+                    item={item}
+                    rect={rect}
+                    zIndex={1 + (frontDepth + 1) * itemCount + index}
+                    view={lab.view[item.id]}
+                  />
+                </Fragment>
               )
             })}
             <DragPreview pieces={previewPieces} />

@@ -1,3 +1,5 @@
+import type { Interaction, ItemDef } from '../../data/types'
+
 export type DropLayer = 'item' | 'zone' | 'shelf'
 
 export type DropData = {
@@ -26,4 +28,17 @@ export function pickDropTarget(
 function isAbove(a: DropCandidate, b: DropCandidate): boolean {
   if (RANK[a.layer] !== RANK[b.layer]) return RANK[a.layer] > RANK[b.layer]
   return (a.order ?? 0) > (b.order ?? 0)
+}
+
+/**
+ * The engine rejects every drop on an item that no interaction targets, so
+ * such items should let drops through to whatever lies beneath them.
+ */
+export function isInteractionTarget(
+  interactions: Interaction[],
+  item: ItemDef,
+): boolean {
+  return interactions.some(
+    (it) => it.target === item.id || it.target === item.kind,
+  )
 }
