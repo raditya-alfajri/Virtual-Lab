@@ -1,9 +1,8 @@
-import { Clock } from 'lucide-react'
+import { FlaskConical, Target } from 'lucide-react'
 import { Link } from 'react-router'
 import type { Experiment } from '../../data/types'
 import {
   ACCENT,
-  EXPERIMENT_META,
   FALLBACK_ICON,
   TOPIC_ICON,
   type ComingSoon,
@@ -41,8 +40,6 @@ function CardHeader({
 }
 
 export function ExperimentCard({ exp }: { exp: Experiment }) {
-  const meta = EXPERIMENT_META[exp.id]
-
   return (
     <Link
       to={`/lab/${exp.subject}/${exp.id}`}
@@ -52,17 +49,16 @@ export function ExperimentCard({ exp }: { exp: Experiment }) {
       <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-ink-muted">
         {exp.summary}
       </p>
-      {meta && (
-        <div className="mt-4 flex items-center justify-between gap-3 text-sm text-ink-muted">
-          <span className="flex items-center gap-1.5">
-            <Clock className="size-4" />
-            {meta.duration}
-          </span>
-          <span className="text-right">
-            {meta.level} · Dengan {meta.mode.toLowerCase()}
-          </span>
-        </div>
-      )}
+      <div className="mt-4 flex items-center justify-between gap-3 text-sm text-ink-muted">
+        <span className="flex items-center gap-1.5">
+          <FlaskConical className="size-4" />
+          {exp.items.length} alat & bahan
+        </span>
+        <span className="flex items-center gap-1.5">
+          <Target className="size-4" />
+          {exp.objectives.length} tujuan
+        </span>
+      </div>
     </Link>
   )
 }

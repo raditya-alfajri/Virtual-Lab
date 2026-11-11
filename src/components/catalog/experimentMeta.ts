@@ -1,9 +1,4 @@
-import {
-  Beaker,
-  Droplets,
-  FlaskConical,
-  type LucideIcon,
-} from 'lucide-react'
+import { Beaker, Droplets, FlaskConical, type LucideIcon } from 'lucide-react'
 import type { Experiment } from '../../data/types'
 
 export type Subject = Experiment['subject']
@@ -21,18 +16,6 @@ export const ACCENT = {
   },
 }
 export type Accent = (typeof ACCENT)[Subject]
-
-export type ExperimentMeta = { duration: string; level: string; mode: string }
-
-export const EXPERIMENT_META: Record<string, ExperimentMeta> = {
-  'uji-asam-basa': { duration: '10 menit', level: 'Pemula', mode: 'Panduan' },
-  'konsentrasi-larutan': {
-    duration: '15 menit',
-    level: 'Pemula',
-    mode: 'Panduan',
-  },
-  'laju-reaksi': { duration: '15 menit', level: 'Menengah', mode: 'Panduan' },
-}
 
 export const TOPIC_ICON: Record<string, LucideIcon> = {
   'asam & basa': Droplets,

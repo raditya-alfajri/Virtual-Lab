@@ -52,7 +52,9 @@ export function TopicChips({
           aria-pressed={active === topic}
           onClick={() => onChange(topic)}
           className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium ${
-            active === topic ? `${accent.solid} text-white` : 'border-line bg-white'
+            active === topic
+              ? `${accent.solid} text-white`
+              : 'border-line bg-white'
           }`}
         >
           {topic ?? 'Semua'}

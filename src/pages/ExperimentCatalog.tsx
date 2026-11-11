@@ -42,9 +42,7 @@ export default function ExperimentCatalog() {
         <h1 className="font-heading text-2xl font-bold">
           Laboratorium tidak ditemukan
         </h1>
-        <p className="text-ink-muted">
-          Pilih laboratorium dari halaman utama.
-        </p>
+        <p className="text-ink-muted">Pilih laboratorium dari halaman utama.</p>
         <Link
           to="/lab"
           className="inline-block rounded-xl bg-primary px-4 py-2 text-white"
