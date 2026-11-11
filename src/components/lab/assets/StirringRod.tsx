@@ -3,11 +3,12 @@ import AssetSvg from './AssetSvg'
 import { GLASS, OUTLINE, SHINE } from './svg-style'
 import type { AssetProps } from './types'
 
+/** Drawn lying down; the scene turns it upright when it stands in a beaker. */
 export default function StirringRod({ view }: AssetProps) {
   return (
-    <AssetSvg width={24} height={180}>
+    <AssetSvg width={180} height={24}>
       <motion.g
-        style={{ originX: 0.5, originY: 0 }}
+        style={{ originX: 0, originY: 0.5 }}
         initial={false}
         animate={view.active ? { rotate: [0, -6, 6, 0] } : { rotate: 0 }}
         transition={
@@ -17,15 +18,15 @@ export default function StirringRod({ view }: AssetProps) {
         }
       >
         <rect
-          x="7"
-          y="6"
-          width="10"
-          height="168"
+          x="6"
+          y="7"
+          width="168"
+          height="10"
           rx="5"
           fill={GLASS}
           {...OUTLINE}
         />
-        <line x1="11" y1="18" x2="11" y2="160" {...SHINE} />
+        <line x1="18" y1="11" x2="160" y2="11" {...SHINE} />
       </motion.g>
     </AssetSvg>
   )

@@ -100,3 +100,24 @@ export default function WaterBath({ view }: AssetProps) {
     </AssetSvg>
   )
 }
+
+/**
+ * The water again, see-through, drawn over whatever stands in the bath so
+ * the lower part of it looks submerged.
+ */
+export function WaterBathFront({ view }: AssetProps) {
+  return (
+    <AssetSvg width={220} height={160}>
+      <rect
+        x="29"
+        y="56"
+        width="162"
+        height="47"
+        rx="3"
+        fill={view.color ?? LIQUID}
+        opacity={0.6}
+      />
+      <rect x="29" y="56" width="162" height="5" fill="#A9DDEA" opacity={0.9} />
+    </AssetSvg>
+  )
+}

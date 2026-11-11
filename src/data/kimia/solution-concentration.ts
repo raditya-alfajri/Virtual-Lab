@@ -365,7 +365,7 @@ export const solutionConcentration: Experiment = {
   tips: [
     'Letakkan kaca arloji di atas neraca sebelum memasukkan CuSO₄ supaya massanya terbaca.',
     'Gelas ukur terisi 50 mL setiap kali air dituang dari botol.',
-    'Masukkan batang pengaduk ke gelas kimia, lalu ketuk batang pengaduk berkali-kali sampai larut sempurna.',
+    'Masukkan batang pengaduk ke gelas kimia, lalu tekan tombol Aduk berkali-kali sampai larut sempurna.',
     'Setelah larut sempurna, tambahkan air lalu aduk lagi untuk mendapatkan data pengenceran.',
   ],
 
@@ -445,7 +445,7 @@ export const solutionConcentration: Experiment = {
       },
       [BEAKER]: beakerView(readBeaker(world)),
       stirrer: {
-        label: stirring ? 'Ketuk untuk mengaduk' : undefined,
+        action: stirring ? 'Aduk' : undefined,
         active: stirring,
       },
     }
