@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { acidBaseTest } from '../data/kimia/acid-base-test'
+import { reactionRate } from '../data/kimia/reaction-rate'
+import { solutionConcentration } from '../data/kimia/solution-concentration'
 import type { World } from '../data/types'
 import { createInitialState } from '../lib/engine'
 import { acidBaseTestLayout } from './acid-base-test/layout'
 import { getBackgroundUrl, getSceneLayout } from '.'
-import { attachDepth, resolveItemRect } from './position'
+import { attachDepth, carriedBy, itemSides, resolveItemRect } from './position'
+import { reactionRateLayout } from './reaction-rate/layout'
+import { solutionConcentrationLayout } from './solution-concentration/layout'
 import type { SceneLayout } from './types'
 
 const itemsAt = (places: Record<string, string>): World['items'] =>
@@ -18,14 +22,20 @@ const layout: SceneLayout = {
     thermometer: { x: 500, y: 500, w: 10, h: 100 },
     bath: { x: 300, y: 400, w: 200, h: 100 },
     stirrer: { x: 700, y: 700, w: 8, h: 120 },
+    rod: { x: 800, y: 800, w: 8, h: 120 },
   },
   zones: {
     shelf: { x: 0, y: 0, w: 200, h: 100 },
   },
   attach: {
-    flask: { x: 5, y: -20 },
-    thermometer: { x: 20, y: -50 },
+    flask: {
+      bath: { x: 5, y: -20 },
+      stirrer: { x: 0, y: 0, labelSide: 'left', actionSide: 'right' },
+    },
+    thermometer: { flask: { x: 20, y: -50 } },
+    rod: { bath: { x: 10, y: -30, rotate: 90 } },
   },
+  labelSide: { thermometer: 'right' },
 }
 
 describe('resolveItemRect', () => {
@@ -75,6 +85,37 @@ describe('resolveItemRect', () => {
     })
   })
 
+  it('uses the offset for the parent the item rests on', () => {
+    const items = itemsAt({ bath: 'bench', stirrer: 'bench', flask: 'bath' })
+    expect(resolveItemRect(layout, items, 'flask')).toEqual({
+      x: 305,
+      y: 380,
+      w: 60,
+      h: 80,
+    })
+    const onStirrer = { ...items, flask: { at: 'stirrer', state: {} } }
+    expect(resolveItemRect(layout, onStirrer, 'flask')).toEqual({
+      x: 700,
+      y: 700,
+      w: 60,
+      h: 80,
+    })
+    const onRod = itemsAt({ rod: 'bench', flask: 'rod' })
+    expect(resolveItemRect(layout, onRod, 'flask')).toBeUndefined()
+  })
+
+  it('turns an attached item about its centre, keeping its home size', () => {
+    const items = itemsAt({ bath: 'bench', rod: 'bath' })
+    // The 8×120 box at (310, 370) lies down as a 120×8 box around (314, 430).
+    expect(resolveItemRect(layout, items, 'rod')).toEqual({
+      x: 254,
+      y: 426,
+      w: 120,
+      h: 8,
+      rotate: 90,
+    })
+  })
+
   it('returns undefined when the item cannot be placed', () => {
     const items = itemsAt({
       flask: 'thermometer',
@@ -104,6 +145,51 @@ describe('attachDepth', () => {
     expect(attachDepth(items, 'thermometer')).toBe(2)
     expect(attachDepth(items, 'missing')).toBe(0)
     expect(attachDepth(items, 'a')).toBe(10)
+  })
+})
+
+describe('itemSides', () => {
+  it('puts labels and buttons below unless the layout says otherwise', () => {
+    const items = itemsAt({ flask: 'bench', thermometer: 'bench' })
+    expect(itemSides(layout, items, 'flask')).toEqual({
+      labelSide: 'below',
+      actionSide: 'below',
+    })
+    expect(itemSides(layout, items, 'thermometer')).toEqual({
+      labelSide: 'right',
+      actionSide: 'below',
+    })
+  })
+
+  it('lets the spot an item rests on move its label and button', () => {
+    const onStirrer = itemsAt({ stirrer: 'bench', flask: 'stirrer' })
+    expect(itemSides(layout, onStirrer, 'flask')).toEqual({
+      labelSide: 'left',
+      actionSide: 'right',
+    })
+    const onBath = itemsAt({ bath: 'bench', flask: 'bath' })
+    expect(itemSides(layout, onBath, 'flask').actionSide).toBe('below')
+  })
+})
+
+describe('carriedBy', () => {
+  it('lists everything resting on an item, shallowest first', () => {
+    const items = itemsAt({
+      thermometer: 'flask',
+      flask: 'bath',
+      bath: 'bench',
+      rod: 'bench',
+    })
+    expect(carriedBy(items, 'bath')).toEqual(['flask', 'thermometer'])
+    expect(carriedBy(items, 'flask')).toEqual(['thermometer'])
+    expect(carriedBy(items, 'thermometer')).toEqual([])
+    expect(carriedBy(items, 'rod')).toEqual([])
+    expect(carriedBy(items, 'missing')).toEqual([])
+  })
+
+  it('stops on a cycle', () => {
+    const items = itemsAt({ a: 'b', b: 'a' })
+    expect(carriedBy(items, 'a')).toEqual(['b'])
   })
 })
 
@@ -151,5 +237,124 @@ describe('acid-base layout', () => {
       w: 80,
       h: 170,
     })
+  })
+})
+
+describe('solution-concentration layout', () => {
+  const layout = solutionConcentrationLayout
+  const { items } = createInitialState(solutionConcentration).world
+  const moved = (places: Record<string, string>): World['items'] => {
+    const next = { ...items }
+    for (const [id, at] of Object.entries(places)) {
+      next[id] = { ...next[id], at }
+    }
+    return next
+  }
+
+  it('is registered with a background named after the experiment id', () => {
+    expect(getSceneLayout('konsentrasi-larutan')).toBe(layout)
+    expect(getBackgroundUrl('konsentrasi-larutan')).toBe(
+      '/img/lab/konsentrasi-larutan-bg.svg',
+    )
+  })
+
+  it('has a home for every item and starts them all there', () => {
+    for (const id of Object.keys(items)) {
+      expect(resolveItemRect(layout, items, id)).toEqual(layout.home[id])
+    }
+  })
+
+  it('sets the watch glass on the balance pan', () => {
+    const onBalance = moved({ 'watch-glass': 'balance' })
+    expect(resolveItemRect(layout, onBalance, 'watch-glass')).toEqual({
+      x: 175,
+      y: 392,
+      w: 150,
+      h: 80,
+    })
+  })
+
+  it('stands the stirrer in the beaker, clear of its middle', () => {
+    const beaker = layout.home.beaker
+    const inBeaker = moved({ stirrer: 'beaker' })
+    const rect = resolveItemRect(layout, inBeaker, 'stirrer')
+    expect(rect?.rotate).toBe(96)
+    expect(rect?.x).toBeGreaterThan(beaker.x + beaker.w / 2)
+    expect(rect && rect.x + rect.w).toBeLessThan(beaker.x + beaker.w)
+    expect(rect && rect.y + rect.h).toBeLessThan(beaker.y + beaker.h)
+    expect(rect?.y).toBeLessThan(beaker.y)
+    expect(carriedBy(inBeaker, 'beaker')).toEqual(['stirrer'])
+  })
+
+  it('shows the balance reading on the screen in the background', () => {
+    expect(layout.screens?.balance).toEqual({
+      x: 193,
+      y: 516,
+      w: 114,
+      h: 36,
+    })
+  })
+})
+
+describe('reaction-rate layout', () => {
+  const layout = reactionRateLayout
+  const { items } = createInitialState(reactionRate).world
+  const moved = (places: Record<string, string>): World['items'] => {
+    const next = { ...items }
+    for (const [id, at] of Object.entries(places)) {
+      next[id] = { ...next[id], at }
+    }
+    return next
+  }
+
+  it('is registered with a background named after the experiment id', () => {
+    expect(getSceneLayout('laju-reaksi')).toBe(layout)
+    expect(getBackgroundUrl('laju-reaksi')).toBe('/img/lab/laju-reaksi-bg.svg')
+  })
+
+  it('has a home for every item and starts them all there', () => {
+    for (const id of Object.keys(items)) {
+      expect(resolveItemRect(layout, items, id)).toEqual(layout.home[id])
+    }
+  })
+
+  it('stands the flask on the cross paper with its label and button below', () => {
+    const onPaper = moved({ flask: 'paper' })
+    expect(resolveItemRect(layout, onPaper, 'flask')).toEqual({
+      x: 369,
+      y: 529,
+      w: 132,
+      h: 161,
+    })
+    expect(itemSides(layout, onPaper, 'flask')).toEqual({
+      labelSide: 'below',
+      actionSide: 'below',
+    })
+  })
+
+  it('sets the flask in the bath with its label and button beside it', () => {
+    const inBath = moved({ flask: 'bath' })
+    expect(resolveItemRect(layout, inBath, 'flask')).toEqual({
+      x: 1067,
+      y: 479,
+      w: 132,
+      h: 161,
+    })
+    expect(itemSides(layout, inBath, 'flask')).toEqual({
+      labelSide: 'left',
+      actionSide: 'right',
+    })
+  })
+
+  it('carries the thermometer with the flask, its bulb inside the glass', () => {
+    const inBath = moved({ flask: 'bath', thermometer: 'flask' })
+    const flask = resolveItemRect(layout, inBath, 'flask')
+    const thermometer = resolveItemRect(layout, inBath, 'thermometer')
+    expect(thermometer).toEqual({ x: 1113, y: 423, w: 40, h: 210 })
+    expect(thermometer && flask && thermometer.y + thermometer.h).toBeLessThan(
+      flask ? flask.y + flask.h : 0,
+    )
+    expect(carriedBy(inBath, 'bath')).toEqual(['flask', 'thermometer'])
+    expect(carriedBy(inBath, 'flask')).toEqual(['thermometer'])
   })
 })
