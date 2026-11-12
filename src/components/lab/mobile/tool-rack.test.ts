@@ -1,11 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import { acidBaseTest } from '../../../data/kimia/acid-base-test'
 import { reactionRate } from '../../../data/kimia/reaction-rate'
+import { solutionConcentration } from '../../../data/kimia/solution-concentration'
 import type { ItemDef, World } from '../../../data/types'
 import { createInitialState } from '../../../lib/engine'
 import { acidBaseTestLayout } from '../../../simulations/acid-base-test/layout'
 import { reactionRateLayout } from '../../../simulations/reaction-rate/layout'
-import type { Rect, SceneLayout } from '../../../simulations/types'
+import { solutionConcentrationLayout } from '../../../simulations/solution-concentration/layout'
+import {
+  STAGE_HEIGHT,
+  STAGE_WIDTH,
+  type Rect,
+  type SceneLayout,
+} from '../../../simulations/types'
 import { isVisibleIn, shareInside, toolRackItems } from './tool-rack'
 
 const area: Rect = { x: 0, y: 0, w: 100, h: 100 }
@@ -105,5 +112,79 @@ describe('toolRackItems', () => {
       b: { at: 'shelf', state: {} },
     }
     expect(ids(toolRackItems(defs, layout, world, area))).toEqual(['a'])
+  })
+})
+
+describe('mobile work areas', () => {
+  const scenes = [
+    { experiment: acidBaseTest, layout: acidBaseTestLayout },
+    { experiment: solutionConcentration, layout: solutionConcentrationLayout },
+    { experiment: reactionRate, layout: reactionRateLayout },
+  ]
+  const rackAt = (scene: (typeof scenes)[number], viewId: string) => {
+    const view = scene.layout.mobile?.views.find((it) => it.id === viewId)
+    const { items } = createInitialState(scene.experiment).world
+    return ids(
+      toolRackItems(
+        scene.experiment.items,
+        scene.layout,
+        items,
+        view?.region ?? NOWHERE,
+      ),
+    )
+  }
+
+  it('gives every experiment at least two areas on the stage', () => {
+    for (const { layout } of scenes) {
+      const views = layout.mobile?.views ?? []
+      expect(views.length).toBeGreaterThanOrEqual(2)
+      for (const { region } of views) {
+        expect(region.x).toBeGreaterThanOrEqual(0)
+        expect(region.y).toBeGreaterThanOrEqual(0)
+        expect(region.x + region.w).toBeLessThanOrEqual(STAGE_WIDTH)
+        expect(region.y + region.h).toBeLessThanOrEqual(STAGE_HEIGHT)
+      }
+    }
+  })
+
+  it('cuts no tool in half at the edge of an area', () => {
+    for (const { experiment, layout } of scenes) {
+      const { items } = createInitialState(experiment).world
+      for (const { id, region } of layout.mobile?.views ?? []) {
+        for (const item of experiment.items) {
+          const rect = layout.home[item.id]
+          if (item.fixed || !rect || !items[item.id]) continue
+          const share = shareInside(rect, region)
+          expect(
+            share === 0 || isVisibleIn(rect, region),
+            `${item.id} at the edge of ${experiment.id}/${id}`,
+          ).toBe(true)
+        }
+      }
+    }
+  })
+
+  it('keeps the bottles on the rack while the reaction-rate bench is shown', () => {
+    expect(rackAt(scenes[2], 'meja')).toEqual([
+      'thio-005',
+      'thio-010',
+      'thio-015',
+      'thio-020',
+      'hcl',
+    ])
+    expect(rackAt(scenes[2], 'penangas')).toEqual([
+      'flask',
+      'thio-005',
+      'thio-010',
+      'thio-015',
+      'thio-020',
+      'hcl',
+      'thermometer',
+      'stopwatch',
+    ])
+  })
+
+  it('shows the whole work bench of the concentration lab in one area', () => {
+    expect(rackAt(scenes[1], 'meja-kerja')).toEqual(['cuso4', 'water'])
   })
 })

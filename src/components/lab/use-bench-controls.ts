@@ -8,6 +8,7 @@ import {
   type CollisionDetection,
   type DragEndEvent,
   type DragStartEvent,
+  type Over,
   type PointerActivationConstraint,
   type PointerSensorProps,
   type UniqueIdentifier,
@@ -25,7 +26,7 @@ export type BenchControls = ReturnType<typeof useBenchControls>
 export const SHELF_NAME = 'Rak alat'
 export const SHELF_DROP: DropData = { layer: 'shelf' }
 
-/** Marks a tool-rack button, whose drags carry the item id in their data. */
+/** Marks a tool-rack button, whose drags and drops carry the item id in their data. */
 export const RACK_ITEM_ATTRIBUTE = 'data-rack-item'
 export const rackDragId = (itemId: string) => `rack:${itemId}`
 export type RackDragData = { itemId: string }
@@ -55,6 +56,12 @@ class BenchPointerSensor extends PointerSensor {
 function itemIdOf(active: Pick<Active, 'id' | 'data'>): string {
   const data = active.data.current as Partial<RackDragData> | undefined
   return data?.itemId ?? String(active.id)
+}
+
+/** The item, zone, or shelf a drop lands on, also when it is a rack button. */
+function targetIdOf(over: Pick<Over, 'id' | 'data'>): string {
+  const data = over.data.current as DropData | undefined
+  return data?.itemId ?? String(over.id)
 }
 
 const collisionDetection: CollisionDetection = (args) => {
@@ -131,18 +138,18 @@ export function useBenchControls(experiment: Experiment, lab: Lab) {
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
     endDrag()
-    if (over) dropOn(itemIdOf(active), String(over.id))
+    if (over) dropOn(itemIdOf(active), targetIdOf(over))
   }
 
   const announcements: Announcements = {
     onDragStart: ({ active }) => `Mengambil ${nameOf(itemIdOf(active))}.`,
     onDragOver: ({ active, over }) =>
       over
-        ? `${nameOf(itemIdOf(active))} berada di atas ${nameOf(over.id)}.`
+        ? `${nameOf(itemIdOf(active))} berada di atas ${nameOf(targetIdOf(over))}.`
         : `${nameOf(itemIdOf(active))} tidak berada di atas tujuan.`,
     onDragEnd: ({ active, over }) =>
       over
-        ? `${nameOf(itemIdOf(active))} dilepas di ${nameOf(over.id)}.`
+        ? `${nameOf(itemIdOf(active))} dilepas di ${nameOf(targetIdOf(over))}.`
         : `${nameOf(itemIdOf(active))} dilepas.`,
     onDragCancel: ({ active }) =>
       `Batal memindahkan ${nameOf(itemIdOf(active))}.`,

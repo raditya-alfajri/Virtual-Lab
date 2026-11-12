@@ -23,18 +23,18 @@ export const acidBaseTestLayout: SceneLayout = {
   attach: {},
   mobile: {
     views: [
-      // Narrower than the bench art so the edge cuts no rack in half;
-      // the first rack stays in view for setting tubes down.
+      // Region edges sit between tools so none is cut in half. The bench
+      // keeps the first rack in view for setting tubes down.
       { id: 'meja', name: 'Meja', region: { x: 470, y: 420, w: 670, h: 604 } },
       {
         id: 'rak-kartu',
         name: 'Rak & kartu pH',
-        region: { x: 760, y: 420, w: 680, h: 604 },
+        region: { x: 780, y: 420, w: 660, h: 604 },
       },
       {
         id: 'wastafel',
         name: 'Wastafel',
-        region: { x: 0, y: 200, w: 700, h: 600 },
+        region: { x: 0, y: 200, w: 690, h: 600 },
       },
     ],
   },

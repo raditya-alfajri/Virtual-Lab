@@ -6,6 +6,8 @@ import type { Placement, Rect, Side } from '../../simulations/types'
 import type { DropData } from './drop-target'
 import { onActivateKey } from './keyboard'
 import LabAsset, { type AssetTurn } from './LabAsset'
+import { fitActionSide } from './mobile/action-side'
+import { useElementSize } from './mobile/use-element-size'
 import { useStageScale } from './stage-scale'
 
 const ACTION_SIDE_CLASS: Record<Side, string> = {
@@ -41,8 +43,12 @@ type Props = {
   grabByDrawing: boolean
   /** Phone layout: the action button keeps its screen size at any stage scale. */
   compact?: boolean
-  /** A larger tap box than the drawing, relative to the item's top-left. */
-  hitArea?: Rect
+  /**
+   * When set, only this box takes the pointer, relative to the item's
+   * top-left; used on phones for the part of an attached item that sticks
+   * out of its parent.
+   */
+  touchHandle?: Rect
   onClick: (itemId: string) => void
   onAction: (itemId: string) => void
 }
@@ -61,11 +67,17 @@ export default function StageItem({
   actionSide,
   grabByDrawing,
   compact = false,
-  hitArea,
+  touchHandle,
   onClick,
   onAction,
 }: Props) {
   const scale = useStageScale()
+  const [actionRef, actionSize] = useElementSize<HTMLButtonElement>()
+  // On phones the button is drawn at screen size, so it may need the other side.
+  const buttonSide =
+    compact && scale > 0 && actionSize.w > 0
+      ? fitActionSide(actionSide, rect, actionSize.w / scale)
+      : actionSide
   const fixed = item.fixed === true
   const drag = useDraggable({ id: item.id, disabled: fixed })
   const dropData: DropData = { layer: 'item', order: zIndex }
@@ -86,7 +98,11 @@ export default function StageItem({
 
   return (
     <div
-      className={clsx('absolute', (drag.isDragging || carried) && 'opacity-30')}
+      className={clsx(
+        'absolute',
+        (drag.isDragging || carried) && 'opacity-30',
+        touchHandle && 'pointer-events-none',
+      )}
       style={{
         left: rect.x,
         top: rect.y,
@@ -108,7 +124,10 @@ export default function StageItem({
         className={clsx(
           'size-full touch-none rounded-lg outline-none focus-visible:ring-4 focus-visible:ring-primary/60',
           selected && 'ring-4 ring-primary ring-offset-4 ring-offset-bg',
-          grabByDrawing && 'pointer-events-none [&_svg_*]:pointer-events-auto',
+          touchHandle
+            ? 'pointer-events-none'
+            : grabByDrawing &&
+                'pointer-events-none [&_svg_*]:pointer-events-auto',
           fixed
             ? 'cursor-pointer'
             : drag.isDragging
@@ -116,15 +135,15 @@ export default function StageItem({
               : 'cursor-grab',
         )}
       >
-        {hitArea && (
+        {touchHandle && (
           <span
             aria-hidden
             className="pointer-events-auto absolute"
             style={{
-              left: hitArea.x,
-              top: hitArea.y,
-              width: hitArea.w,
-              height: hitArea.h,
+              left: touchHandle.x,
+              top: touchHandle.y,
+              width: touchHandle.w,
+              height: touchHandle.h,
             }}
           />
         )}
@@ -139,18 +158,21 @@ export default function StageItem({
       </div>
       {view?.action && (
         <button
+          ref={compact ? actionRef : undefined}
           type="button"
           onClick={() => onAction(item.id)}
           className={clsx(
             'absolute rounded-full bg-primary font-semibold whitespace-nowrap text-bg shadow hover:brightness-110',
-            compact ? 'min-h-11 px-5 text-base' : 'px-3 py-1 text-sm',
-            ACTION_SIDE_CLASS[actionSide],
+            compact
+              ? 'pointer-events-auto min-h-11 px-5 text-base'
+              : 'px-3 py-1 text-sm',
+            ACTION_SIDE_CLASS[buttonSide],
           )}
           style={
             compact && scale > 0
               ? {
                   scale: 1 / scale,
-                  transformOrigin: ACTION_ORIGIN[actionSide],
+                  transformOrigin: ACTION_ORIGIN[buttonSide],
                 }
               : undefined
           }

@@ -24,4 +24,17 @@ export const reactionRateLayout: SceneLayout = {
       flask: { x: 46, y: -56 },
     },
   },
+  mobile: {
+    views: [
+      // Starts left of the first Na₂S₂O₃ bottle, which an upright phone shows.
+      { id: 'meja', name: 'Meja', region: { x: 100, y: 420, w: 800, h: 560 } },
+      // Starts right of the stopwatch so the edge does not cut it in half, and
+      // high enough for the thermometer's reading above the flask in the bath.
+      {
+        id: 'penangas',
+        name: 'Penangas',
+        region: { x: 870, y: 370, w: 570, h: 590 },
+      },
+    ],
+  },
 }

@@ -1,8 +1,10 @@
 import { useDraggable, useDroppable } from '@dnd-kit/core'
 import clsx from 'clsx'
+import { useCallback } from 'react'
 import type { ItemDef, ItemView } from '../../../data/types'
 import { SHELF } from '../../../lib/engine'
 import type { Rect } from '../../../simulations/types'
+import type { DropData } from '../drop-target'
 import LabAsset from '../LabAsset'
 import {
   RACK_ITEM_ATTRIBUTE,
@@ -19,6 +21,8 @@ type Props = {
   homes: Record<string, Rect>
   views: Record<string, ItemView>
   selectedId: string | null
+  /** The rack items a dragged item can be dropped on. */
+  targetIds: ReadonlySet<string>
   /** An item is held, so the rack is a place to put it back. */
   highlight: boolean
   onItemClick: (itemId: string) => void
@@ -27,14 +31,15 @@ type Props = {
 
 /**
  * The movable items the active area does not show. A tool can be tapped to
- * pick it, or pulled up onto the stage. Tapping the rack itself puts the held
- * item back where it started.
+ * pick it, pulled up onto the stage, or have an item dropped on it. Tapping
+ * or dropping on the rack itself puts the item back where it started.
  */
 export default function ToolRack({
   items,
   homes,
   views,
   selectedId,
+  targetIds,
   highlight,
   onItemClick,
   onReturn,
@@ -47,7 +52,7 @@ export default function ToolRack({
       aria-label={SHELF_NAME}
       onClick={onReturn}
       className={clsx(
-        'flex h-[76px] shrink-0 items-center gap-2 overflow-x-auto border-t px-3 transition-colors',
+        'flex h-[84px] shrink-0 items-center gap-2 overflow-x-auto border-t px-3 transition-colors',
         isOver
           ? 'border-primary bg-primary-tint'
           : highlight
@@ -69,6 +74,7 @@ export default function ToolRack({
           home={homes[item.id]}
           view={views[item.id]}
           selected={item.id === selectedId}
+          droppable={targetIds.has(item.id)}
           onClick={onItemClick}
         />
       ))}
@@ -81,24 +87,35 @@ function RackButton({
   home,
   view,
   selected,
+  droppable,
   onClick,
 }: {
   item: ItemDef
   home?: Rect
   view?: ItemView
   selected: boolean
+  droppable: boolean
   onClick: (itemId: string) => void
 }) {
-  const data: RackDragData = { itemId: item.id }
-  const { setNodeRef, listeners, attributes, isDragging } = useDraggable({
-    id: rackDragId(item.id),
-    data,
-  })
+  const id = rackDragId(item.id)
+  const dragData: RackDragData = { itemId: item.id }
+  const dropData: DropData = { layer: 'item', itemId: item.id }
+  const drag = useDraggable({ id, data: dragData })
+  const drop = useDroppable({ id, data: dropData, disabled: !droppable })
+  const { setNodeRef: setDragRef } = drag
+  const { setNodeRef: setDropRef } = drop
+  const setNodeRef = useCallback(
+    (node: HTMLElement | null) => {
+      setDragRef(node)
+      setDropRef(node)
+    },
+    [setDragRef, setDropRef],
+  )
   return (
     <button
       ref={setNodeRef}
-      {...listeners}
-      {...attributes}
+      {...drag.listeners}
+      {...drag.attributes}
       {...{ [RACK_ITEM_ATTRIBUTE]: '' }}
       type="button"
       aria-pressed={selected}
@@ -107,13 +124,17 @@ function RackButton({
         onClick(item.id)
       }}
       className={clsx(
-        'flex h-15 w-18 shrink-0 touch-pan-x flex-col items-center justify-center gap-1 rounded-xl border bg-white px-1',
-        selected ? 'border-primary ring-2 ring-primary' : 'border-line',
-        isDragging && 'opacity-30',
+        'flex h-[72px] w-18 shrink-0 touch-pan-x flex-col items-center justify-center gap-0.5 rounded-xl border px-1',
+        !drop.isOver && 'bg-white',
+        selected || drop.isOver
+          ? 'border-primary ring-2 ring-primary'
+          : 'border-line',
+        drop.isOver && 'bg-primary-tint',
+        drag.isDragging && 'opacity-30',
       )}
     >
       <Thumbnail item={item} home={home} view={view} />
-      <span className="w-full truncate text-center text-[11px] leading-tight font-medium">
+      <span className="line-clamp-2 w-full text-center text-[11px] leading-tight font-medium break-words">
         {item.name}
       </span>
     </button>

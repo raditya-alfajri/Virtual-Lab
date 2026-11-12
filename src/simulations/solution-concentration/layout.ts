@@ -28,4 +28,20 @@ export const solutionConcentrationLayout: SceneLayout = {
     'spoon-small': 'right',
     'spoon-large': 'right',
   },
+  mobile: {
+    views: [
+      {
+        id: 'meja-timbang',
+        name: 'Meja timbang',
+        region: { x: 20, y: 340, w: 640, h: 560 },
+      },
+      // Reaches higher than the bench so the Aduk button above the stirrer
+      // stays on screen.
+      {
+        id: 'meja-kerja',
+        name: 'Meja kerja',
+        region: { x: 620, y: 360, w: 820, h: 580 },
+      },
+    ],
+  },
 }

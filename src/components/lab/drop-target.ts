@@ -6,20 +6,25 @@ export type DropData = {
   layer: DropLayer
   /** Stacking order among items; the higher one is on top. */
   order?: number
+  /** The item this target stands for, when its id is not the item's own. */
+  itemId?: string
 }
 
 export type DropCandidate = DropData & { id: string }
 
 const RANK: Record<DropLayer, number> = { item: 2, zone: 1, shelf: 0 }
 
-/** Picks the drop target among everything under the pointer: item > zone > shelf. */
+/**
+ * Picks the drop target among everything under the pointer: item > zone >
+ * shelf. `activeId` is the dragged item's id; its own targets are skipped.
+ */
 export function pickDropTarget(
   candidates: DropCandidate[],
   activeId: string,
 ): string | undefined {
   let best: DropCandidate | undefined
   for (const candidate of candidates) {
-    if (candidate.id === activeId) continue
+    if ((candidate.itemId ?? candidate.id) === activeId) continue
     if (!best || isAbove(candidate, best)) best = candidate
   }
   return best?.id

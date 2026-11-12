@@ -45,6 +45,16 @@ describe('pickDropTarget', () => {
     )
   })
 
+  it('skips a target that stands for the dragged item, like its rack button', () => {
+    const rackButton: DropCandidate = {
+      id: 'rack:pipette',
+      layer: 'item',
+      itemId: 'pipette',
+    }
+    expect(pickDropTarget([shelf, rackButton], 'pipette')).toBe('shelf')
+    expect(pickDropTarget([shelf, rackButton], 'tube-1')).toBe('rack:pipette')
+  })
+
   it('returns undefined when nothing is under the pointer', () => {
     expect(pickDropTarget([], 'pipette')).toBeUndefined()
   })

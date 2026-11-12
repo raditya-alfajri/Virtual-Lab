@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { touchTarget } from './touch-target'
+import { attachedTouchTarget, touchTarget } from './touch-target'
 
 describe('touchTarget', () => {
   it('needs no larger box for a rect that is big enough', () => {
@@ -23,33 +23,35 @@ describe('touchTarget', () => {
       h: 44,
     })
   })
+})
 
-  it('grows an attached item from the part above its parent, upwards', () => {
+describe('attachedTouchTarget', () => {
+  it('grows the part above the parent upwards, stopping at the parent', () => {
     const flask = { x: 1067, y: 479, w: 132, h: 161 }
     const thermometer = { x: 1113, y: 423, w: 40, h: 210 }
-    const box = touchTarget(thermometer, 88, flask)
+    const box = attachedTouchTarget(thermometer, 88, flask)
     expect(box).toEqual({ x: 1089, y: 391, w: 88, h: 88 })
     expect(box && box.y + box.h).toBe(flask.y)
   })
 
   it('grows sideways away from the parent for a part sticking out left', () => {
     const parent = { x: 100, y: 0, w: 100, h: 100 }
-    const box = touchTarget({ x: 90, y: 10, w: 40, h: 20 }, 44, parent)
+    const box = attachedTouchTarget({ x: 90, y: 10, w: 40, h: 20 }, 44, parent)
     expect(box).toEqual({ x: 56, y: -2, w: 44, h: 44 })
     expect(box && box.x + box.w).toBe(parent.x)
   })
 
-  it('does not grow an attached item that stays inside its parent', () => {
-    const parent = { x: 0, y: 0, w: 200, h: 200 }
-    expect(
-      touchTarget({ x: 50, y: 50, w: 10, h: 10 }, 44, parent),
-    ).toBeUndefined()
-  })
-
-  it('does not grow a part that already sticks out far enough', () => {
+  it('keeps a part that already sticks out far enough as it is', () => {
     const parent = { x: 0, y: 100, w: 200, h: 100 }
     expect(
-      touchTarget({ x: 50, y: 0, w: 60, h: 150 }, 44, parent),
+      attachedTouchTarget({ x: 50, y: 0, w: 60, h: 150 }, 44, parent),
+    ).toEqual({ x: 50, y: 0, w: 60, h: 100 })
+  })
+
+  it('has no box for an item that stays inside its parent', () => {
+    const parent = { x: 0, y: 0, w: 200, h: 200 }
+    expect(
+      attachedTouchTarget({ x: 50, y: 50, w: 10, h: 10 }, 44, parent),
     ).toBeUndefined()
   })
 })

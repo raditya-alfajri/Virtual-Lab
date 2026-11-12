@@ -6,17 +6,25 @@ export const MIN_TOUCH_PX = 44
 type Anchor = Side | 'centre'
 
 /**
- * The box that takes taps for a rect too small to hit on screen, in stage
- * coordinates, or undefined when no larger box is needed. `minSize` is in
- * stage units. An item resting on a parent only grows from the part that
- * sticks out of the parent, and away from it, so the parent stays tappable.
+ * The box that takes taps for an item too small to hit on screen, in stage
+ * coordinates, or undefined when its own drawing is big enough. `minSize`
+ * is in stage units.
  */
-export function touchTarget(
+export function touchTarget(rect: Rect, minSize: number): Rect | undefined {
+  const box = grow(rect, minSize, 'centre')
+  return box.w === rect.w && box.h === rect.h ? undefined : box
+}
+
+/**
+ * The only box that takes taps for an item resting on a parent: the part
+ * that sticks out of the parent, grown away from it to `minSize`, so taps
+ * inside the parent always reach the parent. Undefined when nothing sticks out.
+ */
+export function attachedTouchTarget(
   rect: Rect,
   minSize: number,
-  parent?: Rect,
+  parent: Rect,
 ): Rect | undefined {
-  if (!parent) return grow(rect, minSize, 'centre')
   const part = protrudingPart(rect, parent)
   return part && grow(part.rect, minSize, part.side)
 }
@@ -64,10 +72,9 @@ function protrudingPart(
 }
 
 /** Grows the box to `min` on each short axis, keeping the edge at `anchor`'s far side. */
-function grow(box: Rect, min: number, anchor: Anchor): Rect | undefined {
+function grow(box: Rect, min: number, anchor: Anchor): Rect {
   const w = Math.max(box.w, min)
   const h = Math.max(box.h, min)
-  if (w === box.w && h === box.h) return undefined
   const x =
     anchor === 'left'
       ? box.x + box.w - w

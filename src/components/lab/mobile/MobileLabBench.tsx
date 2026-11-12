@@ -8,6 +8,7 @@ import {
   type MobileView,
   type SceneLayout,
 } from '../../../simulations/types'
+import { isInteractionTarget } from '../drop-target'
 import LabHint from '../LabHint'
 import StageContent from '../StageContent'
 import { useBenchControls, type Lab } from '../use-bench-controls'
@@ -59,6 +60,15 @@ export default function MobileLabBench({
     layout,
     lab.world.items,
     area,
+  )
+  const rackTargets = new Set(
+    rackItems
+      .filter(
+        (item) =>
+          !controls.carried.has(item.id) &&
+          isInteractionTarget(experiment.interactions, item),
+      )
+      .map((item) => item.id),
   )
   const selected = experiment.items.find(
     (item) => item.id === controls.selectedId,
@@ -118,6 +128,7 @@ export default function MobileLabBench({
       homes={layout.home}
       views={lab.view}
       selectedId={controls.selectedId}
+      targetIds={rackTargets}
       highlight={controls.held}
       onItemClick={controls.handleItemClick}
       onReturn={controls.returnSelected}

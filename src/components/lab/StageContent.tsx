@@ -10,7 +10,11 @@ import type { Placement, Rect, SceneLayout } from '../../simulations/types'
 import DragPreview, { type PreviewPiece } from './DragPreview'
 import { isInteractionTarget } from './drop-target'
 import type { AssetTurn } from './LabAsset'
-import { MIN_TOUCH_PX, touchTarget } from './mobile/touch-target'
+import {
+  attachedTouchTarget,
+  MIN_TOUCH_PX,
+  touchTarget,
+} from './mobile/touch-target'
 import StageFront from './StageFront'
 import StageItem from './StageItem'
 import StageScreen from './StageScreen'
@@ -51,12 +55,35 @@ export default function StageContent({
       : undefined
   }
 
-  /** The tap box relative to the rect's own top-left, on phones only. */
-  const hitAreaOf = (rect: Rect, parent?: Rect): Rect | undefined => {
-    if (!compact || scale <= 0) return undefined
-    const box = touchTarget(rect, MIN_TOUCH_PX / scale, parent)
-    return box && { ...box, x: box.x - rect.x, y: box.y - rect.y }
+  const minTouch = compact && scale > 0 ? MIN_TOUCH_PX / scale : 0
+
+  /** The finger-sized tap box around a rect, on phones only. */
+  const touchBoxOf = (rect: Rect): Rect | undefined =>
+    minTouch > 0 ? touchTarget(rect, minTouch) : undefined
+
+  const localBox = (box: Rect | undefined, rect: Rect) =>
+    box && { ...box, x: box.x - rect.x, y: box.y - rect.y }
+
+  const parentRectOf = (itemId: string): Rect | undefined =>
+    attachDepth(items, itemId) > 0
+      ? resolveItemRect(layout, items, items[itemId].at)
+      : undefined
+
+  /** On phones an attached item only takes the pointer where it sticks out. */
+  const touchHandleOf = (itemId: string, rect: Rect): Rect | undefined => {
+    const parent = parentRectOf(itemId)
+    if (minTouch <= 0 || !parent) return undefined
+    return localBox(attachedTouchTarget(rect, minTouch, parent), rect)
   }
+
+  // Tap boxes of free items lie under every drawing, so a box that spills
+  // over a neighbour never takes taps meant for the neighbour's own drawing.
+  const itemTouchBoxes = experiment.items.flatMap((item) => {
+    const rect = resolveItemRect(layout, items, item.id)
+    if (!rect || parentRectOf(item.id)) return []
+    const box = touchBoxOf(rect)
+    return box ? [{ id: item.id, box }] : []
+  })
 
   const previewPieces: PreviewPiece[] =
     activeId === null
@@ -88,7 +115,7 @@ export default function StageContent({
               zone={zone}
               rect={rect}
               highlight={held}
-              hitArea={hitAreaOf(rect)}
+              hitArea={localBox(touchBoxOf(rect), rect)}
               onClick={controls.handlePlaceClick}
             />
           )
@@ -112,6 +139,15 @@ export default function StageContent({
           )
         )
       })}
+      {itemTouchBoxes.map(({ id, box }) => (
+        <span
+          key={id}
+          aria-hidden
+          onClick={() => controls.handleItemClick(id)}
+          className="absolute z-0"
+          style={{ left: box.x, top: box.y, width: box.w, height: box.h }}
+        />
+      ))}
       {experiment.items.map((item, index) => {
         const rect = resolveItemRect(layout, items, item.id)
         if (!rect) return null
@@ -122,10 +158,6 @@ export default function StageContent({
           depth,
           ...carriedBy(items, item.id).map((id) => attachDepth(items, id)),
         )
-        const parent =
-          depth > 0
-            ? resolveItemRect(layout, items, items[item.id].at)
-            : undefined
         return (
           <Fragment key={item.id}>
             <StageItem
@@ -143,7 +175,7 @@ export default function StageContent({
               actionSide={actionSide}
               grabByDrawing={depth > 0}
               compact={compact}
-              hitArea={hitAreaOf(rect, parent)}
+              touchHandle={touchHandleOf(item.id, rect)}
               onClick={controls.handleItemClick}
               onAction={controls.tapItem}
             />
