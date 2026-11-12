@@ -53,6 +53,9 @@ export function useExperiment(exp: Experiment) {
     drop: (sourceId: string, targetId: string) =>
       dispatch({ type: 'drop', sourceId, targetId }),
     tap: (itemId: string) => dispatch({ type: 'use', itemId }),
+    pull: (itemId: string, value: number) =>
+      dispatch({ type: 'pull', itemId, value }),
+    release: (itemId: string) => dispatch({ type: 'release', itemId }),
     removeRow: (index: number) => dispatch({ type: 'removeRow', index }),
     reset: () => dispatch({ type: 'reset' }),
   }

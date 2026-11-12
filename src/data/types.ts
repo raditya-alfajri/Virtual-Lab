@@ -56,6 +56,8 @@ export type Outcome = {
   explanation?: Explanation
   /** Shown instead of `explanation` when `record` is already in the table. */
   duplicateNote?: Explanation
+  /** A tip about the next step; it stays on screen until the next action. */
+  hint?: string
 }
 export type Result = Outcome | { reject: string }
 
@@ -95,6 +97,12 @@ export type Experiment = {
   zones: Zone[]
   interactions: Interaction[]
   use?: Record<string, (world: World, itemId: string) => Result>
+  /** Keyed by item id: the item is dragged by `value`, e.g. a bob pulled aside by that many degrees. */
+  pull?: Record<string, (world: World, itemId: string, value: number) => Result>
+  /** Keyed by item id: the pulled item is let go. */
+  release?: Record<string, (world: World, itemId: string) => Result>
+  /** A reason to refuse moving `sourceId` onto `targetId`, checked before any rule. */
+  guard?: (world: World, sourceId: string, targetId: string) => string | null
   tick?: (world: World, dt: number) => Outcome
   view: (world: World) => Record<string, ItemView>
 

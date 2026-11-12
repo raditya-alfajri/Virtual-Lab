@@ -345,3 +345,81 @@ describe('removeRow and reset', () => {
     )
   })
 })
+
+describe('pull and release', () => {
+  const setState = (
+    s: EngineState['world'],
+    id: string,
+    patch: Record<string, number | boolean>,
+  ) => ({
+    ...s,
+    items: {
+      ...s.items,
+      [id]: { ...s.items[id], state: { ...s.items[id].state, ...patch } },
+    },
+  })
+  const pulling: Experiment = {
+    ...exp,
+    pull: {
+      lamp: (world, id, value) =>
+        value > 10
+          ? { reject: 'Terlalu jauh.' }
+          : { world: setState(world, id, { angle: value }) },
+    },
+    release: {
+      lamp: (world, id) => ({
+        world: setState(world, id, { swinging: true }),
+        hint: 'Lampu berayun.',
+      }),
+    },
+  }
+
+  it('runs the pull handler with the value', () => {
+    const s = play([{ type: 'pull', itemId: 'lamp', value: -6 }], pulling)
+    expect(s.world.items.lamp.state.angle).toBe(-6)
+    expect(eventTypes(s)).toEqual(['action-ok'])
+  })
+
+  it('rejects through the pull handler', () => {
+    const s = play([{ type: 'pull', itemId: 'lamp', value: 20 }], pulling)
+    expect(s.hint).toBe('Terlalu jauh.')
+    expect(eventTypes(s)).toEqual(['rejected'])
+  })
+
+  it('ignores a pull without a handler or with a bad value', () => {
+    const start = createInitialState(pulling)
+    for (const action of [
+      { type: 'pull', itemId: 'tube-1', value: 3 },
+      { type: 'pull', itemId: 'lamp', value: Number.NaN },
+      { type: 'release', itemId: 'tube-1' },
+    ] as EngineAction[]) {
+      expect(runEngine(pulling, start, action).world).toBe(start.world)
+    }
+  })
+
+  it('runs the release handler and shows its hint', () => {
+    const s = play([{ type: 'release', itemId: 'lamp' }], pulling)
+    expect(s.world.items.lamp.state.swinging).toBe(true)
+    expect(s.hint).toBe('Lampu berayun.')
+  })
+})
+
+describe('guard', () => {
+  const guarded: Experiment = {
+    ...exp,
+    guard: (_world, sourceId, targetId) =>
+      sourceId === 'tube-1' && targetId === 'rack' ? 'Tunggu dulu.' : null,
+  }
+
+  it('refuses a move before any rule runs', () => {
+    const s = play([drop('tube-1', 'rack')], guarded)
+    expect(s.world.items['tube-1'].at).not.toBe('rack')
+    expect(s.hint).toBe('Tunggu dulu.')
+    expect(eventTypes(s)).toEqual(['rejected'])
+  })
+
+  it('lets other moves through', () => {
+    const s = play([drop('tube-2', 'rack')], guarded)
+    expect(s.world.items['tube-2'].at).toBe('rack')
+  })
+})
