@@ -38,6 +38,7 @@ export type Placement = Rect & {
 }
 
 export type MotionContext = {
+  id: string
   /** Where the item is: a zone, another item, or the shelf. */
   at: string
   view: Record<string, ItemView>

@@ -46,7 +46,7 @@ function locate(
   const parent = Object.hasOwn(items, at)
     ? locate(layout, items, at, view, new Set(visiting).add(itemId))?.box
     : undefined
-  const moved = motion(base.box, { at, view, items, parent })
+  const moved = motion(base.box, { id: itemId, at, view, items, parent })
   const box = moved.rect ?? base.box
   const home = layout.home[itemId]
   return {
