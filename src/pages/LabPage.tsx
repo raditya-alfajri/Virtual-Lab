@@ -58,14 +58,15 @@ function LabSession({
         experiment={experiment}
         layout={layout}
         lab={lab}
-        header={
+        header={(mode) => (
           <LabTitleBar
+            layout={mode}
             experiment={experiment}
             speed={lab.speed}
             onSpeedChange={lab.setSpeed}
             onReset={requestReset}
           />
-        }
+        )}
       />
       <ResetDialog
         open={confirmingReset}

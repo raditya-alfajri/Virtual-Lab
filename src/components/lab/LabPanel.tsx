@@ -1,11 +1,13 @@
 import clsx from 'clsx'
 import { Trash2 } from 'lucide-react'
-import { useId, type ReactNode } from 'react'
+import { useId, useState, type ReactNode } from 'react'
 import type { Column, Explanation, Row } from '../../data/types'
 import { formatCell } from './format-cell'
 import { FLOATING_CARD } from './floating-card'
+import type { LabLayout } from './lab-layout'
 
 type Props = {
+  layout: LabLayout
   explanation: Explanation | null
   objectives: string[]
   tips: string[]
@@ -14,19 +16,26 @@ type Props = {
   onRemoveRow: (index: number) => void
   /** The conversation with Labi. */
   assistant: ReactNode
+  /** Grows whenever Labi says something, to flag the tab when it is closed. */
+  assistantActivity: number
 }
+
+type TabId = 'labi' | 'explanation' | 'table'
 
 const MAX_TIPS = 2
 
-export default function LabPanel({
-  explanation,
-  objectives,
-  tips,
-  columns,
-  rows,
-  onRemoveRow,
-  assistant,
-}: Props) {
+export default function LabPanel(props: Props) {
+  const {
+    layout,
+    explanation,
+    objectives,
+    tips,
+    columns,
+    rows,
+    onRemoveRow,
+    assistant,
+  } = props
+  if (layout !== 'wide') return <TabbedPanel {...props} />
   return (
     <aside aria-label="Panel praktikum" className="flex flex-col gap-3">
       <Card title="Penjelasan">
@@ -40,6 +49,111 @@ export default function LabPanel({
         <TableContent columns={columns} rows={rows} onRemoveRow={onRemoveRow} />
       </Card>
       <Card title="Asisten Labi">{assistant}</Card>
+    </aside>
+  )
+}
+
+/** The three cards as tabs of one panel, for screens too small to stack them. */
+function TabbedPanel({
+  layout,
+  explanation,
+  objectives,
+  tips,
+  columns,
+  rows,
+  onRemoveRow,
+  assistant,
+  assistantActivity,
+}: Props) {
+  const baseId = useId()
+  const [tab, setTab] = useState<TabId>('labi')
+  // What each tab showed when it was last open; a change since then is news.
+  const stamps: Record<TabId, unknown> = {
+    labi: assistantActivity,
+    explanation,
+    table: rows.length,
+  }
+  const [seen, setSeen] = useState(stamps)
+
+  const open = (next: TabId) => {
+    setSeen({ ...seen, [tab]: stamps[tab], [next]: stamps[next] })
+    setTab(next)
+  }
+
+  const tabs: { id: TabId; label: string }[] = [
+    { id: 'labi', label: 'Labi' },
+    { id: 'explanation', label: 'Penjelasan' },
+    { id: 'table', label: rows.length ? `Tabel (${rows.length})` : 'Tabel' },
+  ]
+
+  return (
+    <aside
+      aria-label="Panel praktikum"
+      className={clsx(
+        'pointer-events-auto flex h-full flex-col',
+        layout === 'stack'
+          ? 'border-t border-line bg-white'
+          : clsx('overflow-hidden', FLOATING_CARD),
+      )}
+    >
+      <div
+        role="tablist"
+        aria-label="Bagian panel"
+        className="flex shrink-0 gap-1 border-b border-line p-1.5"
+      >
+        {tabs.map(({ id, label }) => {
+          const fresh = id !== tab && seen[id] !== stamps[id]
+          return (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              id={`${baseId}-tab-${id}`}
+              aria-selected={tab === id}
+              aria-controls={`${baseId}-panel`}
+              onClick={() => open(id)}
+              className={clsx(
+                'relative h-10 min-w-0 flex-1 truncate rounded-xl px-2 text-sm font-semibold transition-colors',
+                tab === id
+                  ? 'bg-primary-tint text-primary'
+                  : 'text-ink-muted hover:text-ink',
+              )}
+            >
+              {label}
+              {fresh && (
+                <span className="absolute top-1.5 right-2 size-2 rounded-full bg-rose-500">
+                  <span className="sr-only">, ada yang baru</span>
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+      <div
+        role="tabpanel"
+        id={`${baseId}-panel`}
+        aria-labelledby={`${baseId}-tab-${tab}`}
+        className={clsx(
+          'flex min-h-0 flex-1 flex-col text-sm leading-relaxed',
+          tab === 'labi' ? 'p-3' : 'overflow-y-auto p-4',
+        )}
+      >
+        {tab === 'labi' && assistant}
+        {tab === 'explanation' && (
+          <ExplanationContent
+            explanation={explanation}
+            objectives={objectives}
+            tips={tips}
+          />
+        )}
+        {tab === 'table' && (
+          <TableContent
+            columns={columns}
+            rows={rows}
+            onRemoveRow={onRemoveRow}
+          />
+        )}
+      </div>
     </aside>
   )
 }
@@ -146,7 +260,7 @@ function TableContent({
                     type="button"
                     onClick={() => onRemoveRow(index)}
                     aria-label={`Hapus baris ${index + 1}`}
-                    className="rounded-md p-1.5 text-ink-muted hover:bg-primary-tint hover:text-ink"
+                    className="rounded-md p-2 text-ink-muted hover:bg-primary-tint hover:text-ink"
                   >
                     <Trash2 size={16} />
                   </button>

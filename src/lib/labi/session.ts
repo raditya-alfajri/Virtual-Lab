@@ -107,6 +107,11 @@ export class LabiSession {
     })
   }
 
+  /** Puts the balloon away; the words stay in the transcript. */
+  dismissBubble() {
+    if (this.#state.bubble !== null) this.#set({ bubble: null })
+  }
+
   /** The student says or types something. */
   ask(input: string) {
     const text = input.trim().slice(0, LIMITS.turnChars)

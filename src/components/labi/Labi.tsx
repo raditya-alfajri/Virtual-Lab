@@ -223,9 +223,19 @@ export default function Labi({ state, session, locate, passive }: Props) {
                   passive ? 'pointer-events-none' : 'pointer-events-auto',
                 )}
               >
-                <p className={clsx(compact && 'line-clamp-4')}>
-                  {state.bubble}
-                </p>
+                {compact ? (
+                  // No room to spare: a tap puts the balloon away, the chat keeps the words.
+                  <button
+                    type="button"
+                    onClick={() => session.dismissBubble()}
+                    aria-label="Tutup balon Labi"
+                    className="line-clamp-4 text-left"
+                  >
+                    {state.bubble}
+                  </button>
+                ) : (
+                  <p>{state.bubble}</p>
+                )}
                 {!compact && (
                   <LabiChoices
                     choices={state.choices}
