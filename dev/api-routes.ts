@@ -13,7 +13,9 @@ export function apiRoutes(): Plugin {
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         const path = (req.url ?? '').split('?')[0]
-        if (!path.startsWith('/api/')) return next()
+        // A path with an extension is a module the page imports (the shared
+        // protocol), which Vite serves itself.
+        if (!path.startsWith('/api/') || /\.\w+$/.test(path)) return next()
         const file = `${path}.ts`
         // Files and folders starting with "_" are helpers, not routes.
         const routable = /^\/api(\/[a-z0-9][a-z0-9-]*)+$/.test(path)

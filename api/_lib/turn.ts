@@ -7,6 +7,10 @@ import { synthesize } from './tts.js'
 const MAX_RESPONSE_TOKENS = 160
 /** Characters of one reply that are spoken; a longer reply continues as text only. */
 const MAX_SPOKEN_CHARS = 500
+/** A sentence whose voice takes longer than this stays silent. */
+const VOICE_TIMEOUT_MS = 10_000
+/** A reply the model has not finished by now is given up. */
+const CHAT_TIMEOUT_MS = 20_000
 /** Sentences voiced at the same time. */
 const VOICE_LANES = 2
 
@@ -56,7 +60,11 @@ export function runTurn(
         if (lanes === 0) await new Promise<void>((free) => waiting.push(free))
         else lanes--
         try {
-          for await (const pcm of deps.speak(text, abort.signal)) {
+          const signal = AbortSignal.any([
+            abort.signal,
+            AbortSignal.timeout(VOICE_TIMEOUT_MS),
+          ])
+          for await (const pcm of deps.speak(text, signal)) {
             sentences[index].audio.push(Buffer.from(pcm).toString('base64'))
             flushAudio()
           }
@@ -91,7 +99,10 @@ export function runTurn(
         let head: string | null = ''
         const stream = deps.chat(buildMessages(request), {
           maxTokens: MAX_RESPONSE_TOKENS,
-          signal: abort.signal,
+          signal: AbortSignal.any([
+            abort.signal,
+            AbortSignal.timeout(CHAT_TIMEOUT_MS),
+          ]),
         })
         for await (const delta of stream) {
           let text = delta
