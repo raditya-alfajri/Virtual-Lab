@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { Mic } from 'lucide-react'
+import { Mic, X } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import type { LabiSession, LabiState } from '../../lib/labi/session'
@@ -27,7 +27,11 @@ const HOME: Point = { x: 1130, y: 300 }
 const STAGE_SIZE = 150
 const MIN_SIZE = 52
 const MAX_SIZE = 132
-const WANDER_MS = [3500, 7000]
+const WANDER_MS = [2500, 5500]
+/** With a balloon open Labi only sways about its spot, so the text stays readable. */
+const SWAY_MS = [2200, 3800]
+const SWAY = { x: 90, y: 55 }
+const BALLOON_Y = 230
 /** How far the eyes move toward what Labi looks at, in drawing units. */
 const GAZE = 4
 const COMPACT_BELOW = 640
@@ -52,22 +56,30 @@ export default function Labi({ state, session, locate, passive }: Props) {
   const [spot, setSpot] = useState(HOME)
 
   const size = clamp(STAGE_SIZE * frame.scale, MIN_SIZE, MAX_SIZE)
-  const busy = state.status !== 'idle' || state.bubble !== null
+  const talking = state.status !== 'idle'
+  const holding = state.bubble !== null
+  const pointing = state.target !== null
   const targetAt = state.target ? locate(state.target) : null
 
-  // Drift to a new spot on the wall now and then, but stay put while talking.
+  // Drift to a new spot on the wall now and then; stay put while speaking or
+  // pointing at something, and only sway while a balloon is open.
   useEffect(() => {
-    if (busy || still) return
+    if (talking || pointing || still) return
+    const [min, max] = holding ? SWAY_MS : WANDER_MS
     const timer = setTimeout(
       () =>
-        setSpot({
-          x: between(ROAM.x0, ROAM.x1),
-          y: between(ROAM.y0, ROAM.y1),
-        }),
-      between(WANDER_MS[0], WANDER_MS[1]),
+        setSpot((from) =>
+          holding
+            ? {
+                x: clamp(from.x + between(-SWAY.x, SWAY.x), ROAM.x0, ROAM.x1),
+                y: clamp(from.y + between(-SWAY.y, SWAY.y), ROAM.y0, ROAM.y1),
+              }
+            : { x: between(ROAM.x0, ROAM.x1), y: between(ROAM.y0, ROAM.y1) },
+        ),
+      between(min, max),
     )
     return () => clearTimeout(timer)
-  }, [busy, still, spot])
+  }, [talking, pointing, holding, still, spot])
 
   // Beside the item it talks about, otherwise wherever it drifted to.
   const at = targetAt
@@ -79,7 +91,8 @@ export default function Labi({ state, session, locate, passive }: Props) {
         ),
         y: Math.max(targetAt.y - 110, 100),
       }
-    : spot
+    : // A balloon hangs below Labi: keep it up on the wall, off the bench.
+      { x: spot.x, y: holding ? Math.min(spot.y, BALLOON_Y) : spot.y }
   const x = clamp(
     frame.left + at.x * frame.scale,
     size / 2 + 8,
@@ -136,7 +149,7 @@ export default function Labi({ state, session, locate, passive }: Props) {
   const bubbleWidth = clamp(
     (bubbleLeft ? x : frame.width - x) - size / 2 - 20,
     120,
-    300,
+    260,
   )
   // A small room (a phone): the balloon stays short, the chat below has the rest.
   const compact = frame.width < COMPACT_BELOW
@@ -218,7 +231,9 @@ export default function Labi({ state, session, locate, passive }: Props) {
                 aria-live="polite"
                 className={clsx(
                   'max-w-full rounded-2xl border-2 border-ink bg-white leading-snug font-medium text-ink shadow-[0_3px_0_0_var(--color-ink)]',
-                  compact ? 'px-2.5 py-1.5 text-xs' : 'px-3.5 py-2.5 text-sm',
+                  compact
+                    ? 'px-2.5 py-1.5 text-xs'
+                    : 'relative py-2.5 pr-8 pl-3.5 text-sm',
                   bubbleLeft ? 'rounded-tr-sm' : 'rounded-tl-sm',
                   passive ? 'pointer-events-none' : 'pointer-events-auto',
                 )}
@@ -234,7 +249,17 @@ export default function Labi({ state, session, locate, passive }: Props) {
                     {state.bubble}
                   </button>
                 ) : (
-                  <p>{state.bubble}</p>
+                  <>
+                    <p className="line-clamp-5">{state.bubble}</p>
+                    <button
+                      type="button"
+                      onClick={() => session.dismissBubble()}
+                      aria-label="Tutup balon Labi"
+                      className="absolute top-1.5 right-1.5 rounded-md p-1 text-ink-muted hover:bg-primary-tint hover:text-ink"
+                    >
+                      <X size={14} />
+                    </button>
+                  </>
                 )}
                 {!compact && (
                   <LabiChoices

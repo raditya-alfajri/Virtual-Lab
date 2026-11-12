@@ -37,7 +37,7 @@ import { onActivateKey } from './keyboard'
 import type { AssetTurn } from './LabAsset'
 import LabHint from './LabHint'
 import { PANEL_WIDTH, useLabLayout, type LabLayout } from './lab-layout'
-import LabPanel from './LabPanel'
+import LabPanel, { type PanelTab } from './LabPanel'
 import LabStage from './LabStage'
 import StageFront from './StageFront'
 import StageItem from './StageItem'
@@ -51,6 +51,9 @@ type Props = {
   /** The title bar, drawn to suit the layout. */
   header?: (mode: LabLayout) => ReactNode
 }
+
+/** Height of the title and tabs floating at the top of the room. */
+const TOP_BAR = { wide: 84, side: 68 }
 
 const SHELF_NAME = 'Rak alat'
 const SHELF_DROP: DropData = { layer: 'shelf' }
@@ -72,6 +75,9 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
   const [hintClosed, setHintClosed] = useState(false)
   const mode = useLabLayout()
   const stacked = mode === 'stack'
+  const [pickedTab, setPickedTab] = useState<PanelTab | null>(null)
+  // Below the room the panel is always open; floating over it, only on request.
+  const panelTab = stacked ? (pickedTab ?? 'labi') : pickedTab
   const labi = useLabi(experiment, lab)
   const suppressClick = useRef(false)
   const sensors = useSensors(
@@ -237,13 +243,15 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
           <LabStage
             background={getBackgroundUrl(experiment.id)}
             floorY={layout.floorY}
-            reserve={PANEL_WIDTH[mode]}
+            reserve={panelTab ? PANEL_WIDTH[mode] : 0}
+            topGap={stacked ? undefined : TOP_BAR[mode]}
             onBackgroundClick={() => setSelectedId(null)}
             overlay={
               <>
                 <LabHint
                   hint={hintClosed ? null : lab.hint}
                   onClose={() => setHintClosed(true)}
+                  low={!stacked}
                 />
                 <Labi
                   state={labi.state}
@@ -348,42 +356,47 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
           </LabStage>
         </div>
         <div
-          className={clsx(
+          className={
             stacked
-              ? 'contents'
-              : 'pointer-events-none absolute inset-y-0 right-0 z-20 flex flex-col',
-            mode === 'wide' && 'gap-3 overflow-y-auto p-4',
-            mode === 'side' && 'gap-2 p-2',
-          )}
+              ? 'order-1 shrink-0'
+              : clsx(
+                  'pointer-events-none absolute top-0 left-0 z-20 w-88 max-w-[calc(100%-18rem)]',
+                  mode === 'wide' ? 'p-4' : 'p-2',
+                )
+          }
+        >
+          {header?.(mode)}
+        </div>
+        <div
+          className={
+            stacked
+              ? 'order-3 min-h-0 flex-1'
+              : clsx(
+                  'pointer-events-none absolute inset-y-0 right-0 z-20 flex flex-col items-end',
+                  mode === 'wide' ? 'p-4' : 'p-2',
+                )
+          }
           style={stacked ? undefined : { width: PANEL_WIDTH[mode] }}
         >
-          <div className={clsx('shrink-0', stacked && 'order-1')}>
-            {header?.(mode)}
-          </div>
-          <div
-            className={clsx(
-              stacked && 'order-3',
-              mode !== 'wide' && 'min-h-0 flex-1',
-            )}
-          >
-            <LabPanel
-              layout={mode}
-              explanation={lab.explanation}
-              objectives={experiment.objectives}
-              tips={experiment.tips}
-              columns={lab.columns}
-              rows={lab.rows}
-              onRemoveRow={lab.removeRow}
-              assistantActivity={labi.state.messages.length}
-              assistant={
-                <LabiChat
-                  state={labi.state}
-                  session={labi.session}
-                  fill={mode !== 'wide'}
-                />
-              }
-            />
-          </div>
+          <LabPanel
+            layout={mode}
+            tab={panelTab}
+            onTabChange={setPickedTab}
+            explanation={lab.explanation}
+            objectives={experiment.objectives}
+            tips={experiment.tips}
+            columns={lab.columns}
+            rows={lab.rows}
+            onRemoveRow={lab.removeRow}
+            assistantActivity={labi.state.messages.length}
+            assistant={
+              <LabiChat
+                state={labi.state}
+                session={labi.session}
+                fill={mode !== 'wide'}
+              />
+            }
+          />
         </div>
       </div>
     </DndContext>
@@ -407,19 +420,19 @@ function Shelf({
       onClick={onClick}
       onKeyDown={onActivateKey(onClick)}
       className={clsx(
-        'flex h-11 items-center justify-center gap-2 rounded-full border border-dashed px-5 text-sm shadow-sm backdrop-blur transition-colors',
+        'flex h-11 items-center justify-center gap-2 rounded-full border border-dashed px-5 text-sm shadow-sm backdrop-blur transition-[opacity,colors]',
+        // Only there while something is held: the one moment it is of use.
+        !highlight && 'pointer-events-none opacity-0',
         isOver
           ? 'border-primary bg-primary-tint'
-          : highlight
-            ? 'border-primary/60 bg-primary-tint/90'
-            : 'border-line bg-white/85',
+          : 'border-primary/60 bg-primary-tint/90',
       )}
     >
       <p className="shrink-0 font-semibold whitespace-nowrap text-ink">
         {SHELF_NAME}
       </p>
-      <p className="hidden truncate text-ink-muted sm:block">
-        Taruh benda di sini untuk mengembalikannya ke tempat awal.
+      <p className="truncate text-ink-muted">
+        Taruh di sini untuk mengembalikan.
       </p>
     </div>
   )

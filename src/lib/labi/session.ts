@@ -96,14 +96,36 @@ export class LabiSession {
   getState = () => this.#state
 
   /** Labi's opening words. They are written by us, not generated. */
-  greet(text: string, choices: string[] = []) {
+  greet(text: string) {
     if (this.#state.messages.length > 0) return
     this.#history.push({ role: 'assistant', text })
     this.#set({
       messages: [{ id: this.#nextId++, role: 'assistant', text }],
       bubble: text,
-      choices,
       mood: 'happy',
+    })
+    this.#settleLater()
+  }
+
+  /**
+   * Labi asks a prepared question with answers to pick from. Skipped once the
+   * student has started talking: the conversation is theirs by then.
+   */
+  pose(question: string, choices: string[]) {
+    const { messages, status, partial } = this.#state
+    if (status !== 'idle' || partial) return
+    if (messages.some((message) => message.role === 'user')) return
+    clearTimeout(this.#linger)
+    this.#history.push({ role: 'assistant', text: question })
+    this.#set({
+      messages: [
+        ...messages,
+        { id: this.#nextId++, role: 'assistant', text: question },
+      ],
+      bubble: question,
+      choices,
+      mood: 'curious',
+      target: null,
     })
   }
 

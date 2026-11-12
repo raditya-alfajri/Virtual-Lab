@@ -1,16 +1,22 @@
+import clsx from 'clsx'
 import { X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
 type Props = {
   hint: string | null
   onClose: () => void
+  /** Sit below the title and the panel tabs floating at the top of the room. */
+  low?: boolean
 }
 
-export default function LabHint({ hint, onClose }: Props) {
+export default function LabHint({ hint, onClose, low }: Props) {
   return (
     <div
       aria-live="polite"
-      className="pointer-events-none absolute inset-x-0 top-4 z-[2000] flex justify-center px-4"
+      className={clsx(
+        'pointer-events-none absolute inset-x-0 z-[2000] flex justify-center px-4',
+        low ? 'top-[4.75rem]' : 'top-3',
+      )}
     >
       <AnimatePresence>
         {hint && (

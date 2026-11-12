@@ -166,8 +166,8 @@ export default function LabiChat({ state, session, fill }: Props) {
           fill ? 'text-[11px] leading-snug' : 'text-xs',
         )}
       >
-        Jawaban Labi dibuat AI dan bisa keliru. Angka hasil selalu berasal dari
-        simulasi. Suaramu hanya diubah menjadi teks, tidak direkam.
+        Labi itu AI, jadi bisa keliru. Suaramu hanya diubah menjadi teks, tidak
+        direkam.
       </p>
     </div>
   )

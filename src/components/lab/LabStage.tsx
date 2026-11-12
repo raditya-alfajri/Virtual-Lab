@@ -8,13 +8,14 @@ import { StageScaleContext } from './stage-scale'
 const WALL = '#F7FEFF'
 const FLOOR = '#CBF3F7'
 const DEFAULT_FLOOR_Y = 800
-/** Room kept above the stage, so the hint does not cover its top. */
-const TOP_GAP = 16
+const DEFAULT_TOP_GAP = 16
 
 type Props = {
   background: string
   /** Where the wall meets the floor in the background, in stage y. */
   floorY?: number
+  /** Room kept above the stage, for what floats at the top of the frame. */
+  topGap?: number
   /** Width on the right kept free for the panels floating over the room. */
   reserve?: number
   /** Laid over the room without scaling, so text stays readable. */
@@ -33,6 +34,7 @@ type Props = {
 export default function LabStage({
   background,
   floorY = DEFAULT_FLOOR_Y,
+  topGap = DEFAULT_TOP_GAP,
   reserve = 0,
   overlay,
   footer,
@@ -57,7 +59,7 @@ export default function LabStage({
 
   const roomWidth = Math.max(box.width - reserve, 0)
   const scale = Math.max(
-    Math.min(roomWidth / STAGE_WIDTH, (box.height - TOP_GAP) / STAGE_HEIGHT),
+    Math.min(roomWidth / STAGE_WIDTH, (box.height - topGap) / STAGE_HEIGHT),
     0,
   )
   const left = (roomWidth - STAGE_WIDTH * scale) / 2
@@ -77,7 +79,7 @@ export default function LabStage({
     >
       {scale > 0 && (
         <div
-          className="absolute origin-top-left"
+          className="absolute origin-top-left transition-[left,top,transform] duration-300 motion-reduce:transition-none"
           style={{
             left,
             top,

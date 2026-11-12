@@ -6,8 +6,10 @@ import type { useExperiment } from './useExperiment'
 
 type Lab = ReturnType<typeof useExperiment>
 
-const RECORDED =
-  'Data baru sudah tercatat di tabel. Coba ubah satu variabel, lalu bandingkan hasilnya.'
+const GREETING = 'Hai, aku Labi! Aku temani kamu praktikum, ya.'
+const RECORDED = 'Datamu tercatat! Coba ubah satu hal, lalu bandingkan.'
+/** Labi says hello first; the prediction question follows after this pause. */
+const QUESTION_AFTER_MS = 4000
 
 /** Labi for one open experiment: it knows the bench and reacts to what happens on it. */
 export function useLabi(experiment: Experiment, lab: Lab) {
@@ -32,11 +34,15 @@ export function useLabi(experiment: Experiment, lab: Lab) {
 
   useEffect(() => {
     const { question, options } = experiment.prediction
-    session.greet(
-      `Hai, aku Labi! Sebelum mulai, coba tebak dulu: ${question}`,
-      options,
+    session.greet(GREETING)
+    const timer = setTimeout(
+      () => session.pose(`Tebak dulu, yuk. ${question}`, options ?? []),
+      QUESTION_AFTER_MS,
     )
-    return () => session.shutdown()
+    return () => {
+      clearTimeout(timer)
+      session.shutdown()
+    }
   }, [session, experiment])
 
   const { events } = lab
