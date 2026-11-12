@@ -1,7 +1,9 @@
+import clsx from 'clsx'
 import { Trash2 } from 'lucide-react'
 import { useId, type ReactNode } from 'react'
 import type { Column, Explanation, Row } from '../../data/types'
 import { formatCell } from './format-cell'
+import { FLOATING_CARD } from './floating-card'
 
 type Props = {
   explanation: Explanation | null
@@ -23,10 +25,7 @@ export default function LabPanel({
   onRemoveRow,
 }: Props) {
   return (
-    <aside
-      aria-label="Panel praktikum"
-      className="flex w-full shrink-0 flex-col gap-4 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-2rem)] lg:w-105 lg:overflow-y-auto"
-    >
+    <aside aria-label="Panel praktikum" className="flex flex-col gap-3">
       <Card title="Penjelasan">
         <ExplanationContent
           explanation={explanation}
@@ -49,7 +48,7 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section
       aria-labelledby={titleId}
-      className="shrink-0 rounded-2xl border border-line bg-white p-5"
+      className={clsx('shrink-0 p-5', FLOATING_CARD)}
     >
       <h2 id={titleId} className="font-heading text-lg font-bold">
         {title}

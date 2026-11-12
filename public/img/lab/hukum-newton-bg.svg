@@ -1,0 +1,65 @@
+<svg width="1440" height="1024" viewBox="0 0 1440 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1440 0H0V800H1440V0Z" fill="#F7FEFF"/>
+<path d="M1440 800H0V1024H1440V800Z" fill="#CBF3F7"/>
+<rect x="70.5" y="50.5" width="560" height="370" rx="6" fill="#D4A94C" stroke="black"/>
+<rect x="92.5" y="72.5" width="516" height="326" fill="#E4F6FB" stroke="black"/>
+<rect x="92.5" y="212.5" width="516" height="8" fill="#C9B07A" stroke="black"/>
+<rect x="92.5" y="390.5" width="516" height="8" fill="#C9B07A" stroke="black"/>
+<rect x="760.5" y="90.5" width="280" height="170" rx="6" fill="#4B5468" stroke="black"/>
+<rect x="770.5" y="100.5" width="260" height="150" rx="3" fill="#FFFFFF" stroke="black"/>
+<text x="900.0" y="150.0" fill="#2B2D42" font-size="22" font-weight="700" text-anchor="middle" dominant-baseline="central" font-family="Plus Jakarta Sans, Inter, Arial, sans-serif">Hukum II Newton</text>
+<text x="900.0" y="200.0" fill="#227C78" font-size="34" font-weight="700" text-anchor="middle" dominant-baseline="central" font-family="Plus Jakarta Sans, Inter, Arial, sans-serif">a = F ÷ m</text>
+<circle cx="1220" cy="180" r="84" fill="white" stroke-width="5" stroke="#2B2D42"/>
+<path d="M1220.0 102.0L1220.0 114.0" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1259.0 112.5L1253.0 122.8" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1287.5 141.0L1277.2 147.0" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1298.0 180.0L1286.0 180.0" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1287.5 219.0L1277.2 213.0" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1259.0 247.5L1253.0 237.2" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1220.0 258.0L1220.0 246.0" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1181.0 247.5L1187.0 237.2" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1152.5 219.0L1162.8 213.0" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1142.0 180.0L1154.0 180.0" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1152.5 141.0L1162.8 147.0" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1181.0 112.5L1187.0 122.8" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1220 180V123.7" stroke-width="5" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1220 180L1260.3 196.0" stroke-width="5" stroke-linecap="round" stroke="#2B2D42"/>
+<circle cx="1220" cy="180" r="6" fill="#E3604F"/>
+<path d="M160.5 556.5H1300.5L1420 770H20.5L160.5 556.5Z" fill="#F0C25F" stroke="black"/>
+<path d="M1420.5 770.5H20.5V810.5H1420.5V770.5Z" fill="#D4A94C" stroke="black"/>
+<path d="M102.5 811H50.5V1024H102.5V811Z" fill="#F0C25F" stroke="black"/>
+<path d="M77.5 811H50.5V1024H77.5V811Z" fill="#D4A94C" stroke="black"/>
+<path d="M222.5 811H170.5V971H222.5V811Z" fill="#F0C25F" stroke="black"/>
+<path d="M197.5 811H170.5V971H197.5V811Z" fill="#D4A94C" stroke="black"/>
+<path d="M1392.5 811H1340.5V1024H1392.5V811Z" fill="#F0C25F" stroke="black"/>
+<path d="M1367.5 811H1340.5V1024H1367.5V811Z" fill="#D4A94C" stroke="black"/>
+<path d="M1272.5 811H1220.5V971H1272.5V811Z" fill="#F0C25F" stroke="black"/>
+<path d="M1247.5 811H1220.5V971H1247.5V811Z" fill="#D4A94C" stroke="black"/>
+<rect x="200" y="720" width="1120" height="16" rx="4" fill="#B3BACB" stroke="#2B2D42" stroke-width="3"/>
+<rect x="200" y="736" width="1120" height="8" fill="#7D859C" stroke="#2B2D42" stroke-width="2"/>
+<rect x="252" y="744" width="16" height="20" fill="#4B5468" stroke="#2B2D42" stroke-width="2"/>
+<rect x="1242" y="744" width="16" height="20" fill="#4B5468" stroke="#2B2D42" stroke-width="2"/>
+<rect x="1306" y="690" width="14" height="46" rx="3" fill="#E3604F" stroke="#2B2D42" stroke-width="3"/>
+<path d="M390 724V734" stroke="#2B2D42" stroke-width="2"/>
+<path d="M450 724V730" stroke="#2B2D42" stroke-width="1.5"/>
+<path d="M510 724V730" stroke="#2B2D42" stroke-width="1.5"/>
+<path d="M570 724V730" stroke="#2B2D42" stroke-width="1.5"/>
+<path d="M630 724V730" stroke="#2B2D42" stroke-width="1.5"/>
+<path d="M690 724V734" stroke="#2B2D42" stroke-width="2"/>
+<path d="M750 724V730" stroke="#2B2D42" stroke-width="1.5"/>
+<path d="M810 724V730" stroke="#2B2D42" stroke-width="1.5"/>
+<path d="M870 724V730" stroke="#2B2D42" stroke-width="1.5"/>
+<path d="M930 724V730" stroke="#2B2D42" stroke-width="1.5"/>
+<path d="M990 724V734" stroke="#2B2D42" stroke-width="2"/>
+<path d="M1050 724V730" stroke="#2B2D42" stroke-width="1.5"/>
+<path d="M1110 724V730" stroke="#2B2D42" stroke-width="1.5"/>
+<path d="M1170 724V730" stroke="#2B2D42" stroke-width="1.5"/>
+<path d="M1230 724V730" stroke="#2B2D42" stroke-width="1.5"/>
+<path d="M1290 724V734" stroke="#2B2D42" stroke-width="2"/>
+<text x="390" y="758" fill="#227C78" font-size="15" font-weight="700" text-anchor="middle" dominant-baseline="central" font-family="Plus Jakarta Sans, Inter, Arial, sans-serif">0 m</text>
+<text x="690" y="758" fill="#2B2D42" font-size="15" font-weight="700" text-anchor="middle" dominant-baseline="central" font-family="Plus Jakarta Sans, Inter, Arial, sans-serif">0,5 m</text>
+<text x="990" y="758" fill="#E3604F" font-size="15" font-weight="700" text-anchor="middle" dominant-baseline="central" font-family="Plus Jakarta Sans, Inter, Arial, sans-serif">1 m</text>
+<text x="1290" y="758" fill="#2B2D42" font-size="15" font-weight="700" text-anchor="middle" dominant-baseline="central" font-family="Plus Jakarta Sans, Inter, Arial, sans-serif">1,5 m</text>
+<path d="M390 600V720" stroke="#227C78" stroke-width="3" stroke-dasharray="8 6"/>
+<path d="M390 600H430L420 612L430 624H390Z" fill="#7FE3C5" stroke="#2B2D42" stroke-width="2"/>
+</svg>

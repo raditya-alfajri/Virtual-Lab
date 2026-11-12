@@ -1,0 +1,45 @@
+<svg width="1440" height="1024" viewBox="0 0 1440 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1440 0H0V800H1440V0Z" fill="#F7FEFF"/>
+<path d="M1440 800H0V1024H1440V800Z" fill="#CBF3F7"/>
+<rect x="70.5" y="50.5" width="450" height="280" rx="6" fill="#D4A94C" stroke="black"/>
+<rect x="86.5" y="66.5" width="418" height="248" fill="#F3E2B8" stroke="black"/>
+<rect x="146" y="88" width="8" height="12" rx="2" fill="#4B5468" stroke="#2B2D42" stroke-width="2"/>
+<rect x="236" y="88" width="8" height="12" rx="2" fill="#4B5468" stroke="#2B2D42" stroke-width="2"/>
+<rect x="346" y="88" width="8" height="12" rx="2" fill="#4B5468" stroke="#2B2D42" stroke-width="2"/>
+<rect x="880.5" y="90.5" width="220" height="140" rx="6" fill="#4B5468" stroke="black"/>
+<rect x="890.5" y="100.5" width="200" height="120" rx="3" fill="#FFFFFF" stroke="black"/>
+<text x="990.0" y="140.0" fill="#2B2D42" font-size="20" font-weight="700" text-anchor="middle" dominant-baseline="central" font-family="Plus Jakarta Sans, Inter, Arial, sans-serif">Hukum Hooke</text>
+<text x="990.0" y="180.0" fill="#227C78" font-size="30" font-weight="700" text-anchor="middle" dominant-baseline="central" font-family="Plus Jakarta Sans, Inter, Arial, sans-serif">F = k × Δx</text>
+<circle cx="1240" cy="190" r="84" fill="white" stroke-width="5" stroke="#2B2D42"/>
+<path d="M1240.0 112.0L1240.0 124.0" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1279.0 122.5L1273.0 132.8" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1307.5 151.0L1297.2 157.0" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1318.0 190.0L1306.0 190.0" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1307.5 229.0L1297.2 223.0" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1279.0 257.5L1273.0 247.2" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1240.0 268.0L1240.0 256.0" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1201.0 257.5L1207.0 247.2" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1172.5 229.0L1182.8 223.0" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1162.0 190.0L1174.0 190.0" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1172.5 151.0L1182.8 157.0" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1201.0 122.5L1207.0 132.8" stroke-width="3" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1240 190V133.7" stroke-width="5" stroke-linecap="round" stroke="#2B2D42"/>
+<path d="M1240 190L1280.3 206.0" stroke-width="5" stroke-linecap="round" stroke="#2B2D42"/>
+<circle cx="1240" cy="190" r="6" fill="#E3604F"/>
+<path d="M160.5 556.5H1300.5L1420 770H20.5L160.5 556.5Z" fill="#F0C25F" stroke="black"/>
+<path d="M1420.5 770.5H20.5V810.5H1420.5V770.5Z" fill="#D4A94C" stroke="black"/>
+<path d="M102.5 811H50.5V1024H102.5V811Z" fill="#F0C25F" stroke="black"/>
+<path d="M77.5 811H50.5V1024H77.5V811Z" fill="#D4A94C" stroke="black"/>
+<path d="M222.5 811H170.5V971H222.5V811Z" fill="#F0C25F" stroke="black"/>
+<path d="M197.5 811H170.5V971H197.5V811Z" fill="#D4A94C" stroke="black"/>
+<path d="M1392.5 811H1340.5V1024H1392.5V811Z" fill="#F0C25F" stroke="black"/>
+<path d="M1367.5 811H1340.5V1024H1367.5V811Z" fill="#D4A94C" stroke="black"/>
+<path d="M1272.5 811H1220.5V971H1272.5V811Z" fill="#F0C25F" stroke="black"/>
+<path d="M1247.5 811H1220.5V971H1247.5V811Z" fill="#D4A94C" stroke="black"/>
+<ellipse cx="710.0" cy="726" rx="158.0" ry="8" fill="#000" opacity="0.12"/>
+<rect x="560" y="700" width="300" height="24" rx="6" fill="#4B5468" stroke="#2B2D42" stroke-width="3"/>
+<rect x="632" y="150" width="16" height="554" rx="4" fill="#B3BACB" stroke="#2B2D42" stroke-width="3"/>
+<rect x="626" y="156" width="28" height="34" rx="4" fill="#4B5468" stroke="#2B2D42" stroke-width="3"/>
+<rect x="654" y="166" width="116" height="14" rx="3" fill="#B3BACB" stroke="#2B2D42" stroke-width="3"/>
+<rect x="728" y="158" width="34" height="32" rx="4" fill="#4B5468" stroke="#2B2D42" stroke-width="3"/>
+</svg>

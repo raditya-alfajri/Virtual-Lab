@@ -1,18 +1,72 @@
-import type { World } from '../data/types'
+import type { ItemView, World } from '../data/types'
 import type { Placement, Rect, SceneLayout, Side } from './types'
 
 const MAX_ATTACH_DEPTH = 10
 
 /**
  * Where an item is drawn on the stage, or undefined when it cannot be placed.
- * Items keep their home size everywhere, so they are never stretched.
+ * Items keep their home size unless a motion changes it, so they are never
+ * stretched.
  */
 export function resolveItemRect(
   layout: SceneLayout,
   items: World['items'],
   itemId: string,
-  visiting: ReadonlySet<string> = new Set(),
+  view: Record<string, ItemView> = {},
 ): Placement | undefined {
+  const spot = locate(layout, items, itemId, view, new Set())
+  if (!spot) return undefined
+  const { box, rotate, size, ...rest } = spot
+  if (!rotate) return { ...box, ...rest }
+  return {
+    ...turn(box, rotate),
+    ...(size && { size: { w: box.w, h: box.h } }),
+    ...rest,
+  }
+}
+
+type Spot = Omit<Placement, keyof Rect | 'size'> & {
+  /** The drawing's box before it is turned. */
+  box: Rect
+  /** True when a motion changed the drawing's size. */
+  size?: boolean
+}
+
+function locate(
+  layout: SceneLayout,
+  items: World['items'],
+  itemId: string,
+  view: Record<string, ItemView>,
+  visiting: ReadonlySet<string>,
+): Spot | undefined {
+  const base = basePlace(layout, items, itemId, view, visiting)
+  const motion = layout.motion?.[itemId]
+  if (!base || !motion) return base
+  const at = items[itemId].at
+  const parent = Object.hasOwn(items, at)
+    ? locate(layout, items, at, view, new Set(visiting).add(itemId))?.box
+    : undefined
+  const moved = motion(base.box, { id: itemId, at, view, items, parent })
+  const box = moved.rect ?? base.box
+  const home = layout.home[itemId]
+  return {
+    ...base,
+    box,
+    rotate: moved.rotate ?? base.rotate,
+    size: box.w !== home.w || box.h !== home.h,
+    ...(moved.labelSide && { labelSide: moved.labelSide }),
+    ...(moved.actionSide && { actionSide: moved.actionSide }),
+    ...(moved.action && { action: moved.action }),
+  }
+}
+
+function basePlace(
+  layout: SceneLayout,
+  items: World['items'],
+  itemId: string,
+  view: Record<string, ItemView>,
+  visiting: ReadonlySet<string>,
+): Spot | undefined {
   const home = layout.home[itemId]
   const item = items[itemId]
   if (!home || !item) return undefined
@@ -20,24 +74,31 @@ export function resolveItemRect(
 
   const zone = layout.zones[item.at]
   if (zone) {
-    return { x: zone.x + (zone.w - w) / 2, y: zone.y + zone.h - h, w, h }
+    return {
+      box: { x: zone.x + (zone.w - w) / 2, y: zone.y + zone.h - h, w, h },
+    }
   }
 
   if (Object.hasOwn(items, item.at)) {
     const attach = layout.attach[itemId]?.[item.at]
-    if (!attach || visiting.has(itemId)) return undefined
-    const parent = resolveItemRect(
+    if (visiting.has(itemId)) return undefined
+    // Without an offset, only a motion can say where the item goes.
+    if (!attach) return layout.motion?.[itemId] ? { box: home } : undefined
+    const parent = locate(
       layout,
       items,
       item.at,
+      view,
       new Set(visiting).add(itemId),
     )
     if (!parent) return undefined
-    const box = { x: parent.x + attach.x, y: parent.y + attach.y, w, h }
-    return attach.rotate ? turn(box, attach.rotate) : box
+    return {
+      box: { x: parent.box.x + attach.x, y: parent.box.y + attach.y, w, h },
+      rotate: attach.rotate,
+    }
   }
 
-  return home
+  return { box: home }
 }
 
 const round = (n: number) => Math.round(n * 1000) / 1000
@@ -84,16 +145,28 @@ export function carriedBy(items: World['items'], itemId: string): string[] {
     .sort((a, b) => attachDepth(items, a) - attachDepth(items, b))
 }
 
-/** Where the item's label and action button go in its current spot. */
+/**
+ * Where the item's label and action button go in its current spot; a motion's
+ * sides, from `placement`, come first.
+ */
 export function itemSides(
   layout: SceneLayout,
   items: World['items'],
   itemId: string,
+  placement?: Placement,
 ): { labelSide: Side; actionSide: Side } {
   const at = items[itemId]?.at
   const attach = at === undefined ? undefined : layout.attach[itemId]?.[at]
   return {
-    labelSide: attach?.labelSide ?? layout.labelSide?.[itemId] ?? 'below',
-    actionSide: attach?.actionSide ?? 'below',
+    labelSide:
+      placement?.labelSide ??
+      attach?.labelSide ??
+      layout.labelSide?.[itemId] ??
+      'below',
+    actionSide:
+      placement?.actionSide ??
+      attach?.actionSide ??
+      layout.actionSide?.[itemId] ??
+      'below',
   }
 }

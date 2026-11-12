@@ -23,6 +23,8 @@ export type EngineState = {
 export type EngineAction =
   | { type: 'drop'; sourceId: string; targetId: string }
   | { type: 'use'; itemId: string }
+  | { type: 'pull'; itemId: string; value: number }
+  | { type: 'release'; itemId: string }
   | { type: 'tick'; dt: number }
   | { type: 'removeRow'; index: number }
   | { type: 'reset' }
@@ -66,6 +68,10 @@ export function runEngine(
       return dropItem(exp, state, action.sourceId, action.targetId)
     case 'use':
       return tapItem(exp, state, action.itemId)
+    case 'pull':
+      return pullItem(exp, state, action.itemId, action.value)
+    case 'release':
+      return releaseItem(exp, state, action.itemId)
     case 'tick':
       return tickWorld(exp, state, action.dt)
   }
@@ -84,6 +90,9 @@ function dropItem(
   if (source.fixed) {
     return applyResult(state, { reject: FIXED_REJECT }, 'action')
   }
+
+  const blocked = exp.guard?.(state.world, sourceId, targetId)
+  if (blocked) return applyResult(state, { reject: blocked }, 'action')
 
   const interaction = findInteraction(exp, source, targetId)
   if (interaction) {
@@ -110,6 +119,29 @@ function tapItem(
   itemId: string,
 ): EngineState {
   const handler = exp.use?.[itemId]
+  if (!handler || !state.world.items[itemId]) return withoutEvents(state)
+  return applyResult(state, handler(state.world, itemId), 'action')
+}
+
+function pullItem(
+  exp: Experiment,
+  state: EngineState,
+  itemId: string,
+  value: number,
+): EngineState {
+  const handler = exp.pull?.[itemId]
+  if (!handler || !state.world.items[itemId] || !Number.isFinite(value)) {
+    return withoutEvents(state)
+  }
+  return applyResult(state, handler(state.world, itemId, value), 'action')
+}
+
+function releaseItem(
+  exp: Experiment,
+  state: EngineState,
+  itemId: string,
+): EngineState {
+  const handler = exp.release?.[itemId]
   if (!handler || !state.world.items[itemId]) return withoutEvents(state)
   return applyResult(state, handler(state.world, itemId), 'action')
 }
@@ -196,7 +228,13 @@ function applyResult(
   )
 
   // A quiet tick (e.g. temperature creeping up) must not wipe what is on screen.
-  if (mode === 'tick' && !events.length && !newRecord && !explanation) {
+  if (
+    mode === 'tick' &&
+    !events.length &&
+    !newRecord &&
+    !explanation &&
+    !result.hint
+  ) {
     return { ...state, world, events: NO_EVENTS }
   }
   if (mode === 'action' && !events.length) {
@@ -206,7 +244,7 @@ function applyResult(
   return {
     world,
     rows: newRecord ? [...state.rows, newRecord] : state.rows,
-    hint: null,
+    hint: result.hint ?? null,
     explanation: explanation ?? state.explanation,
     events: events.length ? events : NO_EVENTS,
   }
