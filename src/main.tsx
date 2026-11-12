@@ -18,11 +18,12 @@ const router = createBrowserRouter([
       { path: '/lab', element: <LabList /> },
       { path: '/lab/:subject', element: <ExperimentCatalog /> },
       { path: '/lab/:subject/:id', element: <ExperimentDetail /> },
-      { path: '/lab/:subject/:id/mulai', element: <LazyLabPage /> },
       { path: '/tentang-ai', element: <AboutAI /> },
       { path: '*', element: <NotFound /> },
     ],
   },
+  // The lab fills the whole screen, without the navbar and footer.
+  { path: '/lab/:subject/:id/mulai', element: <LazyLabPage /> },
 ])
 
 createRoot(document.getElementById('root')!).render(

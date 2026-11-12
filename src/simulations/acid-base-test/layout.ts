@@ -1,6 +1,7 @@
 import type { SceneLayout } from '../types'
 
 export const acidBaseTestLayout: SceneLayout = {
+  floorY: 791,
   home: {
     indicator: { x: 513, y: 540, w: 90, h: 160 },
     pipette: { x: 627, y: 515, w: 44, h: 180 },

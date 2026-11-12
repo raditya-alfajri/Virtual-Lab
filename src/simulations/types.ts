@@ -80,6 +80,8 @@ export type Pull = {
 }
 
 export type SceneLayout = {
+  /** Where the wall meets the floor in the background, in stage y; 800 when unset. */
+  floorY?: number
   home: Record<string, Rect>
   zones: Record<string, Rect>
   /** Keyed by the attached item's id, then by the id of the item it rests on. */

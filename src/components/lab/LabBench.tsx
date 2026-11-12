@@ -12,7 +12,13 @@ import {
   type UniqueIdentifier,
 } from '@dnd-kit/core'
 import clsx from 'clsx'
-import { Fragment, useRef, useState, type ReactNode } from 'react'
+import {
+  Fragment,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react'
 import type { Experiment } from '../../data/types'
 import type { useExperiment } from '../../hooks/useExperiment'
 import { SHELF } from '../../lib/engine'
@@ -44,8 +50,27 @@ type Props = {
   experiment: Experiment
   layout: SceneLayout
   lab: ReturnType<typeof useExperiment>
-  /** Sits above the stage, in the stage's column. */
+  /** The title card, at the top of the panel column. */
   header?: ReactNode
+}
+
+/** Width of the panel column floating over the room on wide screens. */
+const PANEL_WIDTH = 412
+const WIDE = '(min-width: 1024px)'
+
+function subscribeWide(onChange: () => void) {
+  const query = window.matchMedia(WIDE)
+  query.addEventListener('change', onChange)
+  return () => query.removeEventListener('change', onChange)
+}
+
+/** True on screens wide enough for the panels to float over the room. */
+function useWide() {
+  return useSyncExternalStore(
+    subscribeWide,
+    () => window.matchMedia(WIDE).matches,
+    () => true,
+  )
 }
 
 const SHELF_NAME = 'Rak alat'
@@ -66,6 +91,7 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [hintClosed, setHintClosed] = useState(false)
+  const wide = useWide()
   const suppressClick = useRef(false)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -204,11 +230,17 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
         },
       }}
     >
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-        <div className="min-w-0 flex-1">
-          {header}
+      {/*
+        Wide screens: the room fills the screen and the panels float on its
+        right. Narrow screens: the title, the room, then the panels, one below
+        the other; the panel column only groups them on wide screens.
+      */}
+      <div className="flex flex-col lg:relative lg:h-dvh lg:overflow-hidden">
+        <div className="relative order-2 aspect-[1440/1024] w-full lg:absolute lg:inset-0 lg:aspect-auto">
           <LabStage
             background={getBackgroundUrl(experiment.id)}
+            floorY={layout.floorY}
+            reserve={wide ? PANEL_WIDTH : 0}
             onBackgroundClick={() => setSelectedId(null)}
             overlay={
               <LabHint
@@ -310,14 +342,22 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
             <DragPreview pieces={previewPieces} />
           </LabStage>
         </div>
-        <LabPanel
-          explanation={lab.explanation}
-          objectives={experiment.objectives}
-          tips={experiment.tips}
-          columns={lab.columns}
-          rows={lab.rows}
-          onRemoveRow={lab.removeRow}
-        />
+        <div
+          className="contents lg:pointer-events-none lg:absolute lg:inset-y-0 lg:right-0 lg:z-20 lg:flex lg:flex-col lg:gap-3 lg:overflow-y-auto lg:p-4"
+          style={wide ? { width: PANEL_WIDTH } : undefined}
+        >
+          <div className="order-1 p-4 lg:order-none lg:p-0">{header}</div>
+          <div className="order-3 p-4 lg:order-none lg:p-0">
+            <LabPanel
+              explanation={lab.explanation}
+              objectives={experiment.objectives}
+              tips={experiment.tips}
+              columns={lab.columns}
+              rows={lab.rows}
+              onRemoveRow={lab.removeRow}
+            />
+          </div>
+        </div>
       </div>
     </DndContext>
   )
@@ -340,16 +380,16 @@ function Shelf({
       onClick={onClick}
       onKeyDown={onActivateKey(onClick)}
       className={clsx(
-        'flex h-11 items-center justify-center gap-2 rounded-xl border border-dashed px-4 text-sm transition-colors',
+        'flex h-11 items-center justify-center gap-2 rounded-full border border-dashed px-5 text-sm shadow-sm backdrop-blur transition-colors',
         isOver
           ? 'border-primary bg-primary-tint'
           : highlight
-            ? 'border-primary/60 bg-primary-tint/60'
-            : 'border-line',
+            ? 'border-primary/60 bg-primary-tint/90'
+            : 'border-line bg-white/85',
       )}
     >
       <p className="font-semibold text-ink">{SHELF_NAME}</p>
-      <p className="truncate text-ink-muted">
+      <p className="hidden truncate text-ink-muted sm:block">
         Taruh benda di sini untuk mengembalikannya ke tempat awal.
       </p>
     </div>
