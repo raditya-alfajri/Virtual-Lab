@@ -17,24 +17,33 @@ export type PreviewPiece = {
 type Props = {
   /** The dragged item first, then the items riding on it, bottom to top. */
   pieces: PreviewPiece[]
+  /**
+   * Centres the copy on the element that was grabbed, for drags that start
+   * on a tool-rack button rather than on the item's own drawing.
+   */
+  centred?: boolean
 }
 
 /**
  * The copy of an item that follows the pointer. It lives in a portal so the
  * stage does not clip it on its way to the shelf strip below.
  */
-export default function DragPreview({ pieces }: Props) {
+export default function DragPreview({ pieces, centred = false }: Props) {
   const scale = useStageScale()
   const root = pieces[0]?.rect
   return createPortal(
     <DragOverlay dropAnimation={null} zIndex={3000} className="cursor-grabbing">
       {root && (
         <div
-          className="relative origin-top-left"
+          className={
+            centred ? 'absolute top-1/2 left-1/2' : 'relative origin-top-left'
+          }
           style={{
             width: root.w,
             height: root.h,
-            transform: `scale(${scale})`,
+            transform: centred
+              ? `translate(-50%, -50%) scale(${scale})`
+              : `scale(${scale})`,
           }}
         >
           {pieces.map(({ item, rect, turn, labelSide, view, showReading }) => (

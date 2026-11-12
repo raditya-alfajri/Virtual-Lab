@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import { Trash2 } from 'lucide-react'
 import { useId, type ReactNode } from 'react'
 import type { Column, Explanation, Row } from '../../data/types'
@@ -59,15 +60,19 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
   )
 }
 
-function ExplanationContent({
+export function ExplanationContent({
   explanation,
   objectives,
   tips,
-}: Pick<Props, 'explanation' | 'objectives' | 'tips'>) {
+  large = false,
+}: Pick<Props, 'explanation' | 'objectives' | 'tips'> & {
+  /** Bigger text for the phone panel, where the card fills the width. */
+  large?: boolean
+}) {
   if (!explanation) {
     return (
       <div className="space-y-4">
-        <Part label="Tujuan praktikum">
+        <Part label="Tujuan praktikum" large={large}>
           <ul className="list-disc space-y-1 pl-4">
             {objectives.map((objective) => (
               <li key={objective}>{objective}</li>
@@ -75,7 +80,7 @@ function ExplanationContent({
           </ul>
         </Part>
         {tips.length > 0 && (
-          <Part label="Tips">
+          <Part label="Tips" large={large}>
             <ul className="list-disc space-y-1 pl-4 text-ink-muted">
               {tips.slice(0, MAX_TIPS).map((tip) => (
                 <li key={tip}>{tip}</li>
@@ -90,18 +95,25 @@ function ExplanationContent({
   return (
     <div className="space-y-4">
       {explanation.result && (
-        <Part label="Hasil">
-          <p className="font-semibold">{explanation.result}</p>
+        <Part label="Hasil" large={large}>
+          <p className={clsx('font-semibold', large && 'text-lg leading-snug')}>
+            {explanation.result}
+          </p>
         </Part>
       )}
       {explanation.reason && (
-        <Part label="Alasan">
+        <Part label="Alasan" large={large}>
           <p>{explanation.reason}</p>
         </Part>
       )}
       {explanation.formula && (
-        <Part label="Rumus">
-          <p className="rounded-lg bg-primary-tint px-3 py-2 font-mono text-[13px] whitespace-pre-line">
+        <Part label="Rumus" large={large}>
+          <p
+            className={clsx(
+              'rounded-lg bg-primary-tint px-3 py-2 font-mono whitespace-pre-line',
+              large ? 'text-[15px]' : 'text-[13px]',
+            )}
+          >
             {explanation.formula}
           </p>
         </Part>
@@ -110,7 +122,7 @@ function ExplanationContent({
   )
 }
 
-function TableContent({
+export function TableContent({
   columns,
   rows,
   onRemoveRow,
@@ -165,10 +177,23 @@ function TableContent({
   )
 }
 
-function Part({ label, children }: { label: string; children: ReactNode }) {
+function Part({
+  label,
+  large = false,
+  children,
+}: {
+  label: string
+  large?: boolean
+  children: ReactNode
+}) {
   return (
     <section>
-      <h3 className="mb-1 text-xs font-semibold tracking-wide text-ink-muted uppercase">
+      <h3
+        className={clsx(
+          'mb-1 font-semibold tracking-wide text-ink-muted uppercase',
+          large ? 'text-[13px]' : 'text-xs',
+        )}
+      >
         {label}
       </h3>
       {children}

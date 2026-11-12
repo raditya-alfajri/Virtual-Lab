@@ -1,12 +1,15 @@
+import clsx from 'clsx'
 import { X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 
 type Props = {
   hint: string | null
   onClose: () => void
+  /** Phone layout: a finger-sized close button. */
+  compact?: boolean
 }
 
-export default function LabHint({ hint, onClose }: Props) {
+export default function LabHint({ hint, onClose, compact = false }: Props) {
   return (
     <div
       aria-live="polite"
@@ -26,7 +29,12 @@ export default function LabHint({ hint, onClose }: Props) {
               type="button"
               onClick={onClose}
               aria-label="Tutup pesan"
-              className="-mr-1 shrink-0 rounded-md p-0.5 hover:bg-bg/15"
+              className={clsx(
+                'shrink-0 rounded-md hover:bg-bg/15',
+                compact
+                  ? '-my-2.5 -mr-3 grid size-11 place-items-center'
+                  : '-mr-1 p-0.5',
+              )}
             >
               <X size={16} />
             </button>

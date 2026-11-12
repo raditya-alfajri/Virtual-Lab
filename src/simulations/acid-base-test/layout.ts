@@ -21,4 +21,21 @@ export const acidBaseTestLayout: SceneLayout = {
     sink: { x: 0, y: 230, w: 427, h: 356 },
   },
   attach: {},
+  mobile: {
+    views: [
+      // Narrower than the bench art so the edge cuts no rack in half;
+      // the first rack stays in view for setting tubes down.
+      { id: 'meja', name: 'Meja', region: { x: 470, y: 420, w: 670, h: 604 } },
+      {
+        id: 'rak-kartu',
+        name: 'Rak & kartu pH',
+        region: { x: 760, y: 420, w: 680, h: 604 },
+      },
+      {
+        id: 'wastafel',
+        name: 'Wastafel',
+        region: { x: 0, y: 200, w: 700, h: 600 },
+      },
+    ],
+  },
 }

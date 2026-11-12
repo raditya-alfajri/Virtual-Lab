@@ -25,6 +25,9 @@ export type Attach = Offset & {
  */
 export type Placement = Rect & { rotate?: number }
 
+/** A part of the stage a phone shows at a time, in stage coordinates. */
+export type MobileView = { id: string; name: string; region: Rect }
+
 export type SceneLayout = {
   home: Record<string, Rect>
   zones: Record<string, Rect>
@@ -34,4 +37,6 @@ export type SceneLayout = {
   screens?: Record<string, Rect>
   /** Keyed by item id; labels sit below the item unless set here or in `attach`. */
   labelSide?: Record<string, Side>
+  /** The work areas a phone switches between, in tab order. */
+  mobile?: { views: MobileView[] }
 }

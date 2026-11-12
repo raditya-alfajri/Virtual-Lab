@@ -9,12 +9,20 @@ type Props = {
   zone: Zone
   rect: Rect
   highlight: boolean
+  /** A larger tap box than the zone, relative to the zone's top-left. */
+  hitArea?: Rect
   onClick: (zoneId: string) => void
 }
 
 const dropData: DropData = { layer: 'zone' }
 
-export default function StageZone({ zone, rect, highlight, onClick }: Props) {
+export default function StageZone({
+  zone,
+  rect,
+  highlight,
+  hitArea,
+  onClick,
+}: Props) {
   const { setNodeRef, isOver } = useDroppable({ id: zone.id, data: dropData })
 
   return (
@@ -34,6 +42,19 @@ export default function StageZone({ zone, rect, highlight, onClick }: Props) {
             : 'outline-none',
       )}
       style={{ left: rect.x, top: rect.y, width: rect.w, height: rect.h }}
-    />
+    >
+      {hitArea && (
+        <span
+          aria-hidden
+          className="absolute"
+          style={{
+            left: hitArea.x,
+            top: hitArea.y,
+            width: hitArea.w,
+            height: hitArea.h,
+          }}
+        />
+      )}
+    </div>
   )
 }

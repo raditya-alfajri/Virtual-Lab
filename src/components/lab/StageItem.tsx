@@ -2,16 +2,25 @@ import { useDraggable, useDroppable } from '@dnd-kit/core'
 import clsx from 'clsx'
 import { useCallback } from 'react'
 import type { ItemDef, ItemView } from '../../data/types'
-import type { Placement, Side } from '../../simulations/types'
+import type { Placement, Rect, Side } from '../../simulations/types'
 import type { DropData } from './drop-target'
 import { onActivateKey } from './keyboard'
 import LabAsset, { type AssetTurn } from './LabAsset'
+import { useStageScale } from './stage-scale'
 
 const ACTION_SIDE_CLASS: Record<Side, string> = {
   below: 'top-full left-1/2 mt-9 -translate-x-1/2',
   above: 'bottom-full left-1/2 mb-3 -translate-x-1/2',
   right: 'top-1/2 left-full ml-3 -translate-y-1/2',
   left: 'top-1/2 right-full mr-3 -translate-y-1/2',
+}
+
+/** The button's edge that stays next to the item when it is scaled up. */
+const ACTION_ORIGIN: Record<Side, string> = {
+  below: 'top',
+  above: 'bottom',
+  right: 'left',
+  left: 'right',
 }
 
 type Props = {
@@ -30,6 +39,10 @@ type Props = {
   actionSide: Side
   /** Only the drawn parts take the pointer, so the item it rests on stays easy to grab. */
   grabByDrawing: boolean
+  /** Phone layout: the action button keeps its screen size at any stage scale. */
+  compact?: boolean
+  /** A larger tap box than the drawing, relative to the item's top-left. */
+  hitArea?: Rect
   onClick: (itemId: string) => void
   onAction: (itemId: string) => void
 }
@@ -47,9 +60,12 @@ export default function StageItem({
   showReading,
   actionSide,
   grabByDrawing,
+  compact = false,
+  hitArea,
   onClick,
   onAction,
 }: Props) {
+  const scale = useStageScale()
   const fixed = item.fixed === true
   const drag = useDraggable({ id: item.id, disabled: fixed })
   const dropData: DropData = { layer: 'item', order: zIndex }
@@ -100,6 +116,18 @@ export default function StageItem({
               : 'cursor-grab',
         )}
       >
+        {hitArea && (
+          <span
+            aria-hidden
+            className="pointer-events-auto absolute"
+            style={{
+              left: hitArea.x,
+              top: hitArea.y,
+              width: hitArea.w,
+              height: hitArea.h,
+            }}
+          />
+        )}
         <LabAsset
           kind={item.kind}
           name={item.name}
@@ -114,9 +142,18 @@ export default function StageItem({
           type="button"
           onClick={() => onAction(item.id)}
           className={clsx(
-            'absolute rounded-full bg-primary px-3 py-1 text-sm font-semibold whitespace-nowrap text-bg shadow hover:brightness-110',
+            'absolute rounded-full bg-primary font-semibold whitespace-nowrap text-bg shadow hover:brightness-110',
+            compact ? 'min-h-11 px-5 text-base' : 'px-3 py-1 text-sm',
             ACTION_SIDE_CLASS[actionSide],
           )}
+          style={
+            compact && scale > 0
+              ? {
+                  scale: 1 / scale,
+                  transformOrigin: ACTION_ORIGIN[actionSide],
+                }
+              : undefined
+          }
         >
           {view.action}
         </button>
