@@ -21,6 +21,7 @@ import {
 } from 'react'
 import type { Experiment } from '../../data/types'
 import type { useExperiment } from '../../hooks/useExperiment'
+import { useLabi } from '../../hooks/useLabi'
 import { SHELF } from '../../lib/engine'
 import { getBackgroundUrl } from '../../simulations'
 import {
@@ -30,6 +31,8 @@ import {
   resolveItemRect,
 } from '../../simulations/position'
 import type { Placement, SceneLayout } from '../../simulations/types'
+import Labi from '../labi/Labi'
+import LabiChat from '../labi/LabiChat'
 import DragPreview, { type PreviewPiece } from './DragPreview'
 import {
   isInteractionTarget,
@@ -92,6 +95,7 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [hintClosed, setHintClosed] = useState(false)
   const wide = useWide()
+  const labi = useLabi(experiment, lab)
   const suppressClick = useRef(false)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -108,6 +112,11 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
 
   const placeOf = (itemId: string) =>
     resolveItemRect(layout, items, itemId, lab.view)
+
+  const locate = (itemId: string) => {
+    const rect = placeOf(itemId)
+    return rect ? { x: rect.x + rect.w / 2, y: rect.y } : null
+  }
 
   const turnOf = (itemId: string, rect: Placement): AssetTurn | undefined => {
     const { w, h } = rect.size ?? layout.home[itemId]
@@ -243,10 +252,18 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
             reserve={wide ? PANEL_WIDTH : 0}
             onBackgroundClick={() => setSelectedId(null)}
             overlay={
-              <LabHint
-                hint={hintClosed ? null : lab.hint}
-                onClose={() => setHintClosed(true)}
-              />
+              <>
+                <LabHint
+                  hint={hintClosed ? null : lab.hint}
+                  onClose={() => setHintClosed(true)}
+                />
+                <Labi
+                  state={labi.state}
+                  session={labi.session}
+                  locate={locate}
+                  passive={activeId !== null}
+                />
+              </>
             }
             footer={
               <Shelf highlight={held} onClick={() => handlePlaceClick(SHELF)} />
@@ -355,6 +372,7 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
               columns={lab.columns}
               rows={lab.rows}
               onRemoveRow={lab.removeRow}
+              assistant={<LabiChat state={labi.state} session={labi.session} />}
             />
           </div>
         </div>

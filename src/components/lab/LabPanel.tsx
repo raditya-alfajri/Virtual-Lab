@@ -12,6 +12,8 @@ type Props = {
   columns: Column[]
   rows: Row[]
   onRemoveRow: (index: number) => void
+  /** The conversation with Labi. */
+  assistant: ReactNode
 }
 
 const MAX_TIPS = 2
@@ -23,6 +25,7 @@ export default function LabPanel({
   columns,
   rows,
   onRemoveRow,
+  assistant,
 }: Props) {
   return (
     <aside aria-label="Panel praktikum" className="flex flex-col gap-3">
@@ -36,9 +39,7 @@ export default function LabPanel({
       <Card title="Tabel pengamatan">
         <TableContent columns={columns} rows={rows} onRemoveRow={onRemoveRow} />
       </Card>
-      <Card title="Asisten Labi">
-        <div className="min-h-32" />
-      </Card>
+      <Card title="Asisten Labi">{assistant}</Card>
     </aside>
   )
 }

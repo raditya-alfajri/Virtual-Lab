@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { STAGE_HEIGHT, STAGE_WIDTH } from '../../simulations/types'
+import { StageFrameContext } from './stage-frame'
 import { StageScaleContext } from './stage-scale'
 
 // The wall and floor colours of the backgrounds, carried on past the stage's
@@ -99,7 +100,11 @@ export default function LabStage({
         className="pointer-events-none absolute inset-y-0 left-0 z-10"
         style={{ right: reserve }}
       >
-        {overlay}
+        <StageFrameContext
+          value={{ scale, left, top, width: roomWidth, height: box.height }}
+        >
+          {overlay}
+        </StageFrameContext>
         {footer && (
           <div className="absolute inset-x-0 bottom-4 flex justify-center px-4">
             <div className="pointer-events-auto max-w-full min-w-0">
