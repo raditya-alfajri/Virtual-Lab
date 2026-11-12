@@ -358,3 +358,71 @@ describe('reaction-rate layout', () => {
     expect(carriedBy(inBath, 'flask')).toEqual(['thermometer'])
   })
 })
+
+describe('motion', () => {
+  const moving: SceneLayout = {
+    home: {
+      cart: { x: 0, y: 500, w: 100, h: 50 },
+      box: { x: 900, y: 900, w: 20, h: 20 },
+      spring: { x: 300, y: 100, w: 40, h: 150 },
+    },
+    zones: { track: { x: 0, y: 500, w: 1000, h: 50 } },
+    attach: {},
+    motion: {
+      cart: (base, { at, view }) =>
+        at === 'track'
+          ? { rect: { ...base, x: Number(view.cart?.position ?? 0) } }
+          : {},
+      // Sits on top of its parent's final box, without an attach offset.
+      box: (base, { parent }) =>
+        parent
+          ? {
+              rect: { ...base, x: parent.x, y: parent.y - base.h },
+              labelSide: 'above',
+            }
+          : {},
+      spring: (base, { view }) => ({
+        rect: { ...base, h: Number(view.spring?.length ?? base.h) },
+        rotate: Number(view.spring?.angle ?? 0),
+        action: { x: 1, y: 2, w: 3, h: 4 },
+      }),
+    },
+  }
+
+  it('moves an item with its view', () => {
+    const items = itemsAt({ cart: 'track' })
+    expect(
+      resolveItemRect(moving, items, 'cart', { cart: { position: 250 } }),
+    ).toEqual({ x: 250, y: 500, w: 100, h: 50 })
+  })
+
+  it('places an attached item from its parent’s moved box', () => {
+    const items = itemsAt({ cart: 'track', box: 'cart' })
+    const view = { cart: { position: 250 } }
+    const rect = resolveItemRect(moving, items, 'box', view)
+    expect(rect).toEqual({ x: 250, y: 480, w: 20, h: 20, labelSide: 'above' })
+    expect(itemSides(moving, items, 'box', rect).labelSide).toBe('above')
+  })
+
+  it('keeps the drawing size of a resized, turned item', () => {
+    const items = itemsAt({ spring: 'shelf' })
+    const rect = resolveItemRect(moving, items, 'spring', {
+      spring: { length: 200, angle: 90 },
+    })
+    expect(rect).toMatchObject({
+      x: 220,
+      y: 180,
+      w: 200,
+      h: 40,
+      rotate: 90,
+      size: { w: 40, h: 200 },
+      action: { x: 1, y: 2, w: 3, h: 4 },
+    })
+  })
+
+  it('still skips an attached item with neither offset nor motion', () => {
+    const items = itemsAt({ cart: 'track', spring: 'cart' })
+    const still = { ...moving, motion: { cart: moving.motion!.cart } }
+    expect(resolveItemRect(still, items, 'spring')).toBeUndefined()
+  })
+})

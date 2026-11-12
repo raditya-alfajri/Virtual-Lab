@@ -80,11 +80,12 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
   const showsReading = (itemId: string) =>
     !screens.some(([zoneId]) => items[itemId]?.at === zoneId)
 
+  const placeOf = (itemId: string) =>
+    resolveItemRect(layout, items, itemId, lab.view)
+
   const turnOf = (itemId: string, rect: Placement): AssetTurn | undefined => {
-    const home = layout.home[itemId]
-    return rect.rotate
-      ? { w: home.w, h: home.h, rotate: rect.rotate }
-      : undefined
+    const { w, h } = rect.size ?? layout.home[itemId]
+    return rect.rotate ? { w, h, rotate: rect.rotate } : undefined
   }
 
   const previewPieces: PreviewPiece[] =
@@ -92,14 +93,14 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
       ? []
       : [activeId, ...carried].flatMap((id) => {
           const item = experiment.items.find((it) => it.id === id)
-          const rect = resolveItemRect(layout, items, id)
+          const rect = placeOf(id)
           if (!item || !rect) return []
           return [
             {
               item,
               rect,
               turn: turnOf(id, rect),
-              labelSide: itemSides(layout, items, id).labelSide,
+              labelSide: itemSides(layout, items, id, rect).labelSide,
               view: lab.view[id],
               showReading: showsReading(id),
             },
@@ -117,6 +118,18 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
     setHintClosed(false)
     setSelectedId(null)
     lab.drop(sourceId, targetId)
+  }
+
+  const pullItem = (itemId: string, value: number) => {
+    setHintClosed(false)
+    setSelectedId(null)
+    lab.pull(itemId, value)
+  }
+
+  // The browser still fires a click right after a pull ends; ignore that one.
+  const releaseItem = (itemId: string) => {
+    ignoreNextClick()
+    lab.release(itemId)
   }
 
   const tapItem = (itemId: string) => {
@@ -145,13 +158,17 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
     setActiveId(String(active.id))
   }
 
-  // The browser still fires a click right after a drag ends; ignore that one.
-  const endDrag = () => {
-    setActiveId(null)
+  const ignoreNextClick = () => {
     suppressClick.current = true
     setTimeout(() => {
       suppressClick.current = false
     }, 0)
+  }
+
+  // The browser still fires a click right after a drag ends; ignore that one.
+  const endDrag = () => {
+    setActiveId(null)
+    ignoreNextClick()
   }
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
@@ -236,14 +253,16 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
               )
             })}
             {experiment.items.map((item, index) => {
-              const rect = resolveItemRect(layout, items, item.id)
+              const rect = placeOf(item.id)
               if (!rect) return null
               const depth = attachDepth(items, item.id)
               const { labelSide, actionSide } = itemSides(
                 layout,
                 items,
                 item.id,
+                rect,
               )
+              const pull = layout.pull?.[item.id]
               // A front layer covers everything resting in its item.
               const frontDepth = Math.max(
                 depth,
@@ -269,7 +288,13 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
                     carried={carried.has(item.id)}
                     showReading={showsReading(item.id)}
                     actionSide={actionSide}
-                    grabByDrawing={depth > 0}
+                    grabByDrawing={depth > 0 || rect.rotate !== undefined}
+                    pull={
+                      pull?.active(items)
+                        ? (point) => pullItem(item.id, pull.value(point, items))
+                        : undefined
+                    }
+                    onRelease={releaseItem}
                     onClick={handleItemClick}
                     onAction={tapItem}
                   />
