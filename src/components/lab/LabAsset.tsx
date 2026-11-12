@@ -4,15 +4,25 @@ import type { ItemView } from '../../data/types'
 import type { Side } from '../../simulations/types'
 import AssetLabel from './assets/AssetLabel'
 import Beaker from './assets/Beaker'
+import Bob from './assets/Bob'
+import Cart from './assets/Cart'
 import CrossPaper from './assets/CrossPaper'
 import Cuso4Jar from './assets/Cuso4Jar'
 import Dropper from './assets/Dropper'
 import Erlenmeyer from './assets/Erlenmeyer'
+import Fan from './assets/Fan'
 import GraduatedCylinder from './assets/GraduatedCylinder'
+import Hanger from './assets/Hanger'
 import IndicatorBottle from './assets/IndicatorBottle'
+import MotionSensor from './assets/MotionSensor'
+import PendulumString from './assets/PendulumString'
+import Protractor from './assets/Protractor'
 import ReadingDisplay from './assets/ReadingDisplay'
 import ReagentBottle from './assets/ReagentBottle'
+import Ruler from './assets/Ruler'
+import SlottedMass from './assets/SlottedMass'
 import Spoon from './assets/Spoon'
+import Spring from './assets/Spring'
 import StirringRod from './assets/StirringRod'
 import Stopwatch from './assets/Stopwatch'
 import { RED } from './assets/svg-style'
@@ -22,6 +32,7 @@ import type { AssetProps } from './assets/types'
 import WashBottle from './assets/WashBottle'
 import WatchGlass from './assets/WatchGlass'
 import WaterBath from './assets/WaterBath'
+import WeightBlock from './assets/WeightBlock'
 
 type AssetEntry = {
   component: ComponentType<AssetProps>
@@ -58,6 +69,18 @@ const ASSETS: Partial<Record<string, AssetEntry>> = {
   stopwatch: { component: Stopwatch, ownReading: true },
   bath: { component: WaterBath },
   paper: { component: CrossPaper },
+  // Physics
+  cart: { component: Cart },
+  weight: { component: WeightBlock },
+  fan: { component: Fan },
+  sensor: { component: MotionSensor },
+  string: { component: PendulumString },
+  bob: { component: Bob },
+  protractor: { component: Protractor },
+  spring: { component: Spring },
+  hanger: { component: Hanger },
+  mass: { component: SlottedMass },
+  ruler: { component: Ruler },
 }
 
 /** The drawing's own size and how far it is turned inside the item's box. */
