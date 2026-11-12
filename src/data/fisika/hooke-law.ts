@@ -301,10 +301,11 @@ export const hookeLaw: Experiment = {
       view[RULER] = {
         // The spring's length (m), for the marker on the ruler.
         length: round(NATURAL_LENGTH + x, 4),
-        reading: `Panjang ${fmt((NATURAL_LENGTH + x) * 100, 2)} cm · Δx ${fmt(x * 100, 2)} cm`,
+        // Shown beside the ruler, where it covers neither spring nor poster.
+        label: `Panjang ${fmt((NATURAL_LENGTH + x) * 100, 2)} cm · Δx ${fmt(x * 100, 2)} cm`,
       }
     } else {
-      view[RULER] = { reading: '– cm' }
+      view[RULER] = { label: '– cm' }
     }
     return view
   },

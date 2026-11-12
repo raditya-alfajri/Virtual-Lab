@@ -248,10 +248,6 @@ export const newtonLaw: Experiment = {
   view: (world) => {
     const position = num(world, CART, 'position')
     const running = bool(world, CART, 'running')
-    const a = running
-      ? acceleration(num(world, CART, 'force'), num(world, CART, 'mass'))
-      : 0
-    const speed = running ? speedAfter(a, num(world, CART, 'elapsed')) : 0
     const time = num(world, SENSOR, 'time')
     const force = cartForce(world)
     const view: Record<string, ItemView> = {
@@ -259,7 +255,6 @@ export const newtonLaw: Experiment = {
         label: `Troli · ${fmt(totalMass(world), 1)} kg${force ? ` · ${force} N` : ''}`,
         position,
         progress: position / TRACK_LENGTH,
-        reading: `v = ${fmt(speed, 2)} m/s`,
         action: world.items[CART].at === START ? 'Lepas' : undefined,
         moving: running,
       },

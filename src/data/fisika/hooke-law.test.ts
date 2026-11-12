@@ -71,9 +71,7 @@ describe('F3 Hukum Hooke: measurements', () => {
     s = run(s, ...settle())
     expect(s.world.items['spring-a'].state.moving).toBe(false)
     expect(exp.view(s.world)['spring-a'].extension).toBe(0.049)
-    expect(exp.view(s.world).ruler.reading).toBe(
-      'Panjang 14,90 cm · Δx 4,90 cm',
-    )
+    expect(exp.view(s.world).ruler.label).toBe('Panjang 14,90 cm · Δx 4,90 cm')
     expect(s.rows).toHaveLength(1)
   })
 

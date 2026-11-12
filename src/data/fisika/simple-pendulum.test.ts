@@ -109,7 +109,7 @@ describe('F2 Ayunan Sederhana: measurements', () => {
 
   it('shows the protractor angle and lets the bob be stopped', () => {
     let s = run(start(), ...hang('string-40', 'bob-50'), pull('bob-50', -12))
-    expect(exp.view(s.world).protractor.reading).toBe('12°')
+    expect(exp.view(s.world).protractor.label).toBe('12°')
     s = run(s, release('bob-50'), tick(period(0.4) / 2))
     // Pulled left (−12°), it is on the right half a period later.
     expect(exp.view(s.world)['bob-50'].angle).toBeCloseTo(12)

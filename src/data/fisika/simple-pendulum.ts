@@ -272,7 +272,8 @@ export const simplePendulum: Experiment = {
         action: bool(world, b.id, 'swinging') ? 'Hentikan' : undefined,
       }
     }
-    view.protractor = { reading: `${fmt(Math.abs(current), 0)}°` }
+    // A label beside the protractor, clear of the swinging string.
+    view.protractor = { label: `${fmt(Math.abs(current), 0)}°` }
     const counting = bool(world, STOPWATCH, 'counting')
     const elapsed = num(world, STOPWATCH, 'elapsed')
     view[STOPWATCH] = {
