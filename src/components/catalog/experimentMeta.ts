@@ -23,20 +23,4 @@ export type ComingSoon = {
   summary: string
 }
 
-export const COMING_SOON: Partial<Record<Subject, ComingSoon[]>> = {
-  fisika: [
-    {
-      id: 'ayunan-sederhana',
-      title: 'Ayunan Sederhana',
-      topic: 'Gerak & gaya',
-      summary: 'Amati periode ayunan saat panjang tali dan massa beban diubah.',
-    },
-    {
-      id: 'hukum-hooke',
-      title: 'Hukum Hooke',
-      topic: 'Gerak & gaya',
-      summary:
-        'Hubungkan beban yang digantung dengan pertambahan panjang pegas.',
-    },
-  ],
-}
+export const COMING_SOON: Partial<Record<Subject, ComingSoon[]>> = {}
