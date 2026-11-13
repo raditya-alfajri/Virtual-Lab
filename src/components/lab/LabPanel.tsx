@@ -35,8 +35,9 @@ const TABS = [
 
 /**
  * Everything beside the room, one thing at a time: the explanation, the
- * observation table or the chat with Labi. Floating over the room it stays
- * closed until a tab is picked, so the room is what the student sees first.
+ * observation table or the chat with Labi. It stays closed until a tab is
+ * picked, so the room is what the student sees first: a card at the room's
+ * right, or on an upright phone a sheet sliding up from the tabs.
  */
 export default function LabPanel({
   layout,
@@ -53,6 +54,8 @@ export default function LabPanel({
 }: Props) {
   const baseId = useId()
   const floating = layout !== 'stack'
+  // Little room beside the close button: the tabs go without icons.
+  const tight = layout === 'side' || (layout === 'stack' && tab !== null)
   // What each tab showed when it was last open; a change since then is news.
   const stamps: Record<PanelTab, unknown> = {
     labi: assistantActivity,
@@ -77,7 +80,12 @@ export default function LabPanel({
         'pointer-events-auto flex flex-col',
         floating
           ? clsx('max-h-full overflow-hidden', FLOATING_CARD)
-          : 'h-full border-t border-line bg-white',
+          : clsx(
+              'border-t border-line bg-white',
+              tab && 'rounded-t-2xl shadow-[0_-8px_24px_rgb(0_0_0/0.12)]',
+              // The chat needs a height of its own to scroll in.
+              tab === 'labi' ? 'h-[56dvh]' : 'max-h-[56dvh]',
+            ),
         floating && tab && 'w-full',
         // The chat needs a height of its own to scroll in a short window.
         layout === 'side' && tab === 'labi' && 'h-full',
@@ -105,7 +113,7 @@ export default function LabPanel({
                 id={`${baseId}-tab-${id}`}
                 aria-selected={tab === id}
                 aria-controls={tab === id ? `${baseId}-panel` : undefined}
-                onClick={() => open(floating && tab === id ? null : id)}
+                onClick={() => open(tab === id ? null : id)}
                 className={clsx(
                   'relative flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-xl font-semibold transition-colors',
                   layout === 'side' ? 'px-2 text-[13px]' : 'px-2.5 text-sm',
@@ -115,9 +123,9 @@ export default function LabPanel({
                     : 'text-ink-muted hover:bg-primary-tint/60 hover:text-ink',
                 )}
               >
-                {layout !== 'side' && <Icon size={16} className="shrink-0" />}
+                {!tight && <Icon size={16} className="shrink-0" />}
                 <span className="truncate">
-                  {layout === 'side' && id === 'labi' ? 'Labi' : label}
+                  {tight && id === 'labi' ? 'Labi' : label}
                 </span>
                 {count !== null && (
                   <span className="rounded-full bg-primary px-1.5 text-[11px] leading-[18px] text-white">
@@ -133,7 +141,7 @@ export default function LabPanel({
             )
           })}
         </div>
-        {floating && tab && (
+        {tab && (
           <button
             type="button"
             onClick={() => open(null)}

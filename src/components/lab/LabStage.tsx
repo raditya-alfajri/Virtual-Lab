@@ -16,6 +16,8 @@ type Props = {
   floorY?: number
   /** Room kept above the stage, for what floats at the top of the frame. */
   topGap?: number
+  /** Where the stage sits in a frame taller than it: 1 on the bottom edge, 0 at the top. */
+  rest?: number
   /** Width on the right kept free for the panels floating over the room. */
   reserve?: number
   /** Laid over the room without scaling, so text stays readable. */
@@ -28,14 +30,15 @@ type Props = {
 
 /**
  * The stage as a room filling its frame: the stage is as large as fits left
- * of `reserve`, centred and resting on the bottom edge, and the wall and floor
- * go on around it.
+ * of `reserve`, centred and resting on the bottom edge (or higher, see `rest`),
+ * and the wall and floor go on around it.
  */
 export default function LabStage({
   background,
   floorY = DEFAULT_FLOOR_Y,
   topGap = DEFAULT_TOP_GAP,
   reserve = 0,
+  rest = 1,
   overlay,
   footer,
   onBackgroundClick,
@@ -63,7 +66,8 @@ export default function LabStage({
     0,
   )
   const left = (roomWidth - STAGE_WIDTH * scale) / 2
-  const top = box.height - STAGE_HEIGHT * scale
+  const spare = box.height - STAGE_HEIGHT * scale
+  const top = Math.max(spare * rest, Math.min(topGap, spare))
   const floor = top + floorY * scale
 
   return (

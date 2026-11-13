@@ -76,8 +76,8 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
   const mode = useLabLayout()
   const stacked = mode === 'stack'
   const [pickedTab, setPickedTab] = useState<PanelTab | null>(null)
-  // Below the room the panel is always open; floating over it, only on request.
-  const panelTab = stacked ? (pickedTab ?? 'labi') : pickedTab
+  // The panel stays closed until a tab is picked, so the room has the screen.
+  const panelTab = pickedTab
   const labi = useLabi(experiment, lab)
   const suppressClick = useRef(false)
   const sensors = useSensors(
@@ -224,19 +224,19 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
     >
       {/*
         The room fills the screen and the panels float on its right; on an
-        upright phone the title, the room and the panel sit one below the
-        other instead, and the panel column only groups them when it floats.
+        upright phone the title sits above the room, the tabs below it, and a
+        picked tab slides up over the room as a sheet.
       */}
       <div
         className={clsx(
           'h-dvh overflow-hidden',
-          stacked ? 'flex flex-col' : 'relative',
+          stacked ? 'relative flex flex-col' : 'relative',
         )}
       >
         <div
           className={
             stacked
-              ? 'relative order-2 aspect-[1440/1024] max-h-[52dvh] w-full shrink-0'
+              ? 'relative order-2 min-h-0 w-full flex-1'
               : 'absolute inset-0'
           }
         >
@@ -244,6 +244,8 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
             background={getBackgroundUrl(experiment.id)}
             floorY={layout.floorY}
             reserve={panelTab ? PANEL_WIDTH[mode] : 0}
+            // Under an open sheet the room moves up to stay in view.
+            rest={stacked ? (panelTab ? 0 : 0.62) : 1}
             topGap={stacked ? undefined : TOP_BAR[mode]}
             onBackgroundClick={() => setSelectedId(null)}
             overlay={
@@ -367,10 +369,12 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
         >
           {header?.(mode)}
         </div>
+        {/* Keeps the room clear of the tabs lying over its bottom edge. */}
+        {stacked && <div className="order-3 h-[53px] shrink-0" />}
         <div
           className={
             stacked
-              ? 'order-3 min-h-0 flex-1'
+              ? 'absolute inset-x-0 bottom-0 z-20'
               : clsx(
                   'pointer-events-none absolute inset-y-0 right-0 z-20 flex flex-col items-end',
                   mode === 'wide' ? 'p-4' : 'p-2',
