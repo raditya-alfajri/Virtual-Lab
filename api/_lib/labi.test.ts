@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { BUSY, guard, TIRED } from './http.js'
+import { ChatError, streamChat } from './llm.js'
 import { buildMessages, readReplyTag, toSpeakable } from './prompt.js'
 import type { LabContext, TurnEvent, TurnRequest } from './protocol.js'
 import { rateLimit, type CounterStore } from './rate-limit.js'
@@ -32,7 +34,7 @@ describe('rateLimit', () => {
     const now = 90_000 // 30 s into a one-minute window
     expect(await rateLimit([rule], store, now)).toBeNull()
     expect(await rateLimit([rule], store, now)).toBeNull()
-    expect(await rateLimit([rule], store, now)).toBe(30)
+    expect(await rateLimit([rule], store, now)).toEqual({ wait: 30, rule })
   })
 
   it('starts counting again in the next window', async () => {
@@ -48,11 +50,133 @@ describe('rateLimit', () => {
     expect(await rateLimit([other], store, 0)).toBeNull()
   })
 
-  it('refuses when any rule is over its limit', async () => {
+  it('refuses when any rule is over its limit, naming the longest wait', async () => {
     const store = countingStore()
     const all = { key: 'all', limit: 1, windowSeconds: 3600 }
     expect(await rateLimit([rule, all], store, 0)).toBeNull()
-    expect(await rateLimit([rule, all], store, 0)).toBe(3600)
+    expect(await rateLimit([rule, all], store, 0)).toEqual({
+      wait: 3600,
+      rule: all,
+    })
+  })
+})
+
+describe('guard', () => {
+  beforeEach(() => {
+    vi.stubEnv('UPSTASH_REDIS_REST_URL', '')
+  })
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  const ask = (ip: string) =>
+    new Request('http://localhost/api/labi/turn', {
+      method: 'POST',
+      headers: { 'x-real-ip': ip },
+    })
+
+  it('refuses everyone politely once the per-minute total is reached', async () => {
+    const limits = {
+      perMinute: 10,
+      perDay: 10,
+      totalPerDay: 10,
+      totalPerMinute: 2,
+    }
+    expect(await guard(ask('1'), 'test-busy', limits)).toBeNull()
+    expect(await guard(ask('2'), 'test-busy', limits)).toBeNull()
+    const refused = await guard(ask('3'), 'test-busy', limits)
+    expect(refused?.status).toBe(429)
+    expect(await refused?.json()).toEqual({ error: BUSY })
+  })
+
+  it('says Labi needs a rest when one visitor asks too much', async () => {
+    const limits = { perMinute: 1, perDay: 10, totalPerDay: 10 }
+    expect(await guard(ask('1'), 'test-tired', limits)).toBeNull()
+    const refused = await guard(ask('1'), 'test-tired', limits)
+    expect(await refused?.json()).toEqual({ error: TIRED })
+  })
+})
+
+describe('streamChat', () => {
+  const fetchMock = vi.fn<typeof fetch>()
+
+  beforeEach(() => {
+    vi.stubEnv('GEMINI_API_KEY', 'test-key')
+    vi.stubEnv('GEMINI_MODEL', 'test-model')
+    vi.stubEnv('GEMINI_BASE_URL', '')
+    vi.stubEnv('GEMINI_REASONING_EFFORT', '')
+    vi.stubGlobal('fetch', fetchMock)
+    fetchMock.mockReset()
+  })
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
+  })
+
+  const sse = (...deltas: string[]) =>
+    new Response(
+      [
+        ...deltas.map(
+          (content) =>
+            `data: ${JSON.stringify({ choices: [{ delta: { content } }] })}\n\n`,
+        ),
+        'data: [DONE]\n\n',
+      ].join(''),
+    )
+
+  const options = () => ({
+    maxTokens: 100,
+    signal: new AbortController().signal,
+  })
+
+  async function collect(stream: AsyncGenerator<string>) {
+    const parts: string[] = []
+    for await (const part of stream) parts.push(part)
+    return parts
+  }
+
+  it('sends one request to Gemini and streams its text', async () => {
+    fetchMock.mockResolvedValue(sse('Halo', '!'))
+    const parts = await collect(
+      streamChat([{ role: 'user', content: 'Hai' }], options()),
+    )
+    expect(parts).toEqual(['Halo', '!'])
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe(
+      'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+    )
+    expect(new Headers(init?.headers).get('Authorization')).toBe(
+      'Bearer test-key',
+    )
+    const body = JSON.parse(init?.body as string)
+    expect(body).toMatchObject({
+      model: 'test-model',
+      stream: true,
+      max_tokens: 100,
+    })
+    expect(body).not.toHaveProperty('reasoning_effort')
+    expect(body).not.toHaveProperty('temperature')
+  })
+
+  it('sends the reasoning effort only when it is set', async () => {
+    vi.stubEnv('GEMINI_REASONING_EFFORT', 'minimal')
+    vi.stubEnv('GEMINI_BASE_URL', 'https://example.test/openai/')
+    fetchMock.mockResolvedValue(sse('Halo'))
+    await collect(streamChat([{ role: 'user', content: 'Hai' }], options()))
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toBe('https://example.test/openai/chat/completions')
+    expect(JSON.parse(init?.body as string).reasoning_effort).toBe('minimal')
+  })
+
+  it('reports the status Gemini refused with', async () => {
+    fetchMock.mockResolvedValue(new Response('quota', { status: 429 }))
+    const error = await collect(
+      streamChat([{ role: 'user', content: 'Hai' }], options()),
+    ).catch((e: unknown) => e)
+    expect(error).toBeInstanceOf(ChatError)
+    expect((error as ChatError).status).toBe(429)
+    expect((error as ChatError).message).toBe('Gemini 429: quota')
   })
 })
 
@@ -204,7 +328,7 @@ describe('runTurn', () => {
   const pcm = (text: string) => Buffer.from(text).toString('base64')
 
   it('streams the mood, the sentences and their audio in order', async () => {
-    const stream = runTurn(request, {
+    const stream = await runTurn(request, {
       chat: () => chat('[senang:', 'cart] Halo! ', 'Ayo mulai.'),
       // The first sentence's audio arrives after the second's.
       speak: async function* (text) {
@@ -225,7 +349,7 @@ describe('runTurn', () => {
   })
 
   it('sends text only when the sound is off', async () => {
-    const stream = runTurn(
+    const stream = await runTurn(
       { ...request, voice: false },
       {
         chat: () => chat('Halo!'),
@@ -243,7 +367,7 @@ describe('runTurn', () => {
   })
 
   it('keeps the text when the voice fails', async () => {
-    const stream = runTurn(request, {
+    const stream = await runTurn(request, {
       chat: () => chat('Halo!'),
       // eslint-disable-next-line require-yield
       speak: async function* () {
@@ -254,14 +378,43 @@ describe('runTurn', () => {
     expect(types).toEqual(['meta', 'text', 'audio-end', 'done'])
   })
 
-  it('reports an error when the model fails', async () => {
-    const stream = runTurn(request, {
+  it('refuses before replying when the model fails at once', async () => {
+    const refused = new ChatError(429, 'quota')
+    const turn = runTurn(request, {
       // eslint-disable-next-line require-yield
       chat: async function* () {
-        throw new Error('model down')
+        throw refused
       },
       speak: () => chat() as never,
     })
-    expect((await events(stream)).at(-1)?.type).toBe('error')
+    await expect(turn).rejects.toBe(refused)
+  })
+
+  it('refuses before replying when the model says nothing', async () => {
+    const turn = runTurn(request, {
+      chat: () => chat(),
+      speak: () => chat() as never,
+    })
+    await expect(turn).rejects.toThrow('empty reply')
+  })
+
+  it('reports an error when the model fails mid-reply', async () => {
+    const stream = await runTurn(
+      { ...request, voice: false },
+      {
+        chat: async function* () {
+          yield 'Halo! '
+          throw new Error('model down')
+        },
+        speak: () => chat() as never,
+      },
+    )
+    const all = await events(stream)
+    expect(all.map((e) => e.type)).toEqual([
+      'meta',
+      'text',
+      'audio-end',
+      'error',
+    ])
   })
 })

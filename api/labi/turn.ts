@@ -1,5 +1,6 @@
-import { fail, guard } from '../_lib/http.js'
+import { fail, guard, TIRED } from '../_lib/http.js'
 import { env } from '../_lib/env.js'
+import { ChatError } from '../_lib/llm.js'
 import { parseTurnRequest } from '../_lib/request.js'
 import { runTurn } from '../_lib/turn.js'
 
@@ -12,6 +13,7 @@ export async function POST(request: Request): Promise<Response> {
     perMinute: 12,
     perDay: 200,
     totalPerDay: env.dailyTurns,
+    totalPerMinute: env.globalRpm,
   })
   if (refused) return refused
 
@@ -26,7 +28,17 @@ export async function POST(request: Request): Promise<Response> {
   }
   if (!turn) return fail(400, 'Permintaan tidak valid.')
 
-  return new Response(runTurn(turn), {
+  let reply
+  try {
+    reply = await runTurn(turn)
+  } catch (error) {
+    // The browser then falls back to Labi's prepared lines.
+    console.error('[labi] turn:', error)
+    return error instanceof ChatError && error.status === 429
+      ? fail(429, TIRED)
+      : fail(503, 'Labi sedang tidak bisa menjawab.')
+  }
+  return new Response(reply, {
     headers: {
       'Content-Type': 'application/x-ndjson; charset=utf-8',
       'Cache-Control': 'no-store, no-transform',

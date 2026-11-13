@@ -24,13 +24,27 @@ export type TurnDeps = {
  * each sentence goes to the voice right away, and text and audio are written
  * to the returned stream as newline-delimited `TurnEvent`s, audio in sentence
  * order. Cancelling the stream stops the model and the voice.
+ *
+ * Resolves once the model has sent its first text, and rejects when it sends
+ * none, so a refused or failed model becomes an HTTP error the browser can
+ * explain before any reply has started.
  */
-export function runTurn(
+export async function runTurn(
   request: TurnRequest,
   deps: TurnDeps = { chat: streamChat, speak: synthesize },
-): ReadableStream<Uint8Array> {
+): Promise<ReadableStream<Uint8Array>> {
   const abort = new AbortController()
   const encoder = new TextEncoder()
+
+  const stream = deps.chat(buildMessages(request), {
+    maxTokens: MAX_RESPONSE_TOKENS,
+    signal: AbortSignal.any([
+      abort.signal,
+      AbortSignal.timeout(CHAT_TIMEOUT_MS),
+    ]),
+  })
+  const first = await stream.next()
+  if (first.done) throw new Error('empty reply')
 
   return new ReadableStream({
     async start(controller) {
@@ -97,26 +111,21 @@ export function runTurn(
         const chunker = new SentenceChunker()
         const itemIds = request.context.items.map((item) => item.id)
         let head: string | null = ''
-        const stream = deps.chat(buildMessages(request), {
-          maxTokens: MAX_RESPONSE_TOKENS,
-          signal: AbortSignal.any([
-            abort.signal,
-            AbortSignal.timeout(CHAT_TIMEOUT_MS),
-          ]),
-        })
-        for await (const delta of stream) {
+        const take = (delta: string) => {
           let text = delta
           if (head !== null) {
             // The reply opens with a mood tag; hold the text until it is read.
             head += delta
             const tag = readReplyTag(head, itemIds)
-            if (!tag) continue
+            if (!tag) return
             send({ type: 'meta', mood: tag.mood, target: tag.target })
             head = null
             text = tag.rest
           }
           chunker.push(text).forEach(say)
         }
+        take(first.value)
+        for await (const delta of stream) take(delta)
         if (head) say(head)
         chunker.flush().forEach(say)
         await Promise.all(voices)
