@@ -16,6 +16,7 @@ const context: LabContext = {
   items: [{ id: 'cart', name: 'Troli', at: 'di titik start' }],
   columns: [],
   rows: [],
+  guided: true,
 }
 
 function countingStore(): CounterStore {
@@ -203,6 +204,15 @@ describe('parseTurnRequest', () => {
     expect(request.context.items).toHaveLength(24)
     expect(request.context.rows).toHaveLength(12)
     expect(request.voice).toBe(true)
+    expect(request.context.guided).toBe(true)
+  })
+
+  it('reads when the guided start is over', () => {
+    const request = parseTurnRequest({
+      turns: [{ role: 'user', text: 'Hai' }],
+      context: { title: 'Hukum Newton', guided: false },
+    })!
+    expect(request.context.guided).toBe(false)
   })
 
   it('refuses a request with nothing to answer', () => {
@@ -242,6 +252,30 @@ describe('buildMessages', () => {
     expect(messages[3].content).toBe(
       '(Kejadian di lab) Data baru tercatat.\nKenapa begitu?',
     )
+  })
+
+  const system = (guided: boolean) =>
+    buildMessages({
+      voice: true,
+      context: { ...context, guided, next: 'Seret troli ke rel.' },
+      turns: [{ role: 'user', text: 'Hai' }],
+    })[0].content
+
+  it('leads the steps during the guided start', () => {
+    const prompt = system(true)
+    expect(prompt).toContain('Tahap praktikum: masa panduan.')
+    expect(prompt).toContain(
+      'Langkah berikutnya menurut panduan praktikum: Seret troli ke rel.',
+    )
+    expect(prompt).not.toContain('masa panduan selesai')
+  })
+
+  it('only suggests a step when asked once the guided start is over', () => {
+    const prompt = system(false)
+    expect(prompt).toContain('masa panduan selesai')
+    expect(prompt).toContain('Jangan memberi instruksi langkah berikutnya')
+    expect(prompt).toContain('hanya bila diminta: Seret troli ke rel.')
+    expect(prompt).not.toContain('arahkan ke langkah ini')
   })
 })
 

@@ -1,4 +1,4 @@
-import { DragOverlay } from '@dnd-kit/core'
+import { DragOverlay, type Modifiers } from '@dnd-kit/core'
 import { createPortal } from 'react-dom'
 import type { ItemDef, ItemView } from '../../data/types'
 import type { Placement, Side } from '../../simulations/types'
@@ -17,17 +17,23 @@ export type PreviewPiece = {
 type Props = {
   /** The dragged item first, then the items riding on it, bottom to top. */
   pieces: PreviewPiece[]
+  modifiers?: Modifiers
 }
 
 /**
  * The copy of an item that follows the pointer. It lives in a portal so the
  * stage does not clip it on its way to the shelf strip below.
  */
-export default function DragPreview({ pieces }: Props) {
+export default function DragPreview({ pieces, modifiers }: Props) {
   const scale = useStageScale()
   const root = pieces[0]?.rect
   return createPortal(
-    <DragOverlay dropAnimation={null} zIndex={3000} className="cursor-grabbing">
+    <DragOverlay
+      dropAnimation={null}
+      zIndex={3000}
+      modifiers={modifiers}
+      className="cursor-grabbing"
+    >
       {root && (
         <div
           className="relative origin-top-left"

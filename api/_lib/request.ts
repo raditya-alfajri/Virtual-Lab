@@ -50,6 +50,7 @@ function parseContext(value: unknown): LabContext {
       : undefined,
     latest: text(raw.latest, 600) || undefined,
     next: text(raw.next, 200) || undefined,
+    guided: raw.guided !== false,
   }
 }
 

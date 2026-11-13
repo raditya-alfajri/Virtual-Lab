@@ -5,9 +5,8 @@ import {
   type Mood,
 } from '../../../api/_lib/protocol'
 import type { GuideStep } from '../../data/types'
-import { openMicrophone, type Microphone } from './microphone'
+import { startRecording, type Recording } from './microphone'
 import { SpeechPlayer, unlockAudio } from './speech-player'
-import { isBackchannel, isLikelyEcho, words } from './speech-text'
 import { requestTurn, TurnError } from './turn-client'
 
 export type LabiMessage = {
@@ -28,9 +27,13 @@ export type LabiState = {
   guiding: boolean
   /** Answers the student can pick in the balloon. */
   choices: string[]
-  /** What the microphone is hearing, before the phrase is final. */
+  /** What the microphone has heard so far while the talk button is held. */
   partial: string
-  mic: 'off' | 'opening' | 'on'
+  /**
+   * The talk button: `opening` while the microphone starts, `listening` while
+   * it is held, `sending` from letting go until the phrase is read.
+   */
+  mic: 'off' | 'opening' | 'listening' | 'sending'
   muted: boolean
   /** Why the last request or the microphone failed. */
   notice: string | null
@@ -45,22 +48,39 @@ type Turn = {
   messageId: number | null
 }
 
+/** One press of the talk button. */
+type Hold = {
+  at: number
+  released: boolean
+  recording: Recording | null
+  limit: ReturnType<typeof setTimeout>
+}
+
 const UNAVAILABLE = 'Aku lagi tidak bisa menjawab. Coba lagi sebentar, ya.'
+export const TOO_SHORT = 'Tahan tombolnya selama kamu bicara, ya.'
+export const MIC_READY = 'Mikrofon siap. Tahan tombolnya sambil bicara, ya.'
+export const NOT_HEARD = 'Labi tidak menangkap suaramu. Coba lagi, ya.'
 /** How long the last sentence and the mood stay after Labi stops talking. */
 const LINGER_MS = 6000
 /** With a next step to show, Labi goes back to guiding sooner. */
 const GUIDE_AFTER_MS = 3500
 /** Least time between two reactions to what happens on the bench. */
 const EVENT_COOLDOWN_MS = 8000
-/** After Labi stops, its own voice may still come back through the microphone. */
-const ECHO_TAIL_MS = 3000
+/** A shorter press is taken for a slip, not a question. */
+const MIN_HOLD_MS = 500
+/** A press is let go by itself after this long. */
+const MAX_HOLD_MS = 60_000
+/** A microphone that took longer to open was waiting for the student's permission. */
+const PERMISSION_MS = 1000
 const HISTORY = 24
+
+const suggest = (step: string) => `Kalau mau, coba ini: ${step}`
 
 /**
  * One conversation with Labi: the transcript, the reply being spoken, and the
- * microphone. It decides whose turn it is the way people do: Labi starts to
- * answer as soon as a phrase ends, drops the answer if the student goes on
- * talking, and stops mid-sentence when the student cuts in.
+ * talk button. The student holds the button while speaking; pressing it
+ * silences Labi, and letting go sends the whole phrase. Labi leads the steps
+ * on the bench only until the guided start is over.
  */
 export class LabiSession {
   #state: LabiState = {
@@ -81,7 +101,7 @@ export class LabiSession {
   /** What is sent to the model; unlike `messages` it includes bench events. */
   #history: ChatTurn[] = []
   #turn: Turn | null = null
-  #mic: Microphone | null = null
+  #hold: Hold | null = null
   #answer: string | null = null
   #linger: ReturnType<typeof setTimeout> | undefined
   /** Whether the pending linger timer is to put the balloon away. */
@@ -90,8 +110,8 @@ export class LabiSession {
   #step: GuideStep | null | undefined
   /** The student put this step's balloon away. */
   #stepHidden = false
-  #lastSpoken = ''
-  #lastSpokenAt = -Infinity
+  /** The guided start is over: steps are only shown when asked for. */
+  #free = false
   #lastEventAt = -Infinity
   #nextId = 1
 
@@ -121,8 +141,8 @@ export class LabiSession {
   }
 
   /**
-   * The next step on the bench, written by us. Labi shows it whenever it has
-   * nothing else to say, so the student always knows what to do.
+   * The next step on the bench, written by us. During the guided start Labi
+   * shows it whenever it has nothing else to say; afterwards only when asked.
    */
   guide(step: GuideStep | null) {
     const last = this.#step
@@ -143,10 +163,33 @@ export class LabiSession {
     }
   }
 
-  /** The student asks for the next step again, e.g. by clicking Labi. */
+  /** The guided start is over: the student experiments freely from now on. */
+  endGuidance() {
+    if (this.#free) return
+    this.#free = true
+    if (this.#state.guiding) {
+      this.#set({ bubble: null, guiding: false, target: null })
+    }
+  }
+
+  /** The student asks for the next step, e.g. by clicking Labi. */
   nudge() {
     this.#stepHidden = false
-    if (!this.#state.guiding) this.#showGuide()
+    if (!this.#state.guiding) this.#showGuide(true)
+  }
+
+  /** Says why an action did not work, in the lab's own words. */
+  explain(reason: string) {
+    if (this.#state.status !== 'idle' || this.#hold) return
+    this.#cancelLinger()
+    this.#set({
+      bubble: reason,
+      guiding: false,
+      choices: [],
+      target: null,
+      mood: 'confused',
+    })
+    this.#settleLater()
   }
 
   /**
@@ -154,8 +197,8 @@ export class LabiSession {
    * student has started talking or working: the lab is theirs by then.
    */
   pose(question: string, choices: string[]) {
-    const { messages, status, partial } = this.#state
-    if (status !== 'idle' || partial) return
+    const { messages, status } = this.#state
+    if (status !== 'idle' || this.#hold) return
     if (messages.some((message) => message.role === 'user')) return
     // Already at work on the bench: the next step matters more than a guess.
     if (this.#state.guiding) return
@@ -222,7 +265,7 @@ export class LabiSession {
     const now = performance.now()
     if (
       this.#state.status !== 'idle' ||
-      this.#state.partial ||
+      this.#hold ||
       now - this.#lastEventAt < EVENT_COOLDOWN_MS
     ) {
       return
@@ -242,31 +285,61 @@ export class LabiSession {
     this.#settleLater(false)
   }
 
-  toggleMic() {
+  /** The talk button is pressed: Labi falls silent and listens until it is let go. */
+  holdMic() {
+    if (this.#hold) return
     unlockAudio()
-    if (this.#state.mic !== 'off') {
-      this.#closeMic()
+    this.#interrupt()
+    const hold: Hold = {
+      at: performance.now(),
+      released: false,
+      recording: null,
+      limit: setTimeout(() => this.releaseMic(), MAX_HOLD_MS),
+    }
+    this.#hold = hold
+    this.#set({ mic: 'opening', partial: '', notice: null })
+    startRecording((text) => {
+      if (this.#hold === hold) this.#set({ partial: text })
+    }).then(
+      (recording) => {
+        if (this.#hold !== hold) return recording.cancel()
+        if (hold.released) {
+          // Let go before the microphone was on, e.g. while the browser asked for it.
+          recording.cancel()
+          this.#dropHold()
+          const asked = performance.now() - hold.at > PERMISSION_MS
+          this.#set({ notice: asked ? MIC_READY : TOO_SHORT })
+          return
+        }
+        hold.recording = recording
+        this.#set({ mic: 'listening' })
+      },
+      (error: Error) => this.#micFailed(hold, error),
+    )
+  }
+
+  /** The talk button is let go: the phrase goes to Labi, unless it was too short to be one. */
+  releaseMic() {
+    const hold = this.#hold
+    if (!hold || hold.released) return
+    hold.released = true
+    clearTimeout(hold.limit)
+    const { recording } = hold
+    if (!recording) return
+    if (performance.now() - hold.at < MIN_HOLD_MS) {
+      this.#dropHold()
+      this.#set({ notice: TOO_SHORT })
       return
     }
-    this.#set({ mic: 'opening', notice: null })
-    openMicrophone({
-      onPartial: (text) => this.#onPartial(text),
-      onCommitted: (text) => this.#onCommitted(text),
-      onClose: (message) => {
-        this.#mic = null
-        this.#set({ mic: 'off', partial: '', notice: message ?? null })
+    this.#set({ mic: 'sending' })
+    recording.finish().then(
+      (text) => {
+        if (this.#hold !== hold) return
+        this.#dropHold()
+        if (text) this.ask(text)
+        else this.#set({ notice: NOT_HEARD })
       },
-    }).then(
-      (mic) => {
-        if (this.#state.mic !== 'opening') return mic.close()
-        this.#mic = mic
-        this.#set({ mic: 'on' })
-      },
-      (error: Error) => {
-        if (this.#state.mic !== 'opening') return
-        this.#set({ mic: 'off', notice: error.message, mood: 'sad' })
-        this.#settleLater(false)
-      },
+      (error: Error) => this.#micFailed(hold, error),
     )
   }
 
@@ -280,7 +353,7 @@ export class LabiSession {
   /** Falls silent and lets go of the microphone. */
   shutdown() {
     this.#interrupt()
-    this.#closeMic()
+    this.#dropHold()
     this.#cancelLinger()
   }
 
@@ -289,11 +362,24 @@ export class LabiSession {
     this.#clearing = false
   }
 
-  #showGuide() {
+  /** Shows the next step: on its own during the guided start, as a suggestion when asked after it. */
+  #showGuide(asked = false) {
     const step = this.#step
-    const { status, partial } = this.#state
-    if (!step || this.#stepHidden || status !== 'idle' || partial) return
+    if (!step || this.#stepHidden) return
+    if (this.#state.status !== 'idle' || this.#hold) return
+    if (this.#free && !asked) return
     this.#cancelLinger()
+    if (this.#free) {
+      this.#set({
+        bubble: suggest(step.text),
+        guiding: false,
+        choices: [],
+        target: step.target ?? null,
+        mood: 'curious',
+      })
+      this.#settleLater()
+      return
+    }
     this.#set({
       bubble: step.text,
       guiding: true,
@@ -308,10 +394,20 @@ export class LabiSession {
     for (const listener of this.#listeners) listener()
   }
 
-  #closeMic() {
-    this.#mic?.close()
-    this.#mic = null
+  #dropHold() {
+    const hold = this.#hold
+    if (!hold) return
+    this.#hold = null
+    clearTimeout(hold.limit)
+    hold.recording?.cancel()
     this.#set({ mic: 'off', partial: '' })
+  }
+
+  #micFailed(hold: Hold, error: Error) {
+    if (this.#hold !== hold) return
+    this.#dropHold()
+    this.#set({ notice: error.message, mood: 'sad' })
+    this.#settleLater(false)
   }
 
   #remember(role: ChatTurn['role'], text: string) {
@@ -330,12 +426,7 @@ export class LabiSession {
   }
 
   #close(turn: Turn) {
-    if (turn.heard.length > 0) {
-      const spoken = turn.heard.join(' ')
-      this.#remember('assistant', spoken)
-      this.#lastSpoken = spoken
-      this.#lastSpokenAt = performance.now()
-    }
+    if (turn.heard.length > 0) this.#remember('assistant', turn.heard.join(' '))
     this.#set({ status: 'idle' })
   }
 
@@ -344,7 +435,8 @@ export class LabiSession {
     clearTimeout(this.#linger)
     // A feeling shown meanwhile must not keep an older balloon open for good.
     this.#clearing ||= clearBubble
-    const guideNext = this.#clearing && this.#step && !this.#stepHidden
+    const guideNext =
+      this.#clearing && this.#step && !this.#stepHidden && !this.#free
     this.#linger = setTimeout(
       () => {
         const clear = this.#clearing
@@ -488,35 +580,5 @@ export class LabiSession {
       })
     }
     this.#settleLater()
-  }
-
-  #isEcho(text: string) {
-    if (this.#turn) return isLikelyEcho(text, this.#turn.sentences.join(' '))
-    return (
-      performance.now() - this.#lastSpokenAt < ECHO_TAIL_MS &&
-      isLikelyEcho(text, this.#lastSpoken)
-    )
-  }
-
-  #onPartial(text: string) {
-    if (this.#isEcho(text)) return
-    this.#set({ partial: text })
-    if (this.#state.status === 'thinking') {
-      // The student was not done: drop the answer that was on its way.
-      this.#interrupt()
-    } else if (
-      this.#state.status === 'speaking' &&
-      words(text).length >= 2 &&
-      !isBackchannel(text)
-    ) {
-      this.#interrupt()
-    }
-  }
-
-  #onCommitted(text: string) {
-    this.#set({ partial: '' })
-    if (this.#isEcho(text)) return
-    if (this.#state.status === 'speaking' && isBackchannel(text)) return
-    this.ask(text)
   }
 }

@@ -69,9 +69,7 @@ const clamp = (value: number, min: number, max: number) =>
 
 function expressionOf(state: LabiState): Expression {
   if (state.status === 'thinking') return 'thinking'
-  if (state.status === 'idle' && state.mic === 'on' && state.partial) {
-    return 'listening'
-  }
+  if (state.mic === 'listening') return 'listening'
   return state.mood
 }
 
@@ -339,12 +337,12 @@ export default function Labi({ state, session, locate, passive }: Props) {
   )
   // A small room (a phone): the balloon stays short, the chat below has the rest.
   const compact = frame.width < COMPACT_BELOW
-  const listening = state.mic === 'on'
+  const listening = state.mic === 'listening'
   const caption =
     state.mic === 'opening'
       ? 'Menyalakan mikrofon…'
-      : listening && state.partial
-        ? state.partial
+      : listening
+        ? state.partial || 'Mendengarkan…'
         : null
 
   return (
@@ -402,7 +400,7 @@ export default function Labi({ state, session, locate, passive }: Props) {
           onPointerMove={onPointerMove}
           onPointerUp={onPointerEnd}
           onPointerCancel={onPointerEnd}
-          aria-label="Labi. Klik untuk melihat langkah berikutnya, tahan lalu geser untuk memindahkannya."
+          aria-label="Labi. Klik untuk petunjuk langkah, tahan lalu geser untuk memindahkannya."
           title="Klik aku untuk petunjuk, atau tahan lalu geser untuk memindahkanku"
           className={clsx(
             'labi-float group relative block size-full touch-none rounded-full select-none',
