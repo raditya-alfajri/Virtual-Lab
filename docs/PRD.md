@@ -148,6 +148,7 @@ Id eksperimen: `uji-asam-basa`, `konsentrasi-larutan`, `laju-reaksi`, `hukum-new
 | Tempat menaruh | Neraca digital, meja kerja                                                                                                                                                                      |
 | Data tercatat  | Saat zat larut sempurna setelah diaduk. Pengenceran menghasilkan data baru                                                                                                                      |
 | Rumus          | Mr CuSO₄ = 160, M = (massa ÷ Mr) ÷ volume (L). Contoh: 16 g dalam 100 mL = 1 M                                                                                                                  |
+| Catatan        | Kelarutan CuSO₄ dianggap sekitar 20 g per 100 mL air pada suhu ruang. Kalau melebihi, larutan jenuh, zat tidak larut sempurna, data tidak tercatat, dan siswa disarankan menambah air           |
 | Ditolak        | Kaca arloji tidak di neraca saat diisi, massa lebih dari 16 g, volume lebih dari 250 mL, air langsung dari botol ke gelas kimia, sendok langsung ke gelas kimia, mengaduk tanpa batang pengaduk |
 | Kolom tabel    | Massa, volume, mol, konsentrasi, warna                                                                                                                                                          |
 
@@ -187,6 +188,14 @@ Id eksperimen: `uji-asam-basa`, `konsentrasi-larutan`, `laju-reaksi`, `hukum-new
 | Alat dan bahan | Statif, pegas A (k = 20 N/m) dan pegas B (k = 40 N/m), gantungan, beban 50 g (maksimal 250 g), mistar |
 | Data tercatat  | Saat pegas sudah diam dan mistar terpasang                                                            |
 | Rumus          | F = m × g, Δx = F ÷ k                                                                                 |
+
+### 9.7 Penyederhanaan yang disengaja
+
+Beberapa hal dibuat lebih sederhana dari kenyataan supaya praktikum tetap lancar dan mudah dipahami:
+
+- Kenaikan suhu penangas dipercepat menjadi 0,5 °C per detik, supaya siswa tidak menunggu lama.
+- Pada Hukum Hooke, panjang awal pegas 10 cm dipilih bebas, dan massa gantungan diabaikan.
+- Rumus laju reaksi memakai pendekatan umum: laju kira-kira dua kali lebih cepat setiap kenaikan suhu 10 °C, dan sebanding dengan konsentrasi Na₂S₂O₃.
 
 ## 10. Rancangan Teknis
 
@@ -269,13 +278,13 @@ Siswa bertanya ke Labi (teks atau suara)
 
 ## 15. Risiko
 
-| Risiko                            | Antisipasi                                                                                |
-| --------------------------------- | ----------------------------------------------------------------------------------------- |
-| Kuota Gemini habis saat penilaian | Batas per menit dan per hari di bawah batas project, mode sederhana saat ditolak          |
-| Kredit ElevenLabs habis           | Pemakaian suara dibatasi, dan Labi tetap bisa dipakai lewat teks                          |
-| Jawaban AI keliru                 | Angka selalu dari simulasi, instruksi yang ketat, dan label di setiap jawaban             |
-| Koneksi buruk saat demo           | Praktikum berjalan penuh tanpa AI                                                         |
-| Nilai materi kurang tepat         | Nilai yang perlu dicek ditandai `TODO(cek guru)` di kode dan diperiksa sebelum submission |
+| Risiko                            | Antisipasi                                                                       |
+| --------------------------------- | -------------------------------------------------------------------------------- |
+| Kuota Gemini habis saat penilaian | Batas per menit dan per hari di bawah batas project, mode sederhana saat ditolak |
+| Kredit ElevenLabs habis           | Pemakaian suara dibatasi, dan Labi tetap bisa dipakai lewat teks                 |
+| Jawaban AI keliru                 | Angka selalu dari simulasi, instruksi yang ketat, dan label di setiap jawaban AI |
+| Koneksi buruk saat demo           | Praktikum berjalan penuh tanpa AI                                                |
+| Nilai materi kurang tepat         | Nilai sudah diperiksa, dan penyederhanaan yang disengaja dicatat di bagian 9.7   |
 
 ## 16. Status
 
@@ -284,6 +293,6 @@ Siswa bertanya ke Labi (teks atau suara)
 | Enam eksperimen di laptop dan HP | Selesai                           |
 | Labi dengan Gemini dan suara     | Selesai                           |
 | README dan PRD                   | Selesai                           |
-| Halaman Tentang AI               | Dalam pengerjaan                  |
+| Halaman Tentang AI               | Selesai                           |
 | Uji coba dengan siswa            | Dalam pengerjaan                  |
 | Video demo dan submission        | Jumat dan Sabtu, 13 – 14 November |

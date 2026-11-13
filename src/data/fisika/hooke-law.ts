@@ -26,8 +26,8 @@ import {
 export const GRAVITY = 9.8 // m/s²
 export const PIECE_MASS = 50 // g per slotted mass
 export const MAX_LOAD = 250 // g, the elastic limit
-// Not in the PRD; only for the ruler and the animation.
-// TODO(cek guru): the spring's natural length, and the hanger's mass (taken as negligible).
+// Not in the PRD; only for the ruler and the animation. The 10 cm natural
+// length is a free choice, and the hanger's mass is ignored as a simplification.
 export const NATURAL_LENGTH = 0.1 // m
 export const SETTLE_SECONDS = 2 // how long the spring bounces before it rests
 const DAMPING = 0.4 // s, time constant of the damped bounce

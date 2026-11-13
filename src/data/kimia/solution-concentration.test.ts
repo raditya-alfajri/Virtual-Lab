@@ -98,7 +98,67 @@ describe('setup', () => {
       'k2-stirring-started',
       'k2-dissolved',
       'k2-dilution',
+      'k2-saturated',
     ])
+  })
+})
+
+describe('saturated solution', () => {
+  const crowded = () => play(makeSolution(16, 50))
+
+  it('16 g in 50 mL does not dissolve completely and records nothing', () => {
+    const s = crowded()
+    expect(s.rows).toEqual([])
+    expect(s.world.items.beaker.state.stirs).toBe(DISSOLVE_STIRS - 1)
+    expect(s.events).toEqual([
+      { type: 'action-ok', itemId: 'beaker', lineId: 'k2-saturated' },
+    ])
+    expect(s.explanation?.result).toContain('jenuh')
+    expect(s.explanation?.reason).toContain(
+      '50 mL air paling banyak melarutkan 10,0 g, padahal ada 16 g',
+    )
+    expect(s.explanation?.reason).toContain('paling sedikit 80 mL')
+    expect(s.hint).toContain('Tambah air')
+    expect(getView(exp, s).beaker.label).toBe('Jenuh')
+
+    const more = play(stir(3), s)
+    expect(more.rows).toEqual([])
+    expect(more.world.items.beaker.state.stirs).toBe(DISSOLVE_STIRS - 1)
+  })
+
+  it('dissolves to 1,00 M once water is added to 100 mL', () => {
+    const watered = play(addWater(50), crowded())
+    expect(watered.world.items.beaker.state).toMatchObject({
+      mass: 16,
+      volume: 100,
+    })
+    expect(eventTypes(watered)).toEqual(['action-ok'])
+
+    const s = play(stir(), watered)
+    expect(s.rows).toEqual([
+      {
+        massa: 16,
+        volume: 100,
+        mol: '0,100',
+        konsentrasi: '1,00',
+        warna: 'Biru tua',
+      },
+    ])
+    expect(getView(exp, s).beaker.label).toBe('Larut sempurna')
+  })
+
+  it('tells the student to add water once stirring stops', () => {
+    const step = exp.guide?.(crowded().world, [])
+    expect(step).toMatchObject({ target: 'water' })
+    expect(step?.text).toContain('Larutan jenuh')
+  })
+
+  it('still dissolves right at the solubility limit', () => {
+    expect(play(makeSolution(10, 50)).rows[0]).toMatchObject({
+      massa: 10,
+      volume: 50,
+      konsentrasi: '1,25',
+    })
   })
 })
 
