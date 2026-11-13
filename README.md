@@ -1,86 +1,245 @@
 # Virtual Lab
 
-Lab virtual kimia untuk siswa SMA dengan Asisten Lab berbasis AI.
+Lab virtual kimia dan fisika untuk siswa SMA, ditemani Labi, asisten lab berbasis AI.
+
+![Kategori](https://img.shields.io/badge/kategori-Web-7051DC) ![Subtema](https://img.shields.io/badge/subtema-Smart%20%26%20Fun%20Education-227C78)
+
+Dibuat untuk **Logicodix 2026 Hackathon**, subtema **Smart & Fun Education**.
 
 ## Tim
 
-Nama tim:
+**Nama tim:** _(isi nama tim)_
 
-- Muhammad Raditya Alfajri (Ketua Tim - BackEnd)
-- Muhammad Zidna Fadla (BackEnd)
-- Raihan Khairullah (FrontEnd)
-- Raja Aunur Rahman (FrontEnd)
+| Nama                     | Peran              | Bagian yang dikerjakan                                                                                                     |
+| ------------------------ | ------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| Muhammad Raditya Alfajri | Ketua tim, Backend | Setup proyek dan CI, mesin simulasi, data dan rumus eksperimen kimia, halaman praktikum dan adegan kimia, integrasi Gemini |
+| Muhammad Zidna Fadla     | Backend            | Data dan adegan eksperimen fisika, tata letak lab layar penuh, Labi (AI dan suara), tampilan HP                            |
+| Raihan Khairullah        | Frontend           | Halaman Katalog dan Detail eksperimen                                                                                      |
+| Raja Aunur Rahman        | Frontend           | Halaman Beranda dan Pilih Laboratorium                                                                                     |
 
-## Kategori
+## Tentang Virtual Lab
 
-WebApp — Logicodix 2026, subtema Smart & Fun Education
+### Masalahnya
 
-## Masalah
+Praktikum di banyak SMA masih sulit dilakukan. Alat dan bahan terbatas, waktunya sempit, dan beberapa bahan berbahaya kalau tidak diawasi. Akhirnya praktikum sering diganti dengan membaca langkah di buku atau menonton video, sehingga siswa tidak pernah benar-benar mencoba.
 
-Praktikum kimia di banyak SMA masih terkendala. Alat dan bahan terbatas, waktunya sempit, dan beberapa bahan berbahaya kalau tidak diawasi. Akibatnya praktikum sering diganti dengan membaca langkah di buku atau menonton video, sehingga siswa tidak benar-benar mencoba.
+Saat praktikum berjalan pun, satu guru biasanya mendampingi satu kelas penuh. Siswa yang bingung jarang sempat bertanya, dan banyak yang hanya mengikuti prosedur tanpa tahu kenapa hasilnya seperti itu.
 
-Saat praktikum berlangsung pun, satu guru biasanya mendampingi satu kelas penuh. Siswa yang bingung jarang sempat bertanya, dan banyak yang hanya mengikuti prosedur tanpa tahu kenapa hasilnya seperti itu.
+### Solusi kami
 
-## Solusi
+Virtual Lab adalah meja praktikum di browser. Siswa bebas menyeret alat dan bahan seperti di lab sungguhan, melihat prosesnya terjadi pelan-pelan, mengukur hasilnya dengan alat ukur, lalu datanya tercatat sendiri di tabel. Tidak ada urutan langkah yang dipaksakan, jadi siswa bisa mencoba, salah, dan mengulang sebanyak yang mereka mau.
 
-Kami Membuat Platform Experiment Kimia & Fisika secara Virtual agar siswa bisa praktikum kapan saja dari HP atau laptop, mengulang percobaan sebanyak yang mereka mau, dan tetap punya teman belajar yang bisa ditanya.
+Selama praktikum, siswa ditemani **Labi**, robot asisten lab. Labi membantu di awal, menjawab pertanyaan lewat teks atau suara, dan menjelaskan apa yang baru saja terjadi di meja lab. Angka hasil eksperimen selalu dihitung oleh simulasi, bukan oleh AI, jadi hasilnya bisa dipercaya.
 
-## Target pengguna
+### Target pengguna
 
-- Siswa/Siswi SMA (main)
-- Pelajar SD/SMP
-- Anak-anak
+- **Siswa SMA** (pengguna utama), terutama yang jarang mendapat kesempatan praktikum di sekolah
+- **Guru** yang butuh media praktikum untuk kelas atau tugas rumah
 
-## Fitur utama
+## Fitur Utama
 
-Lab virtual Interaktif untuk siswa melakukan experiment Kimia dan Fisika
+**Enam eksperimen yang bisa dimainkan**
+
+| Lab    | Eksperimen          | Yang dipelajari                                                                 |
+| ------ | ------------------- | ------------------------------------------------------------------------------- |
+| Kimia  | Uji Asam dan Basa   | Menentukan sifat lima larutan dengan indikator universal dan kartu pH           |
+| Kimia  | Konsentrasi Larutan | Menimbang CuSO₄, mencampur, mengaduk, menghitung molaritas, dan pengenceran     |
+| Kimia  | Laju Reaksi         | Pengaruh suhu dan konsentrasi pada reaksi Na₂S₂O₃ dan HCl (metode tanda silang) |
+| Fisika | Hukum Newton        | Hubungan gaya, massa, dan percepatan troli                                      |
+| Fisika | Ayunan Sederhana    | Pengaruh panjang tali dan massa bandul pada periode                             |
+| Fisika | Hukum Hooke         | Menentukan konstanta pegas dari beban dan pertambahan panjang                   |
+
+**Meja lab yang bebas dan hidup**
+
+- Seret benda ke tujuan, atau di HP cukup ketuk benda lalu ketuk tujuannya
+- Proses berjalan bertahap: warna berubah, zat larut sambil diaduk, suhu naik, tanda silang memudar
+- Data hanya tercatat lewat alat ukur dan masuk otomatis ke tabel pengamatan
+- Aksi yang tidak mungkin ditolak dengan alasan singkat, misalnya "Satu tabung hanya untuk satu larutan"
+- Setiap hasil disertai penjelasan: hasil, alasan, dan rumusnya
+- Kecepatan waktu 1× dan 5× untuk proses yang lama, serta tombol Reset
+
+**Labi, asisten lab berbasis AI**
+
+- Memandu di awal sampai data pertama tercatat, setelah itu siswa bebas bereksperimen
+- Menjawab pertanyaan sesuai isi meja dan tabel yang sedang dikerjakan siswa
+- Bisa diajak bicara: tahan tombol untuk bicara, dan Labi menjawab dengan suara
+- Bereaksi di momen penting dengan ekspresi dan penjelasan singkat
+- Tetap sopan dan beralih ke mode sederhana kalau layanan AI sedang tidak tersedia
+
+**Bisa dipakai di mana saja**
+
+- Tampilan laptop berupa ruang lab layar penuh dengan panel melayang
+- Tampilan HP dengan area kerja per bagian meja, rak alat di bawah, dan panel yang bisa ditarik
+- Katalog dengan pencarian dan filter topik, serta halaman detail tiap eksperimen
 
 ## Teknologi
 
-React, Vite, TypeScript, Tailwind CSS, React Router, dnd-kit, Motion, dan Vitest. Endpoint AI dan suara dibuat sebagai serverless function di Vercel.
+| Bagian                | Yang dipakai                                                                                          |
+| --------------------- | ----------------------------------------------------------------------------------------------------- |
+| Tampilan              | React 19, TypeScript, Vite, Tailwind CSS 4, React Router                                              |
+| Interaksi dan animasi | dnd-kit, Motion                                                                                       |
+| Ikon                  | Lucide                                                                                                |
+| Pengujian             | Vitest                                                                                                |
+| Server                | Serverless function di Vercel (folder `api/`)                                                         |
+| AI percakapan         | Gemini API (Google AI Studio), model `gemini-3.5-flash-lite`                                          |
+| Suara                 | ElevenLabs Speech to Text (realtime) dan Text to Speech                                               |
+| Pembatas pemakaian    | Upstash Redis (opsional)                                                                              |
+| Hosting               | Vercel                                                                                                |
+| Database              | Tidak ada. Aplikasi tidak menyimpan data pengguna; tabel pengamatan hanya ada selama praktikum dibuka |
 
-Untuk AI, kami memakai Gemini API tingkat gratis dari Google AI Studio lewat endpoint yang kompatibel dengan OpenAI. Model diatur lewat variabel lingkungan, jadi bisa diganti tanpa mengubah kode. Untuk suara kami memakai ElevenLabs. Kalau Gemini menolak karena batas pemakaian atau sedang gagal, Labi beralih ke mode sederhana dengan pesan yang sopan dan praktikum tetap berjalan.
+## Arsitektur dan Alur Data
 
-## Arsitektur dan alur data
+```mermaid
+flowchart LR
+  subgraph Browser
+    UI[Halaman praktikum] --> Hook[useExperiment]
+    Hook --> Engine[Mesin simulasi]
+    Data[(Data eksperimen)] --> Engine
+    Engine -->|view, tabel, kejadian| UI
+    UI --> LabiUI[Labi: panel, maskot, mikrofon]
+  end
+
+  subgraph Vercel
+    Turn["/api/labi/turn"]
+    Token["/api/labi/stt-token"]
+    Limit[Pembatas pemakaian]
+  end
+
+  LabiUI -->|konteks praktikum + pertanyaan| Turn
+  LabiUI -->|minta token sekali pakai| Token
+  Turn --> Limit
+  Token --> Limit
+  Turn -->|prompt| Gemini[Gemini API]
+  Turn -->|teks jawaban| TTS[ElevenLabs TTS]
+  LabiUI -->|suara siswa| STT[ElevenLabs STT realtime]
+  Turn -->|teks + suara| LabiUI
+```
+
+Cara kerjanya dalam satu putaran:
+
+1. Siswa menyeret benda. Mesin simulasi memeriksa aturan eksperimen, lalu memperbarui keadaan meja, tabel, dan daftar kejadian (misalnya `color-changed` atau `record-added`).
+2. Tampilan menggambar ulang meja dari data `view`, dan Labi bereaksi sesuai kejadian.
+3. Saat siswa bertanya, aplikasi mengirim konteks praktikum (eksperimen, isi tabel, kejadian terakhir) dan pertanyaannya ke `/api/labi/turn`.
+4. Server memeriksa batas pemakaian, meminta jawaban ke Gemini, lalu mengubah jawabannya menjadi suara lewat ElevenLabs.
+5. Kalau siswa berbicara, browser meminta token sekali pakai ke `/api/labi/stt-token`, lalu suaranya diubah menjadi teks oleh ElevenLabs. API key tidak pernah sampai ke browser.
+
+Logika eksperimen dipisah dari tampilan:
 
 ```
-Siswa menyeret benda
-  -> mesin simulasi memeriksa aturan
-  -> mesin memperbarui keadaan meja, tabel, dan daftar kejadian
-  -> tampilan menggambar ulang meja dan tabel
-  -> Labi bereaksi sesuai kejadian (ekspresi atau suara)
-
-Siswa bertanya ke Labi
-  -> aplikasi mengirim konteks praktikum ke /api/assistant
-  -> server memeriksa batas pemakaian lalu meneruskan ke layanan AI
-  -> jawaban tampil di panel Labi
-  -> kalau gagal, Labi memakai mode sederhana
+src/
+  data/          data tiap eksperimen: benda, tempat, aturan, rumus, kalimat Labi
+  lib/           mesin simulasi dan logika Labi di sisi browser
+  hooks/         penghubung mesin dan Labi ke React
+  simulations/   posisi benda di meja tiap eksperimen (dari desain Figma)
+  components/    meja lab, aset alat, panel, katalog, detail, Labi
+  pages/         halaman aplikasi
+api/             serverless function untuk Labi (percakapan, suara, pembatas)
+dev/             plugin Vite agar api/ juga berjalan di localhost
+public/img/lab/  latar meja lab tiap eksperimen
 ```
 
-Mesin simulasi mengeluarkan daftar kejadian setiap kali ada aksi atau proses, misalnya `color-changed`, `dissolved`, `heater-on`, `reaction-started`, `record-added`, `rejected`, dan `action-ok`. Labi hanya membaca daftar ini, sehingga reaksinya tidak perlu diatur ulang di setiap eksperimen.
+## Menjalankan Aplikasi
 
-## Menjalankan aplikasi
+**Yang dibutuhkan:** Node.js versi LTS dan npm.
 
-1. `npm install`
-2. Salin `.env.example` menjadi `.env`, lalu isi nilainya
-3. `npm run dev`
+```bash
+git clone https://github.com/raditya-alfajri/Virtual-Lab.git
+cd Virtual-Lab
+npm install
+cp .env.example .env    # di Windows: copy .env.example .env
+```
+
+Isi `.env` (lihat tabel di bawah), lalu jalankan:
+
+```bash
+npm run dev
+```
+
+Buka `http://localhost:5173`. Endpoint Labi di folder `api/` ikut berjalan di server yang sama lewat plugin di `dev/api-routes.ts`, jadi tidak perlu menjalankan server terpisah.
+
+Perintah lain:
+
+| Perintah                | Fungsi                                                |
+| ----------------------- | ----------------------------------------------------- |
+| `npm run test -- --run` | Menjalankan semua unit test (mesin, eksperimen, Labi) |
+| `npm run lint`          | Memeriksa kode dengan ESLint                          |
+| `npm run format`        | Merapikan kode dengan Prettier                        |
+| `npm run build`         | Membuat versi produksi di folder `dist/`              |
 
 ### Variabel lingkungan
 
-| Nama                                                 | Keterangan                                                                    |
-| ---------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `GEMINI_API_KEY`                                     | API key Gemini dari Google AI Studio (wajib)                                  |
-| `GEMINI_MODEL`                                       | Model Gemini yang dipakai Labi (wajib)                                        |
-| `GEMINI_REASONING_EFFORT`                            | Seberapa lama model berpikir, misalnya `minimal` atau `low` (opsional)        |
-| `GEMINI_BASE_URL`                                    | Endpoint Gemini yang kompatibel dengan OpenAI (opsional)                      |
-| `ELEVENLABS_API_KEY`                                 | API key ElevenLabs untuk suara maskot (wajib)                                 |
-| `ELEVENLABS_VOICE_ID`                                | Id suara ElevenLabs (opsional)                                                |
-| `LABI_DAILY_TURNS`                                   | Batas jawaban Labi per hari untuk semua pengunjung, bawaan 400                |
-| `LABI_GLOBAL_RPM`                                    | Batas jawaban Labi per menit untuk semua pengunjung, bawaan 15                |
-| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Penyimpanan bersama untuk pembatas pemakaian di Vercel (opsional, disarankan) |
+Semua kunci hanya dibaca oleh fungsi di folder `api/`, tidak pernah dikirim ke browser. Untuk versi online, isi variabel yang sama di **Vercel → Settings → Environment Variables**.
+
+| Nama                                                 | Wajib | Keterangan                                                          |
+| ---------------------------------------------------- | ----- | ------------------------------------------------------------------- |
+| `GEMINI_API_KEY`                                     | Ya    | API key dari Google AI Studio                                       |
+| `GEMINI_MODEL`                                       | Ya    | Model Gemini yang dipakai, misalnya `gemini-3.5-flash-lite`         |
+| `ELEVENLABS_API_KEY`                                 | Ya    | API key ElevenLabs dengan akses Text to Speech dan Speech to Text   |
+| `GEMINI_REASONING_EFFORT`                            | Tidak | Seberapa lama model berpikir sebelum menjawab, misalnya `minimal`   |
+| `GEMINI_BASE_URL`                                    | Tidak | Endpoint Gemini yang kompatibel dengan OpenAI                       |
+| `ELEVENLABS_VOICE_ID`                                | Tidak | Suara Labi                                                          |
+| `ELEVENLABS_TTS_MODEL`, `ELEVENLABS_STT_MODEL`       | Tidak | Model suara keluar dan masuk                                        |
+| `LABI_DAILY_TURNS`                                   | Tidak | Batas jawaban Labi per hari untuk semua pengunjung (bawaan 400)     |
+| `LABI_GLOBAL_RPM`                                    | Tidak | Batas jawaban Labi per menit untuk semua pengunjung (bawaan 15)     |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Tidak | Penyimpanan bersama untuk pembatas pemakaian di Vercel (disarankan) |
+
+Tanpa kunci AI, praktikum tetap bisa dimainkan penuh. Labi saja yang beralih ke mode sederhana.
+
+### Akun demonstrasi
+
+Tidak diperlukan. Aplikasi tidak memakai login, jadi semua fitur bisa langsung dicoba tanpa akun.
+
+### Catatan mikrofon
+
+Fitur bicara dengan Labi membutuhkan izin mikrofon dari browser, dan hanya bisa berjalan di `localhost` atau alamat `https` (seperti alamat Vercel).
 
 ## Penggunaan AI
 
+### Di dalam aplikasi
+
+| Layanan                                       | Model                   | Dipakai untuk                                                |
+| --------------------------------------------- | ----------------------- | ------------------------------------------------------------ |
+| Gemini API (Google AI Studio, tingkat gratis) | `gemini-3.5-flash-lite` | Jawaban dan panduan Labi di halaman praktikum                |
+| ElevenLabs Speech to Text                     | `scribe_v2_realtime`    | Mengubah suara siswa menjadi teks saat tombol bicara ditahan |
+| ElevenLabs Text to Speech                     | `eleven_flash_v2_5`     | Mengubah jawaban Labi menjadi suara                          |
+
+**Data yang dikirim ke AI** hanya konteks praktikum: nama eksperimen, isi tabel pengamatan, kejadian terakhir di meja lab, dan pertanyaan siswa. Aplikasi tidak memakai akun atau login, jadi tidak ada nama atau data pribadi siswa yang dikirim.
+
+**Suara siswa** hanya diproses saat tombol bicara ditahan, diubah menjadi teks oleh ElevenLabs, dan tidak disimpan oleh aplikasi. Browser selalu meminta izin mikrofon terlebih dahulu, dan siswa tetap bisa mengetik kalau tidak ingin memakai suara.
+
+**Batasan yang kami terapkan:**
+
+- Angka hasil (pH, konsentrasi, waktu, percepatan, periode, konstanta pegas) selalu dihitung oleh mesin simulasi. Labi tidak menghitung dan tidak mengarang angka.
+- Labi menjawab singkat dalam bahasa Indonesia dan hanya membahas praktikum yang sedang dibuka.
+- Ada batas pemakaian per pengunjung, per menit, dan per hari supaya kuota tidak habis dan sumber daya tidak terbuang.
+- Kalau layanan AI menolak atau gagal, praktikum tetap berjalan dan Labi menampilkan pesan yang sopan.
+- Setiap jawaban Labi ditandai sebagai jawaban AI, dengan catatan bahwa AI bisa keliru.
+- Gemini tingkat gratis dapat memakai konten permintaan untuk meningkatkan layanan Google. Karena itu kami tidak pernah mengirim data pribadi.
+
+### Selama pengembangan
+
+Kami memakai Claude (Anthropic) dan Claude Code sebagai asisten untuk merancang, menulis, dan meninjau kode, serta membantu membuat ilustrasi aset awal. Semua hasilnya kami tinjau, uji, dan sesuaikan sendiri, dan setiap anggota memahami bagian kode yang ia kerjakan.
+
 ## Atribusi
 
-## Tautan aplikasi
+| Sumber                                              | Dipakai untuk                   | Lisensi                      |
+| --------------------------------------------------- | ------------------------------- | ---------------------------- |
+| Template resmi Vite `react-ts`                      | Kerangka awal proyek            | MIT                          |
+| React, React Router, Vite, TypeScript, Tailwind CSS | Kerangka aplikasi               | MIT / Apache-2.0             |
+| dnd-kit                                             | Seret dan lepas benda           | MIT                          |
+| Motion                                              | Animasi                         | MIT                          |
+| Lucide                                              | Ikon                            | ISC                          |
+| Vitest, ESLint, Prettier                            | Pengujian dan kerapian kode     | MIT                          |
+| Inter dan Plus Jakarta Sans (Google Fonts)          | Huruf                           | SIL Open Font License        |
+| Gemini API                                          | Jawaban Labi                    | Ketentuan layanan Google     |
+| ElevenLabs                                          | Suara Labi dan pengenalan suara | Ketentuan layanan ElevenLabs |
+| Upstash Redis                                       | Pembatas pemakaian              | Ketentuan layanan Upstash    |
+| Vercel                                              | Hosting dan serverless function | Ketentuan layanan Vercel     |
+
+Kami tidak memakai dataset pihak ketiga. Ilustrasi alat lab, latar meja lab, dan karakter Labi dibuat oleh tim di Figma, sebagian dengan bantuan AI untuk ilustrasi awal, lalu disesuaikan oleh tim. Nilai materi (pH larutan, rumus molaritas, laju reaksi, hukum Newton, periode ayunan, dan hukum Hooke) mengikuti materi kimia dan fisika SMA.
+
+## Tautan
+
+- **Aplikasi:** _(isi alamat Vercel)_
+- **Video demo:** _(isi tautan YouTube)_
+- **Dokumen produk:** [docs/PRD.md](docs/PRD.md)
