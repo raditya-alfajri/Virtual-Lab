@@ -23,10 +23,10 @@ import {
   itemSides,
   resolveItemRect,
 } from '../../simulations/position'
-import type { Placement, SceneLayout } from '../../simulations/types'
+import type { Placement, Rect, SceneLayout } from '../../simulations/types'
 import Labi from '../labi/Labi'
 import LabiChat from '../labi/LabiChat'
-import { holds, isInView } from './camera'
+import { holds } from './camera'
 import DragPreview, { type PreviewPiece } from './DragPreview'
 import {
   isInteractionTarget,
@@ -36,15 +36,22 @@ import {
 import { onActivateKey } from './keyboard'
 import type { AssetTurn } from './LabAsset'
 import LabHint from './LabHint'
-import { PANEL_WIDTH, useLabLayout, type LabLayout } from './lab-layout'
+import {
+  PANEL_WIDTH,
+  useLabLayout,
+  usePhone,
+  type LabLayout,
+} from './lab-layout'
 import LabPanel, { type PanelTab } from './LabPanel'
 import LabStage from './LabStage'
+import { useMovingItems } from './moving'
 import StageFront from './StageFront'
 import StageItem from './StageItem'
 import StageScreen from './StageScreen'
 import StageViewTabs from './StageViewTabs'
 import StageZone from './StageZone'
 import ToolTray from './ToolTray'
+import { inTray, type TrayRule } from './tray-rule'
 import {
   aboveFinger,
   draggedItemId,
@@ -83,8 +90,12 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
   const [fromTray, setFromTray] = useState(false)
   const [hintClosed, setHintClosed] = useState(false)
   const mode = useLabLayout()
+  const phone = usePhone()
   const stacked = mode === 'stack'
   const [pickedTab, setPickedTab] = useState<PanelTab | null>(null)
+  const [chatFocus, setChatFocus] = useState(0)
+  // The part of the stage on screen, in stage coordinates.
+  const [seen, setSeen] = useState<Rect | null>(null)
   // The panel stays closed until a tab is picked, so the room has the screen.
   const panelTab = pickedTab
   const labi = useLabi(experiment, lab)
@@ -114,15 +125,40 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
     return rect ? { x: rect.x + rect.w / 2, y: rect.y } : null
   }
 
+  const moving = useMovingItems(
+    Object.fromEntries(
+      Object.keys(layout.motion ?? {}).map((id) => [id, placeOf(id)]),
+    ),
+    lab.world.time,
+  )
+
   // The tools outside the work area on screen stay within reach in a tray.
   const guided = labi.state.guiding ? labi.state.target : null
-  const outside = view
+  const trayRule: TrayRule | null = !view
+    ? null
+    : phone && seen
+      ? { kind: 'sight', seen, moving }
+      : { kind: 'region', region: view.region }
+  const outside = trayRule
     ? experiment.items.flatMap((item) => {
         const rect = item.fixed ? undefined : placeOf(item.id)
-        return rect && !isInView(rect, view.region)
+        return rect && inTray(item.id, rect, trayRule)
           ? [{ item, home: layout.home[item.id], view: lab.view[item.id] }]
           : []
       })
+    : []
+  // What Labi keeps clear of on a phone: everything on the bench.
+  const obstacles = phone
+    ? [
+        ...experiment.items.flatMap((item) => {
+          const rect = placeOf(item.id)
+          return rect ? [rect] : []
+        }),
+        ...experiment.zones.flatMap((zone) => {
+          const rect = layout.zones[zone.id]
+          return rect ? [rect] : []
+        }),
+      ]
     : []
   // What the guide points at comes first, so it is on screen in the tray.
   const tray = [
@@ -169,6 +205,16 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
       : (experiment.items.find((item) => item.id === id)?.name ??
           experiment.zones.find((zone) => zone.id === id)?.name ??
           id)
+  }
+
+  const pickTab = (tab: PanelTab | null) => {
+    setPickedTab(tab)
+    setChatFocus(0)
+  }
+
+  const answerYourself = () => {
+    setPickedTab('labi')
+    setChatFocus((count) => count + 1)
   }
 
   const dropOn = (sourceId: string, targetId: string) => {
@@ -288,6 +334,7 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
             // Under an open sheet the room moves up to stay in view.
             rest={stacked ? (panelTab ? 0 : 0.62) : 1}
             region={view?.region}
+            onVisibleChange={setSeen}
             topGap={stacked ? undefined : TOP_BAR[mode]}
             onBackgroundClick={() => setSelectedId(null)}
             overlay={
@@ -302,6 +349,10 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
                   session={labi.session}
                   locate={locate}
                   passive={activeId !== null}
+                  phone={phone}
+                  topClear={stacked ? undefined : TOP_BAR.side + 4}
+                  obstacles={obstacles}
+                  onAnswerYourself={answerYourself}
                 />
               </>
             }
@@ -424,7 +475,8 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
         </div>
         {stacked && (
           <div className="order-3 shrink-0">
-            {tray.length > 0 && (
+            {/* On a phone the tray always keeps its place, so the room does not resize as tools come and go. */}
+            {(tray.length > 0 || phone) && (
               <ToolTray
                 entries={tray}
                 selected={selectedId}
@@ -451,7 +503,7 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
           <LabPanel
             layout={mode}
             tab={panelTab}
-            onTabChange={setPickedTab}
+            onTabChange={pickTab}
             explanation={lab.explanation}
             objectives={experiment.objectives}
             tips={experiment.tips}
@@ -464,6 +516,7 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
                 state={labi.state}
                 session={labi.session}
                 fill={mode !== 'wide'}
+                focusRequest={chatFocus}
               />
             }
           />

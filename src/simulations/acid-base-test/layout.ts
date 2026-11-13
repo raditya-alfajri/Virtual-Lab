@@ -22,8 +22,16 @@ export const acidBaseTestLayout: SceneLayout = {
     sink: { x: 0, y: 230, w: 427, h: 356 },
   },
   attach: {},
+  // Each phone work area holds what one step needs: the bench tools; the
+  // solution bottles with the pipette, the tubes and the rack; the rack with
+  // the pH card; the sink. Their edges fall between tools, so none is cut.
   views: [
-    { id: 'bench', label: 'Meja', region: { x: 480, y: 470, w: 500, h: 290 } },
+    { id: 'bench', label: 'Meja', region: { x: 480, y: 470, w: 495, h: 290 } },
+    {
+      id: 'solutions',
+      label: 'Larutan',
+      region: { x: 610, y: 60, w: 800, h: 680 },
+    },
     {
       id: 'rack',
       label: 'Rak & kartu pH',

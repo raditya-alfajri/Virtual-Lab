@@ -51,18 +51,24 @@ export default function ToolTray({
           'Alat lain · seret ke atas atau ketuk'
         )}
       </p>
-      <ul className="flex [scrollbar-width:none] gap-1.5 overflow-x-auto overscroll-x-contain px-2 pt-1 pb-1.5">
-        {entries.map((entry) => (
-          <li key={entry.item.id} className="shrink-0">
-            <TrayTool
-              {...entry}
-              selected={entry.item.id === selected}
-              pointed={entry.item.id === pointed}
-              onTap={onTap}
-            />
-          </li>
-        ))}
-      </ul>
+      {entries.length > 0 ? (
+        <ul className="flex [scrollbar-width:none] gap-1.5 overflow-x-auto overscroll-x-contain px-2 pt-1 pb-1.5">
+          {entries.map((entry) => (
+            <li key={entry.item.id} className="shrink-0">
+              <TrayTool
+                {...entry}
+                selected={entry.item.id === selected}
+                pointed={entry.item.id === pointed}
+                onTap={onTap}
+              />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="box-content flex h-12 items-center px-3 pt-1 pb-1.5 text-xs text-ink-muted">
+          Semua alat ada di area ini.
+        </p>
+      )}
     </section>
   )
 }

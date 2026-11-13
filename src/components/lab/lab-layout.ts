@@ -36,3 +36,24 @@ function current(): LabLayout {
 export function useLabLayout(): LabLayout {
   return useSyncExternalStore(subscribe, current, () => 'wide')
 }
+
+/**
+ * A phone, held upright or sideways; a tablet is not one. On a phone the tool
+ * tray only holds what is out of sight, and Labi waits small in a corner.
+ */
+const PHONE =
+  '(orientation: portrait) and (max-width: 639px), (orientation: landscape) and (max-height: 499px)'
+
+function subscribePhone(onChange: () => void) {
+  const query = window.matchMedia(PHONE)
+  query.addEventListener('change', onChange)
+  return () => query.removeEventListener('change', onChange)
+}
+
+export function usePhone(): boolean {
+  return useSyncExternalStore(
+    subscribePhone,
+    () => window.matchMedia(PHONE).matches,
+    () => false,
+  )
+}

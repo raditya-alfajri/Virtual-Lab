@@ -43,15 +43,31 @@ export function fitCamera(region: Rect, frame: Size, stage: Size): Camera {
   }
 }
 
+/** The part of the stage a camera shows in its frame, in stage coordinates. */
+export function visibleArea(camera: Camera, frame: Size): Rect {
+  if (camera.scale <= 0) return { x: 0, y: 0, w: 0, h: 0 }
+  return {
+    x: -camera.left / camera.scale,
+    y: -camera.top / camera.scale,
+    w: frame.width / camera.scale,
+    h: frame.height / camera.scale,
+  }
+}
+
+/** How much of the rect lies inside the area, from 0 to 1. */
+export function shownPart(rect: Rect, area: Rect): number {
+  const size = rect.w * rect.h
+  if (size <= 0) return 0
+  const w =
+    Math.min(rect.x + rect.w, area.x + area.w) - Math.max(rect.x, area.x)
+  const h =
+    Math.min(rect.y + rect.h, area.y + area.h) - Math.max(rect.y, area.y)
+  return w > 0 && h > 0 ? (w * h) / size : 0
+}
+
 /** True when at least half of the rect lies inside the region. */
 export function isInView(rect: Rect, region: Rect): boolean {
-  const area = rect.w * rect.h
-  if (area <= 0) return false
-  const w =
-    Math.min(rect.x + rect.w, region.x + region.w) - Math.max(rect.x, region.x)
-  const h =
-    Math.min(rect.y + rect.h, region.y + region.h) - Math.max(rect.y, region.y)
-  return w > 0 && h > 0 && (w * h) / area >= 0.5
+  return shownPart(rect, region) >= 0.5
 }
 
 /** True when the point lies inside the region. */
