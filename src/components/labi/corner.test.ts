@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
-  bubbleBox,
   cornerBox,
-  pickBubblePlace,
   pickCorner,
+  placeBubble,
+  snapToEdge,
+  spotBox,
+  spotOf,
   type Room,
 } from './corner'
 
@@ -38,31 +40,74 @@ describe("Labi's corner on a phone", () => {
   })
 })
 
-describe("Labi's balloon on a phone", () => {
-  const labi = cornerBox('top-left', room, size)
-  const bubble = { w: 250, h: 150 }
+describe('dragging Labi on a phone', () => {
+  it('lands on the nearest edge when let go in the middle', () => {
+    const spot = snapToEdge({ x: 20, y: 200 }, room, size, [])
+    expect(spotBox(spot, room, size)).toMatchObject({ x: 8 })
+    expect(spotBox(spot, room, size).y).toBeCloseTo(200, -1)
+  })
 
-  it('goes beside Labi when that hides nothing', () => {
-    expect(pickBubblePlace('top-left', labi, bubble, room, [])).toBe('beside')
-    expect(bubbleBox('top-left', labi, bubble, 'beside')).toMatchObject({
+  it('lands in the corner when let go near it', () => {
+    const spot = snapToEdge({ x: 290, y: 10 }, room, size, [])
+    expect(spot).toEqual({ fx: 1, fy: 0 })
+  })
+
+  it('slides along the edge off a tool it would cover', () => {
+    const tool = { x: 0, y: 180, w: 80, h: 80 }
+    const box = spotBox(
+      snapToEdge({ x: 8, y: 200 }, room, size, [tool]),
+      room,
+      size,
+    )
+    expect(box.y + box.h <= 170 || box.y >= 270).toBe(true)
+  })
+
+  it('keeps its place between the edges as the room changes size', () => {
+    const spot = spotOf({ x: 296, y: 200 }, room, size)
+    const taller = { ...room, height: 600 }
+    const box = spotBox(spot, taller, size)
+    expect(box.x).toBe(296)
+    expect(box.y).toBeGreaterThan(200)
+    expect(box.y + box.h).toBeLessThanOrEqual(600 - room.bottom)
+  })
+})
+
+describe("Labi's balloon on a phone", () => {
+  const bubble = { w: 250, h: 150 }
+  const inRoom = (box: { x: number; y: number; w: number; h: number }) =>
+    box.x >= room.side &&
+    box.y >= room.top &&
+    box.x + box.w <= room.width - room.side &&
+    box.y + box.h <= room.height
+
+  it('goes beside Labi, toward the middle, when that hides nothing', () => {
+    const labi = cornerBox('top-left', room, size)
+    expect(placeBubble(labi, bubble, room, [])).toMatchObject({
       x: labi.x + labi.w + 8,
       y: labi.y,
     })
   })
 
   it('goes below Labi when beside it would hide a tool', () => {
+    const labi = cornerBox('top-left', room, size)
     const bottles = { x: 280, y: 60, w: 70, h: 80 }
-    expect(pickBubblePlace('top-left', labi, bubble, room, [bottles])).toBe(
-      'stacked',
-    )
+    const box = placeBubble(labi, bubble, room, [bottles])
+    expect(box.y).toBeGreaterThanOrEqual(labi.y + labi.h)
   })
 
-  it('stays in the room', () => {
-    const low = cornerBox('bottom-right', room, size)
-    const tall = { w: 250, h: 460 }
-    const beside = { x: 0, y: 300, w: 200, h: 40 }
-    expect(pickBubblePlace('bottom-right', low, tall, room, [beside])).toBe(
-      'beside',
-    )
+  it('stays in the room and clear of Labi wherever Labi is put', () => {
+    for (const fx of [0, 0.5, 1]) {
+      for (const fy of [0, 0.5, 1]) {
+        const labi = spotBox({ fx, fy }, room, size)
+        const box = placeBubble(labi, bubble, room, [])
+        expect(inRoom(box)).toBe(true)
+        expect(
+          box.x >= labi.x + labi.w ||
+            box.x + box.w <= labi.x ||
+            box.y >= labi.y + labi.h ||
+            box.y + box.h <= labi.y,
+        ).toBe(true)
+      }
+    }
   })
 })
