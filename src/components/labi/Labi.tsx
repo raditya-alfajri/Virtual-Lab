@@ -32,6 +32,19 @@ const WANDER_MS = [2500, 5500]
 const SWAY_MS = [2200, 3800]
 const SWAY = { x: 90, y: 55 }
 const BALLOON_Y = 230
+/** Put somewhere by the student, Labi stays there and only bobs a little. */
+const PLACED_SWAY = { x: 26, y: 16 }
+/** A press that moves less than this is a click, not a drag. */
+const DRAG_START = 6
+/** The faces a click goes through, and how long each one stays. */
+const POKE_FACES: Expression[] = [
+  'happy',
+  'wow',
+  'proud',
+  'curious',
+  'confused',
+]
+const POKE_MS = 2600
 /** How far the eyes move toward what Labi looks at, in drawing units. */
 const GAZE = 4
 const COMPACT_BELOW = 640
@@ -54,6 +67,16 @@ export default function Labi({ state, session, locate, passive }: Props) {
   const still = useReducedMotion()
   const rootRef = useRef<HTMLDivElement>(null)
   const [spot, setSpot] = useState(HOME)
+  // Where the student dragged Labi to; null while it roams on its own.
+  const [placed, setPlaced] = useState<Point | null>(null)
+  const [dragging, setDragging] = useState(false)
+  const [poke, setPoke] = useState({ count: 0, on: false })
+  const grab = useRef<{
+    pointer: Point
+    from: Point
+    moved: boolean
+  } | null>(null)
+  const dragged = useRef(false)
 
   const size = clamp(STAGE_SIZE * frame.scale, MIN_SIZE, MAX_SIZE)
   const talking = state.status !== 'idle'
@@ -62,37 +85,57 @@ export default function Labi({ state, session, locate, passive }: Props) {
   const targetAt = state.target ? locate(state.target) : null
 
   // Drift to a new spot on the wall now and then; stay put while speaking or
-  // pointing at something, and only sway while a balloon is open.
+  // pointing at something, and only sway while a balloon is open or after the
+  // student chose the spot.
   useEffect(() => {
-    if (talking || pointing || still) return
-    const [min, max] = holding ? SWAY_MS : WANDER_MS
+    if (talking || pointing || still || dragging) return
+    const [min, max] = holding || placed ? SWAY_MS : WANDER_MS
     const timer = setTimeout(
       () =>
         setSpot((from) =>
-          holding
+          placed
             ? {
-                x: clamp(from.x + between(-SWAY.x, SWAY.x), ROAM.x0, ROAM.x1),
-                y: clamp(from.y + between(-SWAY.y, SWAY.y), ROAM.y0, ROAM.y1),
+                x: placed.x + between(-PLACED_SWAY.x, PLACED_SWAY.x),
+                y: placed.y + between(-PLACED_SWAY.y, PLACED_SWAY.y),
               }
-            : { x: between(ROAM.x0, ROAM.x1), y: between(ROAM.y0, ROAM.y1) },
+            : holding
+              ? {
+                  x: clamp(from.x + between(-SWAY.x, SWAY.x), ROAM.x0, ROAM.x1),
+                  y: clamp(from.y + between(-SWAY.y, SWAY.y), ROAM.y0, ROAM.y1),
+                }
+              : { x: between(ROAM.x0, ROAM.x1), y: between(ROAM.y0, ROAM.y1) },
         ),
       between(min, max),
     )
     return () => clearTimeout(timer)
-  }, [talking, pointing, holding, still, spot])
+  }, [talking, pointing, holding, still, dragging, placed, spot])
 
-  // Beside the item it talks about, otherwise wherever it drifted to.
-  const at = targetAt
-    ? {
-        x: clamp(
-          targetAt.x + (targetAt.x > STAGE_WIDTH / 2 ? -150 : 150),
-          90,
-          STAGE_WIDTH - 90,
-        ),
-        y: Math.max(targetAt.y - 110, 100),
-      }
-    : // A balloon hangs below Labi: keep it up on the wall, off the bench.
-      { x: spot.x, y: holding ? Math.min(spot.y, BALLOON_Y) : spot.y }
+  // The face a click chose goes back to Labi's own after a moment.
+  useEffect(() => {
+    if (!poke.on) return
+    const timer = setTimeout(
+      () => setPoke((last) => ({ ...last, on: false })),
+      POKE_MS,
+    )
+    return () => clearTimeout(timer)
+  }, [poke])
+
+  // Beside the item it talks about, otherwise wherever it drifted or was put.
+  const at =
+    targetAt && !dragging
+      ? {
+          x: clamp(
+            targetAt.x + (targetAt.x > STAGE_WIDTH / 2 ? -150 : 150),
+            90,
+            STAGE_WIDTH - 90,
+          ),
+          y: Math.max(targetAt.y - 110, 100),
+        }
+      : // A balloon hangs below Labi: keep it up on the wall, off the bench.
+        {
+          x: spot.x,
+          y: holding && !placed ? Math.min(spot.y, BALLOON_Y) : spot.y,
+        }
   const x = clamp(
     frame.left + at.x * frame.scale,
     size / 2 + 8,
@@ -145,6 +188,52 @@ export default function Labi({ state, session, locate, passive }: Props) {
 
   if (frame.scale <= 0) return null
 
+  const onPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (event.button !== 0) return
+    event.currentTarget.setPointerCapture(event.pointerId)
+    dragged.current = false
+    grab.current = {
+      pointer: { x: event.clientX, y: event.clientY },
+      from: { x, y },
+      moved: false,
+    }
+  }
+  const onPointerMove = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const held = grab.current
+    if (!held) return
+    const dx = event.clientX - held.pointer.x
+    const dy = event.clientY - held.pointer.y
+    if (!held.moved && Math.hypot(dx, dy) < DRAG_START) return
+    held.moved = true
+    dragged.current = true
+    const next = {
+      x: (held.from.x + dx - frame.left) / frame.scale,
+      y: (held.from.y + dy - frame.top) / frame.scale,
+    }
+    setDragging(true)
+    setSpot(next)
+    setPlaced(next)
+  }
+  const onPointerEnd = () => {
+    grab.current = null
+    setDragging(false)
+  }
+  const onClick = () => {
+    // The click that ends a drag is not a poke.
+    if (dragged.current) {
+      dragged.current = false
+      return
+    }
+    setPoke((last) => ({ count: last.count + 1, on: true }))
+  }
+  // A click always shows a face other than the one Labi already has.
+  const own = expressionOf(state)
+  const faces = POKE_FACES.filter((face) => face !== own)
+  const expression =
+    poke.on && state.status === 'idle'
+      ? faces[(poke.count - 1) % faces.length]
+      : own
+
   const bubbleLeft = x > frame.width / 2
   const bubbleWidth = clamp(
     (bubbleLeft ? x : frame.width - x) - size / 2 - 20,
@@ -176,26 +265,29 @@ export default function Labi({ state, session, locate, passive }: Props) {
       transition={
         still
           ? { duration: 0 }
-          : { type: 'spring', stiffness: 38, damping: 11, mass: 1.1 }
+          : dragging
+            ? { type: 'spring', stiffness: 700, damping: 45, mass: 0.5 }
+            : { type: 'spring', stiffness: 38, damping: 11, mass: 1.1 }
       }
     >
       <button
         type="button"
-        onClick={() => session.toggleMic()}
-        aria-label={
-          listening ? 'Matikan mikrofon' : 'Bicara dengan Labi lewat mikrofon'
-        }
-        aria-pressed={listening}
-        title={
-          listening ? 'Klik untuk mematikan mikrofon' : 'Klik untuk bicara'
-        }
+        onClick={onClick}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerEnd}
+        onPointerCancel={onPointerEnd}
+        aria-label="Labi. Klik untuk mengganti ekspresinya, tahan lalu geser untuk memindahkannya."
+        title="Klik aku, atau tahan lalu geser untuk memindahkanku"
         className={clsx(
-          'labi-float group relative block size-full cursor-pointer rounded-full outline-offset-4 transition-transform hover:scale-105 active:scale-95',
+          'labi-float group relative block size-full touch-none rounded-full select-none',
+          dragging ? 'cursor-grabbing' : 'cursor-grab',
+          'outline-offset-4 transition-transform hover:scale-105 active:scale-95',
           passive ? 'pointer-events-none' : 'pointer-events-auto',
         )}
       >
         <LabiFace
-          expression={expressionOf(state)}
+          expression={expression}
           speaking={state.status === 'speaking'}
           className="size-full overflow-visible drop-shadow-md"
         />
