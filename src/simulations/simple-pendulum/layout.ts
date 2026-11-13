@@ -116,6 +116,14 @@ const pullFor = (bob: string): Pull => ({
 })
 
 export const simplePendulumLayout: SceneLayout = {
+  views: [
+    { id: 'stand', label: 'Statif', region: { x: 130, y: 70, w: 720, h: 690 } },
+    {
+      id: 'tools',
+      label: 'Tali & bandul',
+      region: { x: 710, y: 40, w: 720, h: 720 },
+    },
+  ],
   home: HOME,
   zones: {
     clamp: { x: 530, y: 120, w: 60, h: 90 },

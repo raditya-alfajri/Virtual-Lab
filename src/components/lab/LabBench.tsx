@@ -12,15 +12,10 @@ import {
   type UniqueIdentifier,
 } from '@dnd-kit/core'
 import clsx from 'clsx'
-import {
-  Fragment,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type ReactNode,
-} from 'react'
+import { Fragment, useRef, useState, type ReactNode } from 'react'
 import type { Experiment } from '../../data/types'
 import type { useExperiment } from '../../hooks/useExperiment'
+import { useLabi } from '../../hooks/useLabi'
 import { SHELF } from '../../lib/engine'
 import { getBackgroundUrl } from '../../simulations'
 import {
@@ -30,6 +25,9 @@ import {
   resolveItemRect,
 } from '../../simulations/position'
 import type { Placement, SceneLayout } from '../../simulations/types'
+import Labi from '../labi/Labi'
+import LabiChat from '../labi/LabiChat'
+import { holds, isInView } from './camera'
 import DragPreview, { type PreviewPiece } from './DragPreview'
 import {
   isInteractionTarget,
@@ -39,39 +37,26 @@ import {
 import { onActivateKey } from './keyboard'
 import type { AssetTurn } from './LabAsset'
 import LabHint from './LabHint'
-import LabPanel from './LabPanel'
+import { PANEL_WIDTH, useLabLayout, type LabLayout } from './lab-layout'
+import LabPanel, { type PanelTab } from './LabPanel'
 import LabStage from './LabStage'
 import StageFront from './StageFront'
 import StageItem from './StageItem'
 import StageScreen from './StageScreen'
+import StageViewTabs from './StageViewTabs'
 import StageZone from './StageZone'
+import ToolTray from './ToolTray'
 
 type Props = {
   experiment: Experiment
   layout: SceneLayout
   lab: ReturnType<typeof useExperiment>
-  /** The title card, at the top of the panel column. */
-  header?: ReactNode
+  /** The title bar, drawn to suit the layout. */
+  header?: (mode: LabLayout) => ReactNode
 }
 
-/** Width of the panel column floating over the room on wide screens. */
-const PANEL_WIDTH = 412
-const WIDE = '(min-width: 1024px)'
-
-function subscribeWide(onChange: () => void) {
-  const query = window.matchMedia(WIDE)
-  query.addEventListener('change', onChange)
-  return () => query.removeEventListener('change', onChange)
-}
-
-/** True on screens wide enough for the panels to float over the room. */
-function useWide() {
-  return useSyncExternalStore(
-    subscribeWide,
-    () => window.matchMedia(WIDE).matches,
-    () => true,
-  )
-}
+/** Height of the title and tabs floating at the top of the room. */
+const TOP_BAR = { wide: 84, side: 68 }
 
 const SHELF_NAME = 'Rak alat'
 const SHELF_DROP: DropData = { layer: 'shelf' }
@@ -91,7 +76,16 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [hintClosed, setHintClosed] = useState(false)
-  const wide = useWide()
+  const mode = useLabLayout()
+  const stacked = mode === 'stack'
+  const [pickedTab, setPickedTab] = useState<PanelTab | null>(null)
+  // The panel stays closed until a tab is picked, so the room has the screen.
+  const panelTab = pickedTab
+  const labi = useLabi(experiment, lab)
+  // An upright phone shows one work area at a time, enlarged.
+  const views = stacked ? (layout.views ?? []) : []
+  const [viewId, setViewId] = useState<string | null>(null)
+  const view = views.find((v) => v.id === viewId) ?? views.at(0)
   const suppressClick = useRef(false)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -108,6 +102,35 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
 
   const placeOf = (itemId: string) =>
     resolveItemRect(layout, items, itemId, lab.view)
+
+  const locate = (itemId: string) => {
+    const rect = placeOf(itemId)
+    return rect ? { x: rect.x + rect.w / 2, y: rect.y } : null
+  }
+
+  // The tools outside the work area on screen stay within reach in a tray.
+  const guided = labi.state.guiding ? labi.state.target : null
+  const outside = view
+    ? experiment.items.flatMap((item) => {
+        const rect = item.fixed ? undefined : placeOf(item.id)
+        return rect && !isInView(rect, view.region)
+          ? [{ item, home: layout.home[item.id], view: lab.view[item.id] }]
+          : []
+      })
+    : []
+  // What the guide points at comes first, so it is on screen in the tray.
+  const tray = [
+    ...outside.filter(({ item }) => item.id === guided),
+    ...outside.filter(({ item }) => item.id !== guided),
+  ]
+  const guidedAt = guided ? locate(guided) : null
+  // The work area to go to for the next step, when it is not the open one.
+  const flagged =
+    view && guidedAt && !holds(view.region, guidedAt)
+      ? views.find((v) => holds(v.region, guidedAt))?.id
+      : undefined
+  const selectedName =
+    experiment.items.find((item) => item.id === selectedId)?.name ?? null
 
   const turnOf = (itemId: string, rect: Placement): AssetTurn | undefined => {
     const { w, h } = rect.size ?? layout.home[itemId]
@@ -231,22 +254,46 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
       }}
     >
       {/*
-        Wide screens: the room fills the screen and the panels float on its
-        right. Narrow screens: the title, the room, then the panels, one below
-        the other; the panel column only groups them on wide screens.
+        The room fills the screen and the panels float on its right; on an
+        upright phone the title sits above the room, the tabs below it, and a
+        picked tab slides up over the room as a sheet.
       */}
-      <div className="flex flex-col lg:relative lg:h-dvh lg:overflow-hidden">
-        <div className="relative order-2 aspect-[1440/1024] w-full lg:absolute lg:inset-0 lg:aspect-auto">
+      <div
+        className={clsx(
+          'h-dvh overflow-hidden',
+          stacked ? 'relative flex flex-col' : 'relative',
+        )}
+      >
+        <div
+          className={
+            stacked
+              ? 'relative order-2 min-h-0 w-full flex-1'
+              : 'absolute inset-0'
+          }
+        >
           <LabStage
             background={getBackgroundUrl(experiment.id)}
             floorY={layout.floorY}
-            reserve={wide ? PANEL_WIDTH : 0}
+            reserve={panelTab ? PANEL_WIDTH[mode] : 0}
+            // Under an open sheet the room moves up to stay in view.
+            rest={stacked ? (panelTab ? 0 : 0.62) : 1}
+            region={view?.region}
+            topGap={stacked ? undefined : TOP_BAR[mode]}
             onBackgroundClick={() => setSelectedId(null)}
             overlay={
-              <LabHint
-                hint={hintClosed ? null : lab.hint}
-                onClose={() => setHintClosed(true)}
-              />
+              <>
+                <LabHint
+                  hint={hintClosed ? null : lab.hint}
+                  onClose={() => setHintClosed(true)}
+                  low={!stacked}
+                />
+                <Labi
+                  state={labi.state}
+                  session={labi.session}
+                  locate={locate}
+                  passive={activeId !== null}
+                />
+              </>
             }
             footer={
               <Shelf highlight={held} onClick={() => handlePlaceClick(SHELF)} />
@@ -343,20 +390,70 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
           </LabStage>
         </div>
         <div
-          className="contents lg:pointer-events-none lg:absolute lg:inset-y-0 lg:right-0 lg:z-20 lg:flex lg:flex-col lg:gap-3 lg:overflow-y-auto lg:p-4"
-          style={wide ? { width: PANEL_WIDTH } : undefined}
+          className={
+            stacked
+              ? 'order-1 shrink-0'
+              : clsx(
+                  'pointer-events-none absolute top-0 left-0 z-20 w-88 max-w-[calc(100%-18rem)]',
+                  mode === 'wide' ? 'p-4' : 'p-2',
+                )
+          }
         >
-          <div className="order-1 p-4 lg:order-none lg:p-0">{header}</div>
-          <div className="order-3 p-4 lg:order-none lg:p-0">
-            <LabPanel
-              explanation={lab.explanation}
-              objectives={experiment.objectives}
-              tips={experiment.tips}
-              columns={lab.columns}
-              rows={lab.rows}
-              onRemoveRow={lab.removeRow}
+          {header?.(mode)}
+          {view && (
+            <StageViewTabs
+              views={views}
+              active={view.id}
+              flagged={flagged}
+              onChange={setViewId}
             />
+          )}
+        </div>
+        {stacked && (
+          <div className="order-3 shrink-0">
+            {tray.length > 0 && (
+              <ToolTray
+                entries={tray}
+                selected={selectedId}
+                selectedName={selectedName}
+                pointed={guided}
+                onTap={handleItemClick}
+              />
+            )}
+            {/* Keeps the room clear of the tabs lying over its bottom edge. */}
+            <div className="h-[53px]" />
           </div>
+        )}
+        <div
+          className={
+            stacked
+              ? 'absolute inset-x-0 bottom-0 z-20'
+              : clsx(
+                  'pointer-events-none absolute inset-y-0 right-0 z-20 flex flex-col items-end',
+                  mode === 'wide' ? 'p-4' : 'p-2',
+                )
+          }
+          style={stacked ? undefined : { width: PANEL_WIDTH[mode] }}
+        >
+          <LabPanel
+            layout={mode}
+            tab={panelTab}
+            onTabChange={setPickedTab}
+            explanation={lab.explanation}
+            objectives={experiment.objectives}
+            tips={experiment.tips}
+            columns={lab.columns}
+            rows={lab.rows}
+            onRemoveRow={lab.removeRow}
+            assistantActivity={labi.state.messages.length}
+            assistant={
+              <LabiChat
+                state={labi.state}
+                session={labi.session}
+                fill={mode !== 'wide'}
+              />
+            }
+          />
         </div>
       </div>
     </DndContext>
@@ -380,17 +477,19 @@ function Shelf({
       onClick={onClick}
       onKeyDown={onActivateKey(onClick)}
       className={clsx(
-        'flex h-11 items-center justify-center gap-2 rounded-full border border-dashed px-5 text-sm shadow-sm backdrop-blur transition-colors',
+        'flex h-11 items-center justify-center gap-2 rounded-full border border-dashed px-5 text-sm shadow-sm backdrop-blur transition-[opacity,colors]',
+        // Only there while something is held: the one moment it is of use.
+        !highlight && 'pointer-events-none opacity-0',
         isOver
           ? 'border-primary bg-primary-tint'
-          : highlight
-            ? 'border-primary/60 bg-primary-tint/90'
-            : 'border-line bg-white/85',
+          : 'border-primary/60 bg-primary-tint/90',
       )}
     >
-      <p className="font-semibold text-ink">{SHELF_NAME}</p>
-      <p className="hidden truncate text-ink-muted sm:block">
-        Taruh benda di sini untuk mengembalikannya ke tempat awal.
+      <p className="shrink-0 font-semibold whitespace-nowrap text-ink">
+        {SHELF_NAME}
+      </p>
+      <p className="truncate text-ink-muted">
+        Taruh di sini untuk mengembalikan.
       </p>
     </div>
   )

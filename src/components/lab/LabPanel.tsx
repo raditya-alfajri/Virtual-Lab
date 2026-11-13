@@ -1,60 +1,185 @@
 import clsx from 'clsx'
-import { Trash2 } from 'lucide-react'
-import { useId, type ReactNode } from 'react'
+import { BookOpen, MessageCircle, Table2, Trash2, X } from 'lucide-react'
+import { useId, useState, type ReactNode } from 'react'
 import type { Column, Explanation, Row } from '../../data/types'
 import { formatCell } from './format-cell'
 import { FLOATING_CARD } from './floating-card'
+import type { LabLayout } from './lab-layout'
+
+export type PanelTab = 'labi' | 'explanation' | 'table'
 
 type Props = {
+  layout: LabLayout
+  /** The open tab; null when the panel is closed and only its tabs show. */
+  tab: PanelTab | null
+  onTabChange: (tab: PanelTab | null) => void
   explanation: Explanation | null
   objectives: string[]
   tips: string[]
   columns: Column[]
   rows: Row[]
   onRemoveRow: (index: number) => void
+  /** The conversation with Labi. */
+  assistant: ReactNode
+  /** Grows whenever Labi says something, to flag the tab when it is closed. */
+  assistantActivity: number
 }
 
 const MAX_TIPS = 2
 
+const TABS = [
+  { id: 'explanation', label: 'Penjelasan', Icon: BookOpen },
+  { id: 'table', label: 'Tabel', Icon: Table2 },
+  { id: 'labi', label: 'Tanya Labi', Icon: MessageCircle },
+] as const
+
+/**
+ * Everything beside the room, one thing at a time: the explanation, the
+ * observation table or the chat with Labi. It stays closed until a tab is
+ * picked, so the room is what the student sees first: a card at the room's
+ * right, or on an upright phone a sheet sliding up from the tabs.
+ */
 export default function LabPanel({
+  layout,
+  tab,
+  onTabChange,
   explanation,
   objectives,
   tips,
   columns,
   rows,
   onRemoveRow,
+  assistant,
+  assistantActivity,
 }: Props) {
-  return (
-    <aside aria-label="Panel praktikum" className="flex flex-col gap-3">
-      <Card title="Penjelasan">
-        <ExplanationContent
-          explanation={explanation}
-          objectives={objectives}
-          tips={tips}
-        />
-      </Card>
-      <Card title="Tabel pengamatan">
-        <TableContent columns={columns} rows={rows} onRemoveRow={onRemoveRow} />
-      </Card>
-      <Card title="Asisten Labi">
-        <div className="min-h-32" />
-      </Card>
-    </aside>
-  )
-}
+  const baseId = useId()
+  const floating = layout !== 'stack'
+  // Little room beside the close button: the tabs go without icons.
+  const tight = layout === 'side' || (layout === 'stack' && tab !== null)
+  // What each tab showed when it was last open; a change since then is news.
+  const stamps: Record<PanelTab, unknown> = {
+    labi: assistantActivity,
+    explanation,
+    table: rows.length,
+  }
+  const [seen, setSeen] = useState(stamps)
 
-function Card({ title, children }: { title: string; children: ReactNode }) {
-  const titleId = useId()
+  const open = (next: PanelTab | null) => {
+    setSeen({
+      ...seen,
+      ...(tab && { [tab]: stamps[tab] }),
+      ...(next && { [next]: stamps[next] }),
+    })
+    onTabChange(next)
+  }
+
   return (
-    <section
-      aria-labelledby={titleId}
-      className={clsx('shrink-0 p-5', FLOATING_CARD)}
+    <aside
+      aria-label="Panel praktikum"
+      className={clsx(
+        'pointer-events-auto flex flex-col',
+        floating
+          ? clsx('max-h-full overflow-hidden', FLOATING_CARD)
+          : clsx(
+              'border-t border-line bg-white',
+              tab && 'rounded-t-2xl shadow-[0_-8px_24px_rgb(0_0_0/0.12)]',
+              // The chat needs a height of its own to scroll in.
+              tab === 'labi' ? 'h-[56dvh]' : 'max-h-[56dvh]',
+            ),
+        floating && tab && 'w-full',
+        // The chat needs a height of its own to scroll in a short window.
+        layout === 'side' && tab === 'labi' && 'h-full',
+      )}
     >
-      <h2 id={titleId} className="font-heading text-lg font-bold">
-        {title}
-      </h2>
-      <div className="mt-3 text-sm leading-relaxed">{children}</div>
-    </section>
+      <div
+        className={clsx(
+          'flex shrink-0 items-center gap-1 p-1.5',
+          tab && 'border-b border-line',
+        )}
+      >
+        <div
+          role="tablist"
+          aria-label="Bagian panel"
+          className="flex min-w-0 flex-1 gap-1"
+        >
+          {TABS.map(({ id, label, Icon }) => {
+            const fresh = id !== tab && seen[id] !== stamps[id]
+            const count = id === 'table' && rows.length > 0 ? rows.length : null
+            return (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                id={`${baseId}-tab-${id}`}
+                aria-selected={tab === id}
+                aria-controls={tab === id ? `${baseId}-panel` : undefined}
+                onClick={() => open(tab === id ? null : id)}
+                className={clsx(
+                  'relative flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-xl font-semibold transition-colors',
+                  layout === 'side' ? 'px-2 text-[13px]' : 'px-2.5 text-sm',
+                  !floating && 'flex-1',
+                  tab === id
+                    ? 'bg-primary-tint text-primary'
+                    : 'text-ink-muted hover:bg-primary-tint/60 hover:text-ink',
+                )}
+              >
+                {!tight && <Icon size={16} className="shrink-0" />}
+                <span className="truncate">
+                  {tight && id === 'labi' ? 'Labi' : label}
+                </span>
+                {count !== null && (
+                  <span className="rounded-full bg-primary px-1.5 text-[11px] leading-[18px] text-white">
+                    {count}
+                  </span>
+                )}
+                {fresh && (
+                  <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-rose-500">
+                    <span className="sr-only">, ada yang baru</span>
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+        {tab && (
+          <button
+            type="button"
+            onClick={() => open(null)}
+            aria-label="Tutup panel"
+            className="flex size-9 shrink-0 items-center justify-center rounded-lg text-ink-muted hover:bg-primary-tint hover:text-ink"
+          >
+            <X size={18} />
+          </button>
+        )}
+      </div>
+      {tab && (
+        <div
+          role="tabpanel"
+          id={`${baseId}-panel`}
+          aria-labelledby={`${baseId}-tab-${tab}`}
+          className={clsx(
+            'flex min-h-0 flex-1 flex-col text-sm leading-relaxed',
+            tab === 'labi' ? 'p-3' : 'overflow-y-auto p-4',
+          )}
+        >
+          {tab === 'labi' && assistant}
+          {tab === 'explanation' && (
+            <ExplanationContent
+              explanation={explanation}
+              objectives={objectives}
+              tips={tips}
+            />
+          )}
+          {tab === 'table' && (
+            <TableContent
+              columns={columns}
+              rows={rows}
+              onRemoveRow={onRemoveRow}
+            />
+          )}
+        </div>
+      )}
+    </aside>
   )
 }
 
@@ -145,7 +270,7 @@ function TableContent({
                     type="button"
                     onClick={() => onRemoveRow(index)}
                     aria-label={`Hapus baris ${index + 1}`}
-                    className="rounded-md p-1.5 text-ink-muted hover:bg-primary-tint hover:text-ink"
+                    className="rounded-md p-2 text-ink-muted hover:bg-primary-tint hover:text-ink"
                   >
                     <Trash2 size={16} />
                   </button>

@@ -1,10 +1,12 @@
 import { SHELF } from '../../lib/engine'
 import type {
   Experiment,
+  GuideStep,
   ItemDef,
   ItemView,
   Outcome,
   Result,
+  Row,
   World,
 } from '../types'
 import {
@@ -122,6 +124,55 @@ function addMass(w: World, mass: string): Result {
     )
   }
   return ok(relax(w, moveTo(w, mass, HANGER), loadedSpring(w)))
+}
+
+function guide(w: World, rows: Row[]): GuideStep | null {
+  const spring = clampedSpring(w)
+  if (!spring) {
+    const tried = (k: number) => rows.some((row) => row.konstanta === k)
+    const next = SPRINGS.find((s) => !tried(s.k)) ?? SPRINGS[0]
+    return {
+      text: `Gantung ${next.name} di penjepit statif.`,
+      target: next.id,
+    }
+  }
+  if (w.items[HANGER].at !== spring) {
+    return {
+      text: 'Pasang gantungan beban di ujung pegas.',
+      target: HANGER,
+    }
+  }
+  const spare = MASSES.find((id) => w.items[id].at !== HANGER)
+  const grams = springLoad(w, spring)
+  if (grams === 0) {
+    return { text: 'Taruh satu beban 50 g di gantungan.', target: spare }
+  }
+  if (w.items[RULER].at !== SIDE) {
+    return {
+      text: 'Pasang mistar di sisi pegas untuk membaca panjangnya.',
+      target: RULER,
+    }
+  }
+  if (bool(w, spring, 'moving')) {
+    return { text: 'Tunggu sampai pegasnya diam.', target: spring }
+  }
+  const { k } = springOf(spring)
+  if (!rows.some((row) => row.massa === grams && row.konstanta === k)) {
+    return {
+      text: 'Lepas mistar, lalu pasang lagi untuk mengukur.',
+      target: RULER,
+    }
+  }
+  if (grams < MAX_LOAD) {
+    return {
+      text: 'Tercatat! Tambah satu beban lagi, lalu lihat pegasnya.',
+      target: spare,
+    }
+  }
+  return {
+    text: 'Sudah 250 g. Kembalikan gantungan ke rak, lalu coba pegas yang lain.',
+    target: HANGER,
+  }
 }
 
 const items: ItemDef[] = [
@@ -309,6 +360,7 @@ export const hookeLaw: Experiment = {
     }
     return view
   },
+  guide,
   prediction: {
     question:
       'Kalau bebannya dijadikan dua kali lipat, pertambahan panjang pegas jadi bagaimana?',

@@ -14,6 +14,14 @@ export const reactionRateLayout: SceneLayout = {
     hcl: { x: 470, y: 212, w: 77, h: 128 },
   },
   zones: {},
+  views: [
+    { id: 'bench', label: 'Meja', region: { x: 120, y: 480, w: 760, h: 290 } },
+    {
+      id: 'bath',
+      label: 'Penangas',
+      region: { x: 930, y: 440, w: 410, h: 340 },
+    },
+  ],
   attach: {
     flask: {
       paper: { x: 39, y: -71 },

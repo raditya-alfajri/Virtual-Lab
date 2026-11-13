@@ -82,6 +82,12 @@ export type MascotLine = {
   audio?: string
 }
 
+/** What to do next on the bench, and the item it is about. */
+export type GuideStep = {
+  text: string
+  target?: string
+}
+
 export type Experiment = {
   id: string
   subject: Subject
@@ -105,6 +111,8 @@ export type Experiment = {
   guard?: (world: World, sourceId: string, targetId: string) => string | null
   tick?: (world: World, dt: number) => Outcome
   view: (world: World) => Record<string, ItemView>
+  /** The next step for the bench as it is now; Labi says it without asking the model. */
+  guide?: (world: World, rows: Row[]) => GuideStep | null
 
   columns: Column[]
   prediction: { question: string; options?: string[] }

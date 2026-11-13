@@ -6,7 +6,7 @@ import { simplePendulumLayout } from './simple-pendulum/layout'
 import { solutionConcentrationLayout } from './solution-concentration/layout'
 import type { SceneLayout } from './types'
 
-const LAYOUTS: Record<string, SceneLayout> = {
+export const layouts: Record<string, SceneLayout> = {
   'uji-asam-basa': acidBaseTestLayout,
   'konsentrasi-larutan': solutionConcentrationLayout,
   'laju-reaksi': reactionRateLayout,
@@ -16,7 +16,7 @@ const LAYOUTS: Record<string, SceneLayout> = {
 }
 
 export function getSceneLayout(id: string): SceneLayout | undefined {
-  return Object.hasOwn(LAYOUTS, id) ? LAYOUTS[id] : undefined
+  return Object.hasOwn(layouts, id) ? layouts[id] : undefined
 }
 
 export function getBackgroundUrl(id: string): string {

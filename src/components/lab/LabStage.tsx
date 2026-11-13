@@ -1,5 +1,7 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { STAGE_HEIGHT, STAGE_WIDTH } from '../../simulations/types'
+import { STAGE_HEIGHT, STAGE_WIDTH, type Rect } from '../../simulations/types'
+import { fitCamera } from './camera'
+import { StageFrameContext } from './stage-frame'
 import { StageScaleContext } from './stage-scale'
 
 // The wall and floor colours of the backgrounds, carried on past the stage's
@@ -7,13 +9,18 @@ import { StageScaleContext } from './stage-scale'
 const WALL = '#F7FEFF'
 const FLOOR = '#CBF3F7'
 const DEFAULT_FLOOR_Y = 800
-/** Room kept above the stage, so the hint does not cover its top. */
-const TOP_GAP = 16
+const DEFAULT_TOP_GAP = 16
 
 type Props = {
   background: string
   /** Where the wall meets the floor in the background, in stage y. */
   floorY?: number
+  /** Room kept above the stage, for what floats at the top of the frame. */
+  topGap?: number
+  /** Where the stage sits in a frame taller than it: 1 on the bottom edge, 0 at the top. */
+  rest?: number
+  /** The part of the stage to show enlarged, instead of the whole stage. */
+  region?: Rect
   /** Width on the right kept free for the panels floating over the room. */
   reserve?: number
   /** Laid over the room without scaling, so text stays readable. */
@@ -26,13 +33,17 @@ type Props = {
 
 /**
  * The stage as a room filling its frame: the stage is as large as fits left
- * of `reserve`, centred and resting on the bottom edge, and the wall and floor
- * go on around it.
+ * of `reserve`, centred and resting on the bottom edge (or higher, see `rest`),
+ * and the wall and floor go on around it. With a `region`, that part of the
+ * stage fills the frame instead.
  */
 export default function LabStage({
   background,
   floorY = DEFAULT_FLOOR_Y,
+  topGap = DEFAULT_TOP_GAP,
   reserve = 0,
+  rest = 1,
+  region,
   overlay,
   footer,
   onBackgroundClick,
@@ -55,12 +66,14 @@ export default function LabStage({
   }, [])
 
   const roomWidth = Math.max(box.width - reserve, 0)
-  const scale = Math.max(
-    Math.min(roomWidth / STAGE_WIDTH, (box.height - TOP_GAP) / STAGE_HEIGHT),
-    0,
-  )
-  const left = (roomWidth - STAGE_WIDTH * scale) / 2
-  const top = box.height - STAGE_HEIGHT * scale
+  const camera = region
+    ? fitCamera(
+        region,
+        { width: roomWidth, height: box.height },
+        { width: STAGE_WIDTH, height: STAGE_HEIGHT },
+      )
+    : wholeStage(roomWidth, box.height, topGap, rest)
+  const { scale, left, top } = camera
   const floor = top + floorY * scale
 
   return (
@@ -76,7 +89,7 @@ export default function LabStage({
     >
       {scale > 0 && (
         <div
-          className="absolute origin-top-left"
+          className="absolute origin-top-left transition-[left,top,transform] duration-300 motion-reduce:transition-none"
           style={{
             left,
             top,
@@ -99,9 +112,13 @@ export default function LabStage({
         className="pointer-events-none absolute inset-y-0 left-0 z-10"
         style={{ right: reserve }}
       >
-        {overlay}
+        <StageFrameContext
+          value={{ scale, left, top, width: roomWidth, height: box.height }}
+        >
+          {overlay}
+        </StageFrameContext>
         {footer && (
-          <div className="absolute inset-x-0 bottom-4 flex justify-center px-4">
+          <div className="absolute inset-x-0 bottom-2 flex justify-center px-4 sm:bottom-4">
             <div className="pointer-events-auto max-w-full min-w-0">
               {footer}
             </div>
@@ -110,4 +127,22 @@ export default function LabStage({
       </div>
     </div>
   )
+}
+
+function wholeStage(
+  width: number,
+  height: number,
+  topGap: number,
+  rest: number,
+) {
+  const scale = Math.max(
+    Math.min(width / STAGE_WIDTH, (height - topGap) / STAGE_HEIGHT),
+    0,
+  )
+  const spare = height - STAGE_HEIGHT * scale
+  return {
+    scale,
+    left: (width - STAGE_WIDTH * scale) / 2,
+    top: Math.max(spare * rest, Math.min(topGap, spare)),
+  }
 }

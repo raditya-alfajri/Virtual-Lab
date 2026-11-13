@@ -66,6 +66,19 @@ const weightMotion: Motion = (base, { id, at, items, parent }) => {
 }
 
 export const newtonLawLayout: SceneLayout = {
+  views: [
+    { id: 'start', label: 'Start', region: { x: 130, y: 480, w: 560, h: 290 } },
+    {
+      id: 'sensor',
+      label: 'Sensor',
+      region: { x: 790, y: 480, w: 560, h: 290 },
+    },
+    {
+      id: 'track',
+      label: 'Lintasan',
+      region: { x: 130, y: 470, w: 1220, h: 300 },
+    },
+  ],
   home: HOME,
   zones: {
     start: START,

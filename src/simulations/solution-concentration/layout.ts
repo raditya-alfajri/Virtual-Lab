@@ -1,6 +1,18 @@
 import type { SceneLayout } from '../types'
 
 export const solutionConcentrationLayout: SceneLayout = {
+  views: [
+    {
+      id: 'balance',
+      label: 'Timbangan',
+      region: { x: 60, y: 110, w: 400, h: 480 },
+    },
+    {
+      id: 'bench',
+      label: 'Meja kerja',
+      region: { x: 630, y: 470, w: 720, h: 290 },
+    },
+  ],
   home: {
     cuso4: { x: 120, y: 170, w: 100, h: 130 },
     water: { x: 300, y: 130, w: 110, h: 170 },
