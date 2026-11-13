@@ -10,5 +10,10 @@ export default defineConfig(({ mode }) => {
   for (const [key, value] of Object.entries(loadEnv(mode, process.cwd(), ''))) {
     process.env[key] ??= value
   }
-  return { plugins: [react(), tailwindcss(), apiRoutes()] }
+  return {
+    plugins: [react(), tailwindcss(), apiRoutes()],
+    // Lets the dev server be opened through Tailscale (`vite --host`, or
+    // `tailscale serve` for the HTTPS the microphone needs).
+    server: { allowedHosts: ['.ts.net'] },
+  }
 })
