@@ -203,17 +203,30 @@ Fitur bicara dengan Labi membutuhkan izin mikrofon dari browser, dan hanya bisa 
 | ElevenLabs Speech to Text                     | `scribe_v2_realtime`    | Mengubah suara siswa menjadi teks saat tombol bicara ditahan |
 | ElevenLabs Text to Speech                     | `eleven_flash_v2_5`     | Mengubah jawaban Labi menjadi suara                          |
 
-**Data yang dikirim ke AI** hanya konteks praktikum: nama eksperimen, isi tabel pengamatan, kejadian terakhir di meja lab, dan pertanyaan siswa. Aplikasi tidak memakai akun atau login, jadi tidak ada nama atau data pribadi siswa yang dikirim.
+**Data yang dikirim ke Gemini** setiap kali Labi menjawab berisi konteks praktikum yang sedang dibuka:
+
+- nama, topik, tujuan, dan konsep eksperimen
+- posisi setiap alat di meja dan angka yang ditunjukkan alat ukur
+- pertanyaan tebakan dan jawaban tebakan siswa
+- isi tabel pengamatan
+- kejadian terakhir di meja lab dan penjelasan hasil terakhir yang tampil di layar
+- langkah berikutnya menurut panduan praktikum, serta apakah masa panduan sudah selesai
+- riwayat percakapan dengan Labi, paling banyak 12 giliran terakhir
+- pertanyaan siswa, baik diketik maupun diucapkan
+
+**Data yang dikirim ke ElevenLabs:** suara siswa ke ElevenLabs Speech to Text selama tombol bicara ditahan, dan teks jawaban Labi ke ElevenLabs Text to Speech untuk dijadikan suara.
+
+Aplikasi tidak memakai akun atau login, jadi **tidak ada nama, akun, atau data pribadi siswa yang dikirim** ke layanan mana pun.
 
 **Suara siswa** hanya diproses saat tombol bicara ditahan, diubah menjadi teks oleh ElevenLabs, dan tidak disimpan oleh aplikasi. Browser selalu meminta izin mikrofon terlebih dahulu, dan siswa tetap bisa mengetik kalau tidak ingin memakai suara.
 
 **Batasan yang kami terapkan:**
 
-- Angka hasil (pH, konsentrasi, waktu, percepatan, periode, konstanta pegas) selalu dihitung oleh mesin simulasi. Labi tidak menghitung dan tidak mengarang angka.
+- Angka di tabel pengamatan dan panel Penjelasan (pH, konsentrasi, waktu, percepatan, periode, konstanta pegas) selalu dihitung oleh mesin simulasi. Labi diinstruksikan untuk merujuk angka dari simulasi dan tidak menghitung sendiri, tetapi karena jawabannya dibuat oleh model AI, angka yang disebut Labi saat bicara sebaiknya dicek ke tabel.
 - Labi menjawab singkat dalam bahasa Indonesia dan hanya membahas praktikum yang sedang dibuka.
 - Ada batas pemakaian per pengunjung, per menit, dan per hari supaya kuota tidak habis dan sumber daya tidak terbuang.
 - Kalau layanan AI menolak atau gagal, praktikum tetap berjalan dan Labi menampilkan pesan yang sopan.
-- Setiap jawaban Labi ditandai sebagai jawaban AI, dengan catatan bahwa AI bisa keliru.
+- Setiap jawaban Labi yang dibuat AI diberi label "AI", di panel chat maupun di balon maskot, dan panel Labi selalu menampilkan catatan bahwa AI bisa keliru. Kalimat yang sudah kami siapkan sendiri (sapaan, pertanyaan tebakan, alasan aksi ditolak, saran langkah, dan kalimat mode sederhana) tidak diberi label karena bukan buatan AI.
 - Gemini tingkat gratis dapat memakai konten permintaan untuk meningkatkan layanan Google. Karena itu kami tidak pernah mengirim data pribadi.
 
 ### Selama pengembangan
