@@ -8,7 +8,7 @@ Dibuat untuk **Logicodix 2026 Hackathon**, subtema **Smart & Fun Education**.
 
 ## Tim
 
-**Nama tim:** _(PLUGIN)_
+**Nama tim:** PLUGIN
 
 | Nama                     | Peran              | Bagian yang dikerjakan                                                                                                     |
 | ------------------------ | ------------------ | -------------------------------------------------------------------------------------------------------------------------- |
