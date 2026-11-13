@@ -54,6 +54,18 @@ const massMotion: Motion = (base, { id, at, items, parent }) => {
 }
 
 export const hookeLawLayout: SceneLayout = {
+  views: [
+    {
+      id: 'stand',
+      label: 'Statif',
+      region: { x: 580, y: 130, w: 420, h: 640 },
+    },
+    {
+      id: 'tools',
+      label: 'Pegas & beban',
+      region: { x: 70, y: 50, w: 400, h: 700 },
+    },
+  ],
   home: {
     'spring-a': { x: 130, y: 92, w: SPRING_W, h: NATURAL },
     'spring-b': { x: 220, y: 92, w: SPRING_W, h: NATURAL },

@@ -79,6 +79,12 @@ export type Pull = {
   value: (point: Point, items: World['items']) => number
 }
 
+/**
+ * One part of the stage shown enlarged on an upright phone, where the whole
+ * stage would be too small to work on.
+ */
+export type StageView = { id: string; label: string; region: Rect }
+
 export type SceneLayout = {
   /** Where the wall meets the floor in the background, in stage y; 800 when unset. */
   floorY?: number
@@ -96,4 +102,6 @@ export type SceneLayout = {
   motion?: Record<string, Motion>
   /** Keyed by item id: items pulled instead of dragged. */
   pull?: Record<string, Pull>
+  /** The work areas of an upright phone; the first one shows at the start. */
+  views?: StageView[]
 }

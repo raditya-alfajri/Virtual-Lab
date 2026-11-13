@@ -22,4 +22,13 @@ export const acidBaseTestLayout: SceneLayout = {
     sink: { x: 0, y: 230, w: 427, h: 356 },
   },
   attach: {},
+  views: [
+    { id: 'bench', label: 'Meja', region: { x: 480, y: 470, w: 500, h: 290 } },
+    {
+      id: 'rack',
+      label: 'Rak & kartu pH',
+      region: { x: 960, y: 480, w: 470, h: 530 },
+    },
+    { id: 'sink', label: 'Wastafel', region: { x: 0, y: 200, w: 460, h: 420 } },
+  ],
 }

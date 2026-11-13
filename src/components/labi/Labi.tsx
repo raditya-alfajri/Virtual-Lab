@@ -55,6 +55,15 @@ const MAX_LEAN = 14
 const COMPACT_BELOW = 640
 
 const between = (min: number, max: number) => min + Math.random() * (max - min)
+/**
+ * The part of a roaming range that is on screen; where none of it is, the
+ * near end of what is on screen.
+ */
+function within(min: number, max: number, from: number, to: number) {
+  const lo = Math.max(min, from)
+  const hi = Math.min(max, to)
+  return lo < hi ? [lo, hi] : [from, from + (to - from) * 0.35]
+}
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max)
 
@@ -93,13 +102,36 @@ export default function Labi({ state, session, locate, passive }: Props) {
   // and it stays where the student put it.
   const flying = targetAt !== null && !state.guiding && !placed
   const pointing = flying
-  const marker =
+  const markerAt =
     state.guiding && targetAt
       ? {
           x: frame.left + targetAt.x * frame.scale,
           y: frame.top + targetAt.y * frame.scale,
         }
       : null
+  // Nothing to point at while the item is outside the part of the room shown.
+  const marker =
+    markerAt &&
+    markerAt.x >= 0 &&
+    markerAt.x <= frame.width &&
+    markerAt.y >= 0 &&
+    markerAt.y <= frame.height
+      ? markerAt
+      : null
+  // Labi keeps to the part of the wall that is on screen.
+  const margin = frame.scale > 0 ? size / 2 / frame.scale : 0
+  const [roamX0, roamX1] = within(
+    ROAM.x0,
+    ROAM.x1,
+    -frame.left / (frame.scale || 1) + margin,
+    (frame.width - frame.left) / (frame.scale || 1) - margin,
+  )
+  const [roamY0, roamY1] = within(
+    ROAM.y0,
+    ROAM.y1,
+    (56 - frame.top) / (frame.scale || 1) + margin,
+    (frame.height - 72 - frame.top) / (frame.scale || 1) - margin,
+  )
   useEffect(() => {
     lookAt.current = marker
   })
@@ -120,15 +152,27 @@ export default function Labi({ state, session, locate, passive }: Props) {
               }
             : holding
               ? {
-                  x: clamp(from.x + between(-SWAY.x, SWAY.x), ROAM.x0, ROAM.x1),
-                  y: clamp(from.y + between(-SWAY.y, SWAY.y), ROAM.y0, ROAM.y1),
+                  x: clamp(from.x + between(-SWAY.x, SWAY.x), roamX0, roamX1),
+                  y: clamp(from.y + between(-SWAY.y, SWAY.y), roamY0, roamY1),
                 }
-              : { x: between(ROAM.x0, ROAM.x1), y: between(ROAM.y0, ROAM.y1) },
+              : { x: between(roamX0, roamX1), y: between(roamY0, roamY1) },
         ),
       between(min, max),
     )
     return () => clearTimeout(timer)
-  }, [talking, pointing, holding, still, dragging, placed, spot])
+  }, [
+    talking,
+    pointing,
+    holding,
+    still,
+    dragging,
+    placed,
+    spot,
+    roamX0,
+    roamX1,
+    roamY0,
+    roamY1,
+  ])
 
   // The face a click chose goes back to Labi's own after a moment.
   useEffect(() => {
@@ -154,7 +198,10 @@ export default function Labi({ state, session, locate, passive }: Props) {
       : // A balloon hangs below Labi: keep it up on the wall, off the bench.
         {
           x: spot.x,
-          y: holding && !placed ? Math.min(spot.y, BALLOON_Y) : spot.y,
+          y:
+            holding && !placed
+              ? Math.min(spot.y, Math.max(BALLOON_Y, roamY0))
+              : spot.y,
         }
   const x = clamp(
     frame.left + at.x * frame.scale,

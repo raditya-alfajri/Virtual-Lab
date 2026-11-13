@@ -27,6 +27,7 @@ import {
 import type { Placement, SceneLayout } from '../../simulations/types'
 import Labi from '../labi/Labi'
 import LabiChat from '../labi/LabiChat'
+import { holds, isInView } from './camera'
 import DragPreview, { type PreviewPiece } from './DragPreview'
 import {
   isInteractionTarget,
@@ -42,7 +43,9 @@ import LabStage from './LabStage'
 import StageFront from './StageFront'
 import StageItem from './StageItem'
 import StageScreen from './StageScreen'
+import StageViewTabs from './StageViewTabs'
 import StageZone from './StageZone'
+import ToolTray from './ToolTray'
 
 type Props = {
   experiment: Experiment
@@ -79,6 +82,10 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
   // The panel stays closed until a tab is picked, so the room has the screen.
   const panelTab = pickedTab
   const labi = useLabi(experiment, lab)
+  // An upright phone shows one work area at a time, enlarged.
+  const views = stacked ? (layout.views ?? []) : []
+  const [viewId, setViewId] = useState<string | null>(null)
+  const view = views.find((v) => v.id === viewId) ?? views.at(0)
   const suppressClick = useRef(false)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -100,6 +107,30 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
     const rect = placeOf(itemId)
     return rect ? { x: rect.x + rect.w / 2, y: rect.y } : null
   }
+
+  // The tools outside the work area on screen stay within reach in a tray.
+  const guided = labi.state.guiding ? labi.state.target : null
+  const outside = view
+    ? experiment.items.flatMap((item) => {
+        const rect = item.fixed ? undefined : placeOf(item.id)
+        return rect && !isInView(rect, view.region)
+          ? [{ item, home: layout.home[item.id], view: lab.view[item.id] }]
+          : []
+      })
+    : []
+  // What the guide points at comes first, so it is on screen in the tray.
+  const tray = [
+    ...outside.filter(({ item }) => item.id === guided),
+    ...outside.filter(({ item }) => item.id !== guided),
+  ]
+  const guidedAt = guided ? locate(guided) : null
+  // The work area to go to for the next step, when it is not the open one.
+  const flagged =
+    view && guidedAt && !holds(view.region, guidedAt)
+      ? views.find((v) => holds(v.region, guidedAt))?.id
+      : undefined
+  const selectedName =
+    experiment.items.find((item) => item.id === selectedId)?.name ?? null
 
   const turnOf = (itemId: string, rect: Placement): AssetTurn | undefined => {
     const { w, h } = rect.size ?? layout.home[itemId]
@@ -246,6 +277,7 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
             reserve={panelTab ? PANEL_WIDTH[mode] : 0}
             // Under an open sheet the room moves up to stay in view.
             rest={stacked ? (panelTab ? 0 : 0.62) : 1}
+            region={view?.region}
             topGap={stacked ? undefined : TOP_BAR[mode]}
             onBackgroundClick={() => setSelectedId(null)}
             overlay={
@@ -368,9 +400,30 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
           }
         >
           {header?.(mode)}
+          {view && (
+            <StageViewTabs
+              views={views}
+              active={view.id}
+              flagged={flagged}
+              onChange={setViewId}
+            />
+          )}
         </div>
-        {/* Keeps the room clear of the tabs lying over its bottom edge. */}
-        {stacked && <div className="order-3 h-[53px] shrink-0" />}
+        {stacked && (
+          <div className="order-3 shrink-0">
+            {tray.length > 0 && (
+              <ToolTray
+                entries={tray}
+                selected={selectedId}
+                selectedName={selectedName}
+                pointed={guided}
+                onTap={handleItemClick}
+              />
+            )}
+            {/* Keeps the room clear of the tabs lying over its bottom edge. */}
+            <div className="h-[53px]" />
+          </div>
+        )}
         <div
           className={
             stacked

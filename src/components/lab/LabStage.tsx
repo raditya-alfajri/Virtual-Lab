@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { STAGE_HEIGHT, STAGE_WIDTH } from '../../simulations/types'
+import { STAGE_HEIGHT, STAGE_WIDTH, type Rect } from '../../simulations/types'
+import { fitCamera } from './camera'
 import { StageFrameContext } from './stage-frame'
 import { StageScaleContext } from './stage-scale'
 
@@ -18,6 +19,8 @@ type Props = {
   topGap?: number
   /** Where the stage sits in a frame taller than it: 1 on the bottom edge, 0 at the top. */
   rest?: number
+  /** The part of the stage to show enlarged, instead of the whole stage. */
+  region?: Rect
   /** Width on the right kept free for the panels floating over the room. */
   reserve?: number
   /** Laid over the room without scaling, so text stays readable. */
@@ -31,7 +34,8 @@ type Props = {
 /**
  * The stage as a room filling its frame: the stage is as large as fits left
  * of `reserve`, centred and resting on the bottom edge (or higher, see `rest`),
- * and the wall and floor go on around it.
+ * and the wall and floor go on around it. With a `region`, that part of the
+ * stage fills the frame instead.
  */
 export default function LabStage({
   background,
@@ -39,6 +43,7 @@ export default function LabStage({
   topGap = DEFAULT_TOP_GAP,
   reserve = 0,
   rest = 1,
+  region,
   overlay,
   footer,
   onBackgroundClick,
@@ -61,13 +66,14 @@ export default function LabStage({
   }, [])
 
   const roomWidth = Math.max(box.width - reserve, 0)
-  const scale = Math.max(
-    Math.min(roomWidth / STAGE_WIDTH, (box.height - topGap) / STAGE_HEIGHT),
-    0,
-  )
-  const left = (roomWidth - STAGE_WIDTH * scale) / 2
-  const spare = box.height - STAGE_HEIGHT * scale
-  const top = Math.max(spare * rest, Math.min(topGap, spare))
+  const camera = region
+    ? fitCamera(
+        region,
+        { width: roomWidth, height: box.height },
+        { width: STAGE_WIDTH, height: STAGE_HEIGHT },
+      )
+    : wholeStage(roomWidth, box.height, topGap, rest)
+  const { scale, left, top } = camera
   const floor = top + floorY * scale
 
   return (
@@ -121,4 +127,22 @@ export default function LabStage({
       </div>
     </div>
   )
+}
+
+function wholeStage(
+  width: number,
+  height: number,
+  topGap: number,
+  rest: number,
+) {
+  const scale = Math.max(
+    Math.min(width / STAGE_WIDTH, (height - topGap) / STAGE_HEIGHT),
+    0,
+  )
+  const spare = height - STAGE_HEIGHT * scale
+  return {
+    scale,
+    left: (width - STAGE_WIDTH * scale) / 2,
+    top: Math.max(spare * rest, Math.min(topGap, spare)),
+  }
 }
