@@ -15,7 +15,10 @@ import type {
 
 export const ROOM_TEMP = 25
 export const MAX_TEMP = 55
-/** TODO(cek guru): how fast the flask warms up in the bath, in °C per second. */
+/**
+ * How fast the flask warms up in the bath, in °C per second. Faster than a
+ * real water bath on purpose, so the student does not wait long for a reading.
+ */
 export const HEATING_RATE = 0.5
 
 const BASE_TIME = 60
@@ -23,7 +26,10 @@ const BASE_CONC = 0.2
 const THERMOMETER_SCALE = 60
 
 const CLEAR_COLOR = '#eef5f8'
-/** TODO(cek guru): colour of the flask once the sulphur hides the cross. */
+/**
+ * Colour of the flask once the cross is hidden. The cloudiness is the pale
+ * yellow sulphur that precipitates as Na₂S₂O₃ reacts with HCl.
+ */
 const CLOUDY_COLOR = '#e6d27a'
 
 const FLASK = 'flask'

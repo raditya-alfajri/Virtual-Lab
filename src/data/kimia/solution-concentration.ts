@@ -9,12 +9,14 @@ import type {
 } from '../types'
 
 export const MR_CUSO4 = 160
-/**
- * Limit for the watch glass and for the beaker in total.
- * TODO(cek guru): 16 g in a small volume (e.g. 50 mL) may exceed the
- * solubility of CuSO₄ at room temperature. Kept at 16 g for now.
- */
+/** Limit for the watch glass and for the beaker in total. */
 export const MAX_MASS = 16
+/**
+ * Grams of CuSO₄ one mL of water dissolves at room temperature. Solubility
+ * tables give about 20.7 g of anhydrous CuSO₄ per 100 g of water at 20 °C;
+ * rounded to 20 g per 100 mL, taking 1 mL of water as 1 g.
+ */
+export const SOLUBILITY_G_PER_ML = 0.2
 export const MAX_VOLUME = 250
 export const POUR_VOLUME = 50
 export const DISSOLVE_STIRS = 5
@@ -37,6 +39,7 @@ const BALANCE = 'balance'
 const STIRRING_LINE = 'k2-stirring-started'
 const DISSOLVED_LINE = 'k2-dissolved'
 const DILUTION_LINE = 'k2-dilution'
+const SATURATED_LINE = 'k2-saturated'
 
 type Beaker = {
   mass: number
@@ -66,6 +69,11 @@ function readBeaker(world: World): Beaker {
 }
 
 const isDissolved = (b: Beaker) => b.stirs >= DISSOLVE_STIRS
+/** More CuSO₄ than its water can take: stirring stops short of dissolving it all. */
+const isSaturated = (b: Beaker) =>
+  b.mass > b.volume * SOLUBILITY_G_PER_ML + 1e-9
+/** Where stirring a saturated beaker stops. */
+const SATURATED_STIRS = DISSOLVE_STIRS - 1
 const molOf = (mass: number) => mass / MR_CUSO4
 
 function concentrationOf(mass: number, volume: number): number {
@@ -144,6 +152,7 @@ function stir(world: World): Result {
   if (isDissolved(b)) return { world }
 
   const stirs = b.stirs + 1
+  if (stirs >= SATURATED_STIRS && isSaturated(b)) return saturated(world, b)
   const next = patchItem(world, BEAKER, { stirs })
   if (stirs === 1) {
     return {
@@ -180,6 +189,22 @@ function stir(world: World): Result {
       reason: `${b.mass} g CuSO₄ ÷ ${MR_CUSO4} = ${mol} mol, dilarutkan dalam ${b.volume} mL (${liters} L) air.`,
       formula: `M = ${mol} mol ÷ ${liters} L = ${molarity} M`,
     },
+  }
+}
+
+function saturated(world: World, b: Beaker): Result {
+  const dissolves = formatDecimal(b.volume * SOLUBILITY_G_PER_ML, 1)
+  const needed = Math.ceil(b.mass / SOLUBILITY_G_PER_ML - 1e-9)
+  return {
+    world: patchItem(world, BEAKER, { stirs: SATURATED_STIRS }),
+    events: [{ type: 'action-ok', itemId: BEAKER, lineId: SATURATED_LINE }],
+    explanation: {
+      result:
+        'Larutan sudah jenuh. Sebagian kristal CuSO₄ tidak bisa larut lagi.',
+      reason: `Pada suhu ruang, 100 mL air hanya bisa melarutkan sekitar 20 g CuSO₄. ${b.volume} mL air paling banyak melarutkan ${dissolves} g, padahal ada ${b.mass} g. Tambahkan air sampai paling sedikit ${needed} mL, lalu aduk lagi.`,
+      formula: `Batas larut = ${b.volume} mL × 0,2 g/mL = ${dissolves} g`,
+    },
+    hint: 'Larutan jenuh. Tambah air dengan gelas ukur, lalu aduk lagi.',
   }
 }
 
@@ -351,6 +376,14 @@ function guide(world: World): GuideStep | null {
         }
       : { text: 'Gelas kimia sudah penuh. Buka Tabel dan bandingkan datamu.' }
   }
+  if (b.stirs >= SATURATED_STIRS && isSaturated(b)) {
+    return {
+      ...water,
+      text: inCylinder
+        ? 'Larutan jenuh. Tuang air di gelas ukur ke gelas kimia, lalu aduk lagi.'
+        : 'Larutan jenuh. Isi gelas ukur dengan air suling untuk menambah air.',
+    }
+  }
   if (world.items.stirrer.at !== BEAKER) {
     return {
       text: 'Masukkan batang pengaduk ke gelas kimia.',
@@ -379,6 +412,7 @@ function beakerView(b: Beaker): ItemView {
   else if (!b.mass) label = 'Air suling'
   else if (!b.volume) label = 'Belum ada air'
   else if (progress >= 1) label = 'Larut sempurna'
+  else if (b.stirs >= SATURATED_STIRS && isSaturated(b)) label = 'Jenuh'
   else label = `Larut ${Math.round(progress * 100)}%`
 
   let color: string | undefined
@@ -528,6 +562,10 @@ export const solutionConcentration: Experiment = {
     {
       id: DILUTION_LINE,
       text: 'Airnya bertambah, jadi zat terlarut tersebar di volume yang lebih besar dan konsentrasinya turun. Aduk lagi, lalu bandingkan warnanya dengan sebelumnya.',
+    },
+    {
+      id: SATURATED_LINE,
+      text: 'Kristalnya tidak mau larut lagi, larutannya sudah jenuh! Airnya terlalu sedikit untuk CuSO₄ sebanyak itu. Coba tambah air, lalu aduk lagi.',
     },
   ],
   concepts: [
