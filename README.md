@@ -14,7 +14,7 @@ Dibuat untuk **Logicodix 2026 Hackathon**, subtema **Smart & Fun Education**.
 | ------------------------ | ------------------ | -------------------------------------------------------------------------------------------------------------------------- |
 | Muhammad Raditya Alfajri | Ketua tim, Backend | Setup proyek dan CI, mesin simulasi, data dan rumus eksperimen kimia, halaman praktikum dan adegan kimia, integrasi Gemini |
 | Muhammad Zidna Fadla     | Backend            | Data dan adegan eksperimen fisika, tata letak lab layar penuh, Labi (AI dan suara), tampilan HP                            |
-| Raihan Khairullah        | Frontend           | Halaman Katalog dan Detail eksperimen                                                                                      |
+| Raihan Putra Khairullah        | Frontend           | Halaman Katalog dan Detail eksperimen                                                                                      |
 | Raja Aunur Rahman        | Frontend           | Halaman Beranda dan Pilih Laboratorium                                                                                     |
 
 ## Tentang Virtual Lab
