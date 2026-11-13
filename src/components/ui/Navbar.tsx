@@ -5,6 +5,7 @@ import { Link, NavLink } from 'react-router'
 const LINKS = [
   { to: '/', label: 'Beranda', end: true },
   { to: '/lab', label: 'Laboratorium', end: false },
+  { to: '/tentang-ai', label: 'Tentang AI', end: true },
 ]
 
 export default function Navbar() {

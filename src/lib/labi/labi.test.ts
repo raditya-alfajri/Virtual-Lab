@@ -11,12 +11,24 @@ const mic = vi.hoisted(() => ({
   start: vi.fn<(onPartial: (text: string) => void) => Promise<Recording>>(),
 }))
 vi.mock('./microphone', () => ({ startRecording: mic.start }))
+type PlayerEvents = { onSentence: (index: number) => void; onEnd: () => void }
 vi.mock('./speech-player', () => ({
   unlockAudio: () => {},
   SpeechPlayer: class {
+    events: PlayerEvents
+    ended = new Set<number>()
+    constructor(events: PlayerEvents) {
+      this.events = events
+    }
     play() {}
-    endSentence() {}
-    finish() {}
+    endSentence(index: number) {
+      if (this.ended.has(index)) return
+      this.ended.add(index)
+      this.events.onSentence(index)
+    }
+    finish() {
+      this.events.onEnd()
+    }
     stop() {}
   },
 }))
@@ -207,6 +219,29 @@ describe('LabiSession', () => {
       expect(session.getState()).toMatchObject({ mic: 'off', notice: refused })
       session.ask('Hai')
       expect(turns.request).toHaveBeenCalledOnce()
+    })
+  })
+
+  describe('AI label', () => {
+    it("marks the model's reply, not Labi's prepared lines", async () => {
+      turns.request.mockImplementation(async function* () {
+        yield { type: 'meta', mood: 'happy' }
+        yield { type: 'text', index: 0, text: 'Massanya lebih besar.' }
+        yield { type: 'audio-end', index: 0 }
+      })
+      const session = open()
+      session.greet('Hai, aku Labi!')
+      expect(session.getState().bubbleByAi).toBe(false)
+
+      session.ask('Kenapa troli berat lebih lambat?')
+      await tick()
+      const { messages, bubble, bubbleByAi } = session.getState()
+      expect(messages.map((m) => m.ai ?? false)).toEqual([false, false, true])
+      expect(bubble).toBe('Massanya lebih besar.')
+      expect(bubbleByAi).toBe(true)
+
+      session.explain('Tabung masih kosong.')
+      expect(session.getState().bubbleByAi).toBe(false)
     })
   })
 

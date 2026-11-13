@@ -13,6 +13,8 @@ export type LabiMessage = {
   id: number
   role: 'user' | 'assistant'
   text: string
+  /** Written by the model, not one of our prepared lines. */
+  ai?: boolean
 }
 
 export type LabiState = {
@@ -23,6 +25,8 @@ export type LabiState = {
   target: string | null
   /** What the speech balloon says right now. */
   bubble: string | null
+  /** The balloon shows words written by the model. */
+  bubbleByAi: boolean
   /** True while the balloon shows the next step on the bench. */
   guiding: boolean
   /** Answers the student can pick in the balloon. */
@@ -89,6 +93,7 @@ export class LabiSession {
     mood: 'neutral',
     target: null,
     bubble: null,
+    bubbleByAi: false,
     guiding: false,
     choices: [],
     partial: '',
@@ -389,8 +394,10 @@ export class LabiSession {
     })
   }
 
+  /** Any new balloon is one of our own lines unless the patch says otherwise. */
   #set(patch: Partial<LabiState>) {
-    this.#state = { ...this.#state, ...patch }
+    const byAi = 'bubble' in patch ? { bubbleByAi: false } : {}
+    this.#state = { ...this.#state, ...byAi, ...patch }
     for (const listener of this.#listeners) listener()
   }
 
@@ -533,7 +540,12 @@ export class LabiSession {
     const spoken = turn.heard.join(' ')
     if (turn.messageId === null) {
       turn.messageId = this.#nextId++
-      messages.push({ id: turn.messageId, role: 'assistant', text: spoken })
+      messages.push({
+        id: turn.messageId,
+        role: 'assistant',
+        text: spoken,
+        ai: true,
+      })
     } else {
       const at = messages.findIndex((m) => m.id === turn.messageId)
       if (at >= 0) messages[at] = { ...messages[at], text: spoken }
@@ -544,6 +556,7 @@ export class LabiSession {
     this.#set({
       status: 'speaking',
       bubble: turn.heard.slice(from).join(' '),
+      bubbleByAi: true,
       guiding: false,
       messages,
     })

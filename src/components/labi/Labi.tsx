@@ -6,6 +6,7 @@ import type { LabiSession, LabiState } from '../../lib/labi/session'
 import { speechLevel } from '../../lib/labi/speech-player'
 import { STAGE_WIDTH } from '../../simulations/types'
 import { useStageFrame } from '../lab/stage-frame'
+import AiBadge from './AiBadge'
 import LabiChoices from './LabiChoices'
 import LabiFace, { type Expression } from './LabiFace'
 
@@ -463,11 +464,15 @@ export default function Labi({ state, session, locate, passive }: Props) {
                       aria-label="Tutup balon Labi"
                       className="line-clamp-4 text-left"
                     >
+                      {state.bubbleByAi && <AiBadge />}
                       {state.bubble}
                     </button>
                   ) : (
                     <>
-                      <p className="line-clamp-5">{state.bubble}</p>
+                      <p className="line-clamp-5">
+                        {state.bubbleByAi && <AiBadge />}
+                        {state.bubble}
+                      </p>
                       <button
                         type="button"
                         onClick={() => session.dismissBubble()}

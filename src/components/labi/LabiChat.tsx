@@ -8,6 +8,7 @@ import {
   type KeyboardEvent,
   type PointerEvent,
 } from 'react'
+import AiBadge from './AiBadge'
 import LabiChoices from './LabiChoices'
 import type { LabiSession, LabiState } from '../../lib/labi/session'
 
@@ -149,6 +150,7 @@ export default function LabiChat({ state, session, fill }: Props) {
                 : 'self-start rounded-bl-sm bg-primary-tint text-ink',
             )}
           >
+            {message.ai && <AiBadge />}
             {message.text}
           </p>
         ))}
@@ -231,7 +233,16 @@ export default function LabiChat({ state, session, fill }: Props) {
         )}
       >
         Labi itu AI, jadi bisa keliru. Suaramu diubah menjadi teks oleh
-        ElevenLabs dan tidak disimpan.
+        ElevenLabs dan tidak disimpan.{' '}
+        {/* A new tab: the lab keeps no data, so leaving it would lose the table. */}
+        <a
+          href="/tentang-ai"
+          target="_blank"
+          rel="noopener"
+          className="font-semibold text-primary underline-offset-2 hover:underline"
+        >
+          Cara Labi bekerja
+        </a>
       </p>
     </div>
   )
