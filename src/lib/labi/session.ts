@@ -4,6 +4,7 @@ import {
   type LabContext,
   type Mood,
 } from '../../../api/_lib/protocol'
+import type { GuideStep } from '../../data/types'
 import { openMicrophone, type Microphone } from './microphone'
 import { SpeechPlayer, unlockAudio } from './speech-player'
 import { isBackchannel, isLikelyEcho, words } from './speech-text'
@@ -23,6 +24,8 @@ export type LabiState = {
   target: string | null
   /** What the speech balloon says right now. */
   bubble: string | null
+  /** True while the balloon shows the next step on the bench. */
+  guiding: boolean
   /** Answers the student can pick in the balloon. */
   choices: string[]
   /** What the microphone is hearing, before the phrase is final. */
@@ -45,6 +48,8 @@ type Turn = {
 const UNAVAILABLE = 'Aku lagi tidak bisa menjawab. Coba lagi sebentar, ya.'
 /** How long the last sentence and the mood stay after Labi stops talking. */
 const LINGER_MS = 6000
+/** With a next step to show, Labi goes back to guiding sooner. */
+const GUIDE_AFTER_MS = 3500
 /** Least time between two reactions to what happens on the bench. */
 const EVENT_COOLDOWN_MS = 8000
 /** After Labi stops, its own voice may still come back through the microphone. */
@@ -64,6 +69,7 @@ export class LabiSession {
     mood: 'neutral',
     target: null,
     bubble: null,
+    guiding: false,
     choices: [],
     partial: '',
     mic: 'off',
@@ -78,6 +84,12 @@ export class LabiSession {
   #mic: Microphone | null = null
   #answer: string | null = null
   #linger: ReturnType<typeof setTimeout> | undefined
+  /** Whether the pending linger timer is to put the balloon away. */
+  #clearing = false
+  /** The next step on the bench; undefined until the lab reports one. */
+  #step: GuideStep | null | undefined
+  /** The student put this step's balloon away. */
+  #stepHidden = false
   #lastSpoken = ''
   #lastSpokenAt = -Infinity
   #lastEventAt = -Infinity
@@ -102,20 +114,52 @@ export class LabiSession {
     this.#set({
       messages: [{ id: this.#nextId++, role: 'assistant', text }],
       bubble: text,
+      guiding: false,
       mood: 'happy',
     })
     this.#settleLater()
   }
 
   /**
+   * The next step on the bench, written by us. Labi shows it whenever it has
+   * nothing else to say, so the student always knows what to do.
+   */
+  guide(step: GuideStep | null) {
+    const last = this.#step
+    if (
+      last !== undefined &&
+      last?.text === step?.text &&
+      last?.target === step?.target
+    ) {
+      return
+    }
+    this.#step = step
+    this.#stepHidden = false
+    // The first step waits for the greeting and the opening question.
+    if (last === undefined) return
+    if (step) this.#showGuide()
+    else if (this.#state.guiding) {
+      this.#set({ bubble: null, guiding: false, target: null })
+    }
+  }
+
+  /** The student asks for the next step again, e.g. by clicking Labi. */
+  nudge() {
+    this.#stepHidden = false
+    if (!this.#state.guiding) this.#showGuide()
+  }
+
+  /**
    * Labi asks a prepared question with answers to pick from. Skipped once the
-   * student has started talking: the conversation is theirs by then.
+   * student has started talking or working: the lab is theirs by then.
    */
   pose(question: string, choices: string[]) {
     const { messages, status, partial } = this.#state
     if (status !== 'idle' || partial) return
     if (messages.some((message) => message.role === 'user')) return
-    clearTimeout(this.#linger)
+    // Already at work on the bench: the next step matters more than a guess.
+    if (this.#state.guiding) return
+    this.#cancelLinger()
     this.#history.push({ role: 'assistant', text: question })
     this.#set({
       messages: [
@@ -123,6 +167,7 @@ export class LabiSession {
         { id: this.#nextId++, role: 'assistant', text: question },
       ],
       bubble: question,
+      guiding: false,
       choices,
       mood: 'curious',
       target: null,
@@ -131,7 +176,14 @@ export class LabiSession {
 
   /** Puts the balloon away; the words stay in the transcript. */
   dismissBubble() {
-    if (this.#state.bubble !== null) this.#set({ bubble: null })
+    if (this.#state.bubble === null) return
+    if (this.#state.guiding) {
+      this.#stepHidden = true
+      this.#set({ bubble: null, guiding: false, target: null })
+      return
+    }
+    this.#set({ bubble: null, choices: [] })
+    this.#showGuide()
   }
 
   /** The student says or types something. */
@@ -229,7 +281,26 @@ export class LabiSession {
   shutdown() {
     this.#interrupt()
     this.#closeMic()
+    this.#cancelLinger()
+  }
+
+  #cancelLinger() {
     clearTimeout(this.#linger)
+    this.#clearing = false
+  }
+
+  #showGuide() {
+    const step = this.#step
+    const { status, partial } = this.#state
+    if (!step || this.#stepHidden || status !== 'idle' || partial) return
+    this.#cancelLinger()
+    this.#set({
+      bubble: step.text,
+      guiding: true,
+      choices: [],
+      target: step.target ?? null,
+      mood: 'neutral',
+    })
   }
 
   #set(patch: Partial<LabiState>) {
@@ -271,19 +342,32 @@ export class LabiSession {
   /** Clears the balloon and the mood a while after Labi went quiet. */
   #settleLater(clearBubble = true) {
     clearTimeout(this.#linger)
-    this.#linger = setTimeout(() => {
-      if (this.#state.status !== 'idle') return
-      this.#set({
-        mood: 'neutral',
-        target: null,
-        ...(clearBubble ? { bubble: null } : {}),
-      })
-    }, LINGER_MS)
+    // A feeling shown meanwhile must not keep an older balloon open for good.
+    this.#clearing ||= clearBubble
+    const guideNext = this.#clearing && this.#step && !this.#stepHidden
+    this.#linger = setTimeout(
+      () => {
+        const clear = this.#clearing
+        this.#clearing = false
+        if (this.#state.status !== 'idle') return
+        if (this.#state.guiding) {
+          this.#set({ mood: 'neutral' })
+          return
+        }
+        this.#set({
+          mood: 'neutral',
+          target: null,
+          ...(clear ? { bubble: null, choices: [] } : {}),
+        })
+        if (clear) this.#showGuide()
+      },
+      guideNext ? GUIDE_AFTER_MS : LINGER_MS,
+    )
   }
 
   async #run(fallback?: string) {
     this.#interrupt()
-    clearTimeout(this.#linger)
+    this.#cancelLinger()
     const turn: Turn = {
       abort: new AbortController(),
       sentences: [],
@@ -295,7 +379,14 @@ export class LabiSession {
       }),
     }
     this.#turn = turn
-    this.#set({ status: 'thinking', choices: [], notice: null })
+    this.#set({
+      status: 'thinking',
+      choices: [],
+      notice: null,
+      ...(this.#state.guiding
+        ? { bubble: null, guiding: false, target: null }
+        : {}),
+    })
 
     try {
       if (!this.#context) throw new TurnError(UNAVAILABLE)
@@ -355,7 +446,15 @@ export class LabiSession {
       const at = messages.findIndex((m) => m.id === turn.messageId)
       if (at >= 0) messages[at] = { ...messages[at], text: spoken }
     }
-    this.#set({ status: 'speaking', bubble: text, messages })
+    // The balloon shows the sentence so far, not only its last clause.
+    let from = turn.heard.length - 1
+    while (from > 0 && !/[.!?…]["')\]]*$/.test(turn.heard[from - 1])) from--
+    this.#set({
+      status: 'speaking',
+      bubble: turn.heard.slice(from).join(' '),
+      guiding: false,
+      messages,
+    })
   }
 
   #onEnd(turn: Turn) {
@@ -373,6 +472,7 @@ export class LabiSession {
         status: 'idle',
         mood: 'happy',
         bubble: fallback,
+        guiding: false,
         messages: [
           ...this.#state.messages,
           { id: this.#nextId++, role: 'assistant', text: fallback },
@@ -383,6 +483,7 @@ export class LabiSession {
         status: 'idle',
         mood: 'sad',
         bubble: message,
+        guiding: false,
         notice: message,
       })
     }

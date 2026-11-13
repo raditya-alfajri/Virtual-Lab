@@ -9,6 +9,7 @@ type LabState = {
   columns: Column[]
   rows: Row[]
   latest: string | null
+  next: string | null
   predictionAnswer: string | null
 }
 
@@ -46,6 +47,7 @@ export function buildLabContext(exp: Experiment, state: LabState): LabContext {
       answer: state.predictionAnswer ?? undefined,
     },
     latest: state.latest ?? undefined,
+    next: state.next ?? undefined,
   }
 }
 

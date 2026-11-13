@@ -47,6 +47,11 @@ const POKE_FACES: Expression[] = [
 const POKE_MS = 2600
 /** How far the eyes move toward what Labi looks at, in drawing units. */
 const GAZE = 4
+/** With the pointer still this long, Labi looks at what it points out instead. */
+const POINTER_REST_MS = 1500
+/** Lean into a move, in degrees per pixel moved in a frame, and its limit. */
+const LEAN_PER_PX = 1.6
+const MAX_LEAN = 14
 const COMPACT_BELOW = 640
 
 const between = (min: number, max: number) => min + Math.random() * (max - min)
@@ -77,12 +82,27 @@ export default function Labi({ state, session, locate, passive }: Props) {
     moved: boolean
   } | null>(null)
   const dragged = useRef(false)
+  // Where on screen the pointed-out item is, for the eyes to turn to.
+  const lookAt = useRef<Point | null>(null)
 
   const size = clamp(STAGE_SIZE * frame.scale, MIN_SIZE, MAX_SIZE)
   const talking = state.status !== 'idle'
   const holding = state.bubble !== null
-  const pointing = state.target !== null
   const targetAt = state.target ? locate(state.target) : null
+  // Labi flies to what it talks about; a step of the guide it only points out,
+  // and it stays where the student put it.
+  const flying = targetAt !== null && !state.guiding && !placed
+  const pointing = flying
+  const marker =
+    state.guiding && targetAt
+      ? {
+          x: frame.left + targetAt.x * frame.scale,
+          y: frame.top + targetAt.y * frame.scale,
+        }
+      : null
+  useEffect(() => {
+    lookAt.current = marker
+  })
 
   // Drift to a new spot on the wall now and then; stay put while speaking or
   // pointing at something, and only sway while a balloon is open or after the
@@ -122,7 +142,7 @@ export default function Labi({ state, session, locate, passive }: Props) {
 
   // Beside the item it talks about, otherwise wherever it drifted or was put.
   const at =
-    targetAt && !dragging
+    flying && targetAt && !dragging
       ? {
           x: clamp(
             targetAt.x + (targetAt.x > STAGE_WIDTH / 2 ? -150 : 150),
@@ -152,31 +172,59 @@ export default function Labi({ state, session, locate, passive }: Props) {
     const root = rootRef.current
     if (!root) return
     let pointer: Point | null = null
+    let pointerAt = -Infinity
     const onMove = (event: PointerEvent) => {
       pointer = { x: event.clientX, y: event.clientY }
+      pointerAt = performance.now()
     }
     window.addEventListener('pointermove', onMove)
     let frameId = 0
     let level = 0
+    let lastX: number | null = null
+    const now = { turnX: 0, turnY: 0, lean: 0 }
+    const written: Record<string, string> = {}
+    // Styles are only touched when a value changes, so a resting Labi costs nothing.
+    const write = (name: string, value: string) => {
+      if (written[name] === value) return
+      written[name] = value
+      root.style.setProperty(name, value)
+    }
     const loop = () => {
       const target = speechLevel()
       level += (target - level) * (target > level ? 0.6 : 0.25)
-      root.style.setProperty('--labi-level', level.toFixed(3))
-      if (pointer) {
-        const box = root.getBoundingClientRect()
-        const dx = pointer.x - (box.left + box.width / 2)
-        const dy = pointer.y - (box.top + box.height / 2)
-        const reach = Math.hypot(dx, dy) || 1
-        const pull = Math.min(reach / 160, 1) * GAZE
-        root.style.setProperty(
-          '--labi-gaze-x',
-          `${((dx / reach) * pull).toFixed(2)}px`,
-        )
-        root.style.setProperty(
-          '--labi-gaze-y',
-          `${((dy / reach) * pull * 0.7).toFixed(2)}px`,
-        )
+      write('--labi-level', level.toFixed(2))
+
+      const box = root.getBoundingClientRect()
+      const centre = {
+        x: box.left + box.width / 2,
+        y: box.top + box.height / 2,
       }
+      const speed = lastX === null ? 0 : centre.x - lastX
+      lastX = centre.x
+
+      const resting = performance.now() - pointerAt > POINTER_REST_MS
+      const look = resting ? (lookAt.current ?? pointer) : pointer
+      let turnX = 0
+      let turnY = 0
+      if (look) {
+        const dx = look.x - centre.x
+        const dy = look.y - centre.y
+        const reach = Math.hypot(dx, dy) || 1
+        const pull = Math.min(reach / 160, 1)
+        turnX = (dx / reach) * pull
+        turnY = (dy / reach) * pull
+      }
+      // The head turns the way it flies, and leans into the move.
+      turnX = clamp(turnX + speed * 0.12, -1, 1)
+      now.turnX += (turnX - now.turnX) * 0.18
+      now.turnY += (turnY - now.turnY) * 0.18
+      now.lean +=
+        (clamp(speed * LEAN_PER_PX, -MAX_LEAN, MAX_LEAN) - now.lean) * 0.2
+      write('--labi-turn-x', now.turnX.toFixed(2))
+      write('--labi-turn-y', now.turnY.toFixed(2))
+      write('--labi-lean', `${now.lean.toFixed(1)}deg`)
+      write('--labi-gaze-x', `${(now.turnX * GAZE).toFixed(1)}px`)
+      write('--labi-gaze-y', `${(now.turnY * GAZE * 0.7).toFixed(1)}px`)
       frameId = requestAnimationFrame(loop)
     }
     frameId = requestAnimationFrame(loop)
@@ -225,6 +273,8 @@ export default function Labi({ state, session, locate, passive }: Props) {
       return
     }
     setPoke((last) => ({ count: last.count + 1, on: true }))
+    // A poke also asks: what do I do now?
+    session.nudge()
   }
   // A click always shows a face other than the one Labi already has.
   const own = expressionOf(state)
@@ -251,124 +301,155 @@ export default function Labi({ state, session, locate, passive }: Props) {
         : null
 
   return (
-    <motion.div
-      ref={rootRef}
-      className="labi absolute top-0 left-0 z-[1500]"
-      style={{
-        width: size,
-        height: size * 1.1,
-        marginLeft: -size / 2,
-        marginTop: -size / 2,
-      }}
-      initial={false}
-      animate={{ x, y }}
-      transition={
-        still
-          ? { duration: 0 }
-          : dragging
-            ? { type: 'spring', stiffness: 700, damping: 45, mass: 0.5 }
-            : { type: 'spring', stiffness: 38, damping: 11, mass: 1.1 }
-      }
-    >
-      <button
-        type="button"
-        onClick={onClick}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerEnd}
-        onPointerCancel={onPointerEnd}
-        aria-label="Labi. Klik untuk mengganti ekspresinya, tahan lalu geser untuk memindahkannya."
-        title="Klik aku, atau tahan lalu geser untuk memindahkanku"
-        className={clsx(
-          'labi-float group relative block size-full touch-none rounded-full select-none',
-          dragging ? 'cursor-grabbing' : 'cursor-grab',
-          'outline-offset-4 transition-transform hover:scale-105 active:scale-95',
-          passive ? 'pointer-events-none' : 'pointer-events-auto',
-        )}
-      >
-        <LabiFace
-          expression={expression}
-          speaking={state.status === 'speaking'}
-          className="size-full overflow-visible drop-shadow-md"
-        />
-        {listening && (
-          <span className="absolute -right-1 bottom-1 flex size-6 items-center justify-center rounded-full bg-rose-500 text-white shadow ring-2 ring-white">
-            <Mic size={13} />
-            <span className="absolute inset-0 animate-ping rounded-full bg-rose-400/60" />
-          </span>
-        )}
-      </button>
-
+    <>
       <AnimatePresence>
-        {(state.bubble || caption) && (
+        {marker && !dragging && (
           <motion.div
-            key="bubble"
-            initial={{ opacity: 0, scale: 0.85 }}
+            key={state.target}
+            aria-hidden
+            initial={{ opacity: 0, scale: 0.4 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.85 }}
-            transition={{ duration: 0.16 }}
-            className={clsx(
-              'absolute top-1 flex flex-col gap-1.5',
-              bubbleLeft
-                ? 'right-full mr-2 items-end'
-                : 'left-full ml-2 items-start',
-            )}
-            style={{
-              width: bubbleWidth,
-              transformOrigin: bubbleLeft ? 'right 30%' : 'left 30%',
-            }}
+            exit={{ opacity: 0, scale: 0.4 }}
+            transition={{ duration: 0.18 }}
+            className="pointer-events-none absolute top-0 left-0 z-[1400]"
+            style={{ x: marker.x - 14, y: Math.max(marker.y - 34, 4) }}
           >
-            {state.bubble && (
-              <div
-                aria-live="polite"
-                className={clsx(
-                  'max-w-full rounded-2xl border-2 border-ink bg-white leading-snug font-medium text-ink shadow-[0_3px_0_0_var(--color-ink)]',
-                  compact
-                    ? 'px-2.5 py-1.5 text-xs'
-                    : 'relative py-2.5 pr-8 pl-3.5 text-sm',
-                  bubbleLeft ? 'rounded-tr-sm' : 'rounded-tl-sm',
-                  passive ? 'pointer-events-none' : 'pointer-events-auto',
-                )}
-              >
-                {compact ? (
-                  // No room to spare: a tap puts the balloon away, the chat keeps the words.
-                  <button
-                    type="button"
-                    onClick={() => session.dismissBubble()}
-                    aria-label="Tutup balon Labi"
-                    className="line-clamp-4 text-left"
-                  >
-                    {state.bubble}
-                  </button>
-                ) : (
-                  <>
-                    <p className="line-clamp-5">{state.bubble}</p>
+            <svg
+              viewBox="0 0 28 30"
+              className="labi-point block h-[30px] w-7 drop-shadow"
+            >
+              <path
+                d="M4 4H24L14 26Z"
+                fill="#5EEBFF"
+                stroke="#2B2D42"
+                strokeWidth={3}
+                strokeLinejoin="round"
+              />
+            </svg>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <motion.div
+        ref={rootRef}
+        className="labi absolute top-0 left-0 z-[1500]"
+        style={{
+          width: size,
+          height: size * 1.1,
+          marginLeft: -size / 2,
+          marginTop: -size / 2,
+        }}
+        initial={false}
+        animate={{ x, y }}
+        transition={
+          still
+            ? { duration: 0 }
+            : dragging
+              ? { type: 'spring', stiffness: 700, damping: 45, mass: 0.5 }
+              : { type: 'spring', stiffness: 38, damping: 11, mass: 1.1 }
+        }
+      >
+        <button
+          type="button"
+          onClick={onClick}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerEnd}
+          onPointerCancel={onPointerEnd}
+          aria-label="Labi. Klik untuk melihat langkah berikutnya, tahan lalu geser untuk memindahkannya."
+          title="Klik aku untuk petunjuk, atau tahan lalu geser untuk memindahkanku"
+          className={clsx(
+            'labi-float group relative block size-full touch-none rounded-full select-none',
+            'outline-offset-4 transition-transform',
+            dragging
+              ? 'scale-110 cursor-grabbing'
+              : 'cursor-grab hover:scale-105 active:scale-95',
+            passive ? 'pointer-events-none' : 'pointer-events-auto',
+          )}
+        >
+          <LabiFace
+            expression={expression}
+            speaking={state.status === 'speaking'}
+            className="size-full overflow-visible drop-shadow-md"
+          />
+          {listening && (
+            <span className="absolute -right-1 bottom-1 flex size-6 items-center justify-center rounded-full bg-rose-500 text-white shadow ring-2 ring-white">
+              <Mic size={13} />
+              <span className="absolute inset-0 animate-ping rounded-full bg-rose-400/60" />
+            </span>
+          )}
+        </button>
+
+        <AnimatePresence>
+          {(state.bubble || caption) && (
+            <motion.div
+              key="bubble"
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.85 }}
+              transition={{ duration: 0.16 }}
+              className={clsx(
+                'absolute top-1 flex flex-col gap-1.5',
+                bubbleLeft
+                  ? 'right-full mr-2 items-end'
+                  : 'left-full ml-2 items-start',
+              )}
+              style={{
+                width: bubbleWidth,
+                transformOrigin: bubbleLeft ? 'right 30%' : 'left 30%',
+              }}
+            >
+              {state.bubble && (
+                <div
+                  aria-live="polite"
+                  className={clsx(
+                    'max-w-full rounded-2xl border-2 border-ink bg-white leading-snug font-medium text-ink shadow-[0_3px_0_0_var(--color-ink)]',
+                    compact
+                      ? 'px-2.5 py-1.5 text-xs'
+                      : 'relative py-2.5 pr-8 pl-3.5 text-sm',
+                    bubbleLeft ? 'rounded-tr-sm' : 'rounded-tl-sm',
+                    passive ? 'pointer-events-none' : 'pointer-events-auto',
+                  )}
+                >
+                  {compact ? (
+                    // No room to spare: a tap puts the balloon away, the chat keeps the words.
                     <button
                       type="button"
                       onClick={() => session.dismissBubble()}
                       aria-label="Tutup balon Labi"
-                      className="absolute top-1.5 right-1.5 rounded-md p-1 text-ink-muted hover:bg-primary-tint hover:text-ink"
+                      className="line-clamp-4 text-left"
                     >
-                      <X size={14} />
+                      {state.bubble}
                     </button>
-                  </>
-                )}
-                {!compact && (
-                  <LabiChoices
-                    choices={state.choices}
-                    onChoose={(choice) => session.choose(choice)}
-                  />
-                )}
-              </div>
-            )}
-            {caption && (
-              <p className="max-w-full rounded-full bg-ink/85 px-3 py-1 text-xs text-white italic">
-                {caption}
-              </p>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+                  ) : (
+                    <>
+                      <p className="line-clamp-5">{state.bubble}</p>
+                      <button
+                        type="button"
+                        onClick={() => session.dismissBubble()}
+                        aria-label="Tutup balon Labi"
+                        className="absolute top-1.5 right-1.5 rounded-md p-1 text-ink-muted hover:bg-primary-tint hover:text-ink"
+                      >
+                        <X size={14} />
+                      </button>
+                    </>
+                  )}
+                  {!compact && (
+                    <LabiChoices
+                      choices={state.choices}
+                      onChoose={(choice) => session.choose(choice)}
+                    />
+                  )}
+                </div>
+              )}
+              {caption && (
+                <p className="max-w-full rounded-full bg-ink/85 px-3 py-1 text-xs text-white italic">
+                  {caption}
+                </p>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </>
   )
 }

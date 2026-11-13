@@ -1,5 +1,13 @@
 import { SHELF } from '../../lib/engine'
-import type { Experiment, ItemDef, ItemView, Result, World } from '../types'
+import type {
+  Experiment,
+  GuideStep,
+  ItemDef,
+  ItemView,
+  Result,
+  Row,
+  World,
+} from '../types'
 import {
   bool,
   fmt,
@@ -101,6 +109,56 @@ function stopBob(world: World, bob: string): Result {
   return bool(world, bob, 'swinging')
     ? ok(update(stopCounting(world), bob, STILL_BOB))
     : reject('Tarik bandul ke samping, lalu lepaskan agar berayun.')
+}
+
+function guide(world: World, rows: Row[]): GuideStep | null {
+  const string = clampedString(world)
+  if (!string) {
+    return {
+      text: 'Gantung satu tali di penjepit statif.',
+      target: 'string-40',
+    }
+  }
+  const bob = bobOn(world, string)
+  if (!bob) {
+    const spare = BOBS.find((b) => !isString(world.items[b.id].at))
+    return { text: 'Pasang bandul di ujung tali.', target: spare?.id }
+  }
+  if (world.items[STOPWATCH].at !== STAND) {
+    return { text: 'Seret stopwatch ke statif.', target: STOPWATCH }
+  }
+  const recorded = rows.some(
+    (row) => row.panjang === lengthOf(string) && row.massa === massOf(bob),
+  )
+  if (!bool(world, bob, 'swinging')) {
+    return recorded
+      ? {
+          text: 'Sudah tercatat. Ganti tali atau bandulnya, lalu ayunkan lagi.',
+          target: string,
+        }
+      : {
+          text: 'Tarik bandul ke samping, paling jauh 15°, lalu lepaskan.',
+          target: bob,
+        }
+  }
+  if (bool(world, STOPWATCH, 'counting')) {
+    return { text: 'Tunggu sampai 10 ayunan selesai dihitung.' }
+  }
+  if (recorded) {
+    return {
+      text: 'Tercatat! Ketuk bandul untuk menghentikannya, lalu ganti tali atau bandul.',
+      target: bob,
+    }
+  }
+  return num(world, STOPWATCH, 'elapsed') > 0
+    ? {
+        text: 'Ketuk stopwatch untuk menge-nol-kan, lalu ketuk lagi untuk mulai.',
+        target: STOPWATCH,
+      }
+    : {
+        text: 'Ketuk stopwatch untuk menghitung 10 ayunan.',
+        target: STOPWATCH,
+      }
 }
 
 const REASON =
@@ -284,6 +342,7 @@ export const simplePendulum: Experiment = {
     }
     return view
   },
+  guide,
 
   columns: [
     { key: 'panjang', label: 'Panjang tali L (m)' },

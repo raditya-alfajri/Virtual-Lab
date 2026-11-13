@@ -86,10 +86,17 @@ export default function LabiFace({ expression, speaking, className }: Props) {
       aria-label="Labi, asisten lab"
     >
       <defs>
-        <linearGradient id="labi-shell" x1="0" y1="0" x2="0" y2="1">
+        {/* Lit from the upper left, so the shell reads as a ball, not a disc. */}
+        <radialGradient id="labi-shell" cx="0.36" cy="0.24" r="0.95">
           <stop offset="0" stopColor="#FFFFFF" />
-          <stop offset="1" stopColor="#C7CEE0" />
-        </linearGradient>
+          <stop offset="0.5" stopColor="#EEF1F8" />
+          <stop offset="1" stopColor="#A9B3CC" />
+        </radialGradient>
+        <radialGradient id="labi-visor" cx="0.35" cy="0.2" r="1">
+          <stop offset="0" stopColor="#2E3655" />
+          <stop offset="0.6" stopColor="#161A2B" />
+          <stop offset="1" stopColor="#0C0F1C" />
+        </radialGradient>
         <radialGradient id="labi-jet" cx="0.5" cy="0" r="1">
           <stop offset="0" stopColor={GLOW} stopOpacity="0.9" />
           <stop offset="1" stopColor={GLOW} stopOpacity="0" />
@@ -103,112 +110,121 @@ export default function LabiFace({ expression, speaking, className }: Props) {
         className="labi-jet"
       />
 
-      <g
-        className="labi-head"
-        style={{ transform: `rotate(${TILT[expression] ?? 0}deg)` }}
-      >
-        {/* Antenna */}
-        <path
-          d="M60 22V10"
-          stroke={INK}
-          strokeWidth={3}
-          strokeLinecap="round"
-        />
-        <circle
-          cx={60}
-          cy={8}
-          r={5.5}
-          fill={GLOW}
-          stroke={INK}
-          strokeWidth={2.5}
-          className="labi-antenna"
-        />
-
-        {/* Ears */}
-        <rect
-          x={5}
-          y={54}
-          width={12}
-          height={24}
-          rx={5}
-          fill="#8D96B3"
-          stroke={INK}
-          strokeWidth={2.5}
-        />
-        <rect
-          x={103}
-          y={54}
-          width={12}
-          height={24}
-          rx={5}
-          fill="#8D96B3"
-          stroke={INK}
-          strokeWidth={2.5}
-        />
-
-        {/* Shell */}
-        <path
-          d="M14 70C14 39 34 20 60 20C86 20 106 39 106 70V84C106 96 96 105 84 105H36C24 105 14 96 14 84Z"
-          fill="url(#labi-shell)"
-          stroke={INK}
-          strokeWidth={3}
-        />
-        <path
-          d="M27 46C32 35 41 29 52 27"
-          fill="none"
-          stroke="#FFFFFF"
-          strokeWidth={5}
-          strokeLinecap="round"
-          opacity={0.9}
-        />
-        <circle cx={25} cy={93} r={5} fill="#FF9DB5" opacity={0.75} />
-        <circle cx={95} cy={93} r={5} fill="#FF9DB5" opacity={0.75} />
-
-        {/* Visor */}
-        <rect
-          x={23}
-          y={42}
-          width={74}
-          height={46}
-          rx={21}
-          fill="#161A2B"
-          stroke={INK}
-          strokeWidth={3}
-        />
-        <path
-          d="M34 50C40 46 48 45 56 45"
-          fill="none"
-          stroke="#FFFFFF"
-          strokeWidth={2.5}
-          strokeLinecap="round"
-          opacity={0.25}
-        />
-
-        <g className="labi-glow">
-          <g className="labi-gaze">
-            <g key={expression} className="labi-eyes">
-              <g transform={`translate(${LEFT_EYE} ${EYE_Y})`}>{eye(-1)}</g>
-              <g transform={`translate(${RIGHT_EYE} ${EYE_Y})`}>{eye(1)}</g>
-            </g>
-            {speaking && (
-              <rect
-                x={54}
-                y={78.5}
-                width={12}
-                height={3}
-                rx={1.5}
-                fill={GLOW}
-                className="labi-mouth"
-              />
-            )}
-          </g>
-          {expression === 'sad' && (
+      <g className="labi-lean">
+        <g
+          className="labi-head"
+          style={{ transform: `rotate(${TILT[expression] ?? 0}deg)` }}
+        >
+          {/* What sits behind the shell slides the other way as the head turns. */}
+          <g className="labi-back">
+            {/* Antenna */}
             <path
-              d="M86 74C86 74 82 80 86 82C90 80 86 74 86 74Z"
-              fill="#9BE7FF"
-              className="labi-tear"
+              d="M60 22V10"
+              stroke={INK}
+              strokeWidth={3}
+              strokeLinecap="round"
             />
-          )}
+            <circle
+              cx={60}
+              cy={8}
+              r={5.5}
+              fill={GLOW}
+              stroke={INK}
+              strokeWidth={2.5}
+              className="labi-antenna"
+            />
+
+            {/* Ears */}
+            <rect
+              x={5}
+              y={54}
+              width={12}
+              height={24}
+              rx={5}
+              fill="#8D96B3"
+              stroke={INK}
+              strokeWidth={2.5}
+            />
+            <rect
+              x={103}
+              y={54}
+              width={12}
+              height={24}
+              rx={5}
+              fill="#8D96B3"
+              stroke={INK}
+              strokeWidth={2.5}
+            />
+          </g>
+
+          {/* Shell */}
+          <path
+            d="M14 70C14 39 34 20 60 20C86 20 106 39 106 70V84C106 96 96 105 84 105H36C24 105 14 96 14 84Z"
+            fill="url(#labi-shell)"
+            stroke={INK}
+            strokeWidth={3}
+          />
+          <path
+            d="M27 46C32 35 41 29 52 27"
+            fill="none"
+            stroke="#FFFFFF"
+            strokeWidth={5}
+            strokeLinecap="round"
+            opacity={0.9}
+            className="labi-shine"
+          />
+          {/* The face slides over the shell toward where Labi looks. */}
+          <g className="labi-front">
+            <circle cx={25} cy={93} r={5} fill="#FF9DB5" opacity={0.75} />
+            <circle cx={95} cy={93} r={5} fill="#FF9DB5" opacity={0.75} />
+
+            {/* Visor */}
+            <rect
+              x={23}
+              y={42}
+              width={74}
+              height={46}
+              rx={21}
+              fill="url(#labi-visor)"
+              stroke={INK}
+              strokeWidth={3}
+            />
+            <path
+              d="M34 50C40 46 48 45 56 45"
+              fill="none"
+              stroke="#FFFFFF"
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              opacity={0.25}
+            />
+
+            <g className="labi-glow">
+              <g className="labi-gaze">
+                <g key={expression} className="labi-eyes">
+                  <g transform={`translate(${LEFT_EYE} ${EYE_Y})`}>{eye(-1)}</g>
+                  <g transform={`translate(${RIGHT_EYE} ${EYE_Y})`}>{eye(1)}</g>
+                </g>
+                {speaking && (
+                  <rect
+                    x={54}
+                    y={78.5}
+                    width={12}
+                    height={3}
+                    rx={1.5}
+                    fill={GLOW}
+                    className="labi-mouth"
+                  />
+                )}
+              </g>
+              {expression === 'sad' && (
+                <path
+                  d="M86 74C86 74 82 80 86 82C90 80 86 74 86 74Z"
+                  fill="#9BE7FF"
+                  className="labi-tear"
+                />
+              )}
+            </g>
+          </g>
         </g>
       </g>
     </svg>

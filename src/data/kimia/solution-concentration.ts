@@ -1,5 +1,6 @@
 import type {
   Experiment,
+  GuideStep,
   Interaction,
   ItemState,
   ItemView,
@@ -311,6 +312,57 @@ const interactions: Interaction[] = [
   },
 ]
 
+function guide(world: World): GuideStep | null {
+  const b = readBeaker(world)
+  const glass = world.items[WATCH_GLASS]
+  const inCylinder = Number(world.items.cylinder.state.volume) > 0
+  const water: GuideStep = inCylinder
+    ? { text: 'Tuang air di gelas ukur ke gelas kimia.', target: 'cylinder' }
+    : { text: 'Isi gelas ukur dengan air suling.', target: 'water' }
+
+  if (!b.mass) {
+    if (Number(glass.state.mass) > 0) {
+      return {
+        text: 'Tambah CuSO₄ kalau mau, lalu tuang kaca arloji ke gelas kimia.',
+        target: WATCH_GLASS,
+      }
+    }
+    if (glass.at !== BALANCE) {
+      return { text: 'Taruh kaca arloji di atas neraca.', target: WATCH_GLASS }
+    }
+    const loaded = ['spoon-small', 'spoon-large'].find(
+      (id) => Number(world.items[id].state.load) > 0,
+    )
+    return loaded
+      ? { text: 'Tuang isi sendok ke kaca arloji.', target: loaded }
+      : {
+          text: 'Ambil CuSO₄ dari wadahnya dengan sendok.',
+          target: 'spoon-large',
+        }
+  }
+  if (!b.volume) return water
+  if (isDissolved(b)) {
+    return b.volume + POUR_VOLUME <= MAX_VOLUME
+      ? {
+          ...water,
+          text: inCylinder
+            ? water.text
+            : 'Sekarang encerkan: isi gelas ukur dengan air suling.',
+        }
+      : { text: 'Gelas kimia sudah penuh. Buka Tabel dan bandingkan datamu.' }
+  }
+  if (world.items.stirrer.at !== BEAKER) {
+    return {
+      text: 'Masukkan batang pengaduk ke gelas kimia.',
+      target: 'stirrer',
+    }
+  }
+  return {
+    text: `Ketuk pengaduk untuk mengaduk, ${DISSOLVE_STIRS - b.stirs} kali lagi.`,
+    target: 'stirrer',
+  }
+}
+
 function spoonView(state: ItemState): ItemView {
   const load = Number(state.load)
   return {
@@ -423,6 +475,7 @@ export const solutionConcentration: Experiment = {
   use: {
     stirrer: (world) => stir(world),
   },
+  guide,
 
   view: (world) => {
     const glass = world.items[WATCH_GLASS]

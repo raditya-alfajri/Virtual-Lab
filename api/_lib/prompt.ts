@@ -44,6 +44,8 @@ function describe(context: LabContext): string {
     prediction &&
       `Pertanyaan tebakan: ${prediction.question}\nTebakan siswa: ${prediction.answer ?? '(belum menjawab)'}`,
     context.latest && `Penjelasan terakhir di layar: ${context.latest}`,
+    context.next &&
+      `Langkah berikutnya menurut panduan praktikum: ${context.next} Kalau siswa bingung harus apa, arahkan ke langkah ini.`,
   ]
     .filter(Boolean)
     .join('\n\n')

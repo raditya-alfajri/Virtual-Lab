@@ -30,6 +30,8 @@ export type LabContext = {
   prediction?: { question: string; answer?: string }
   /** The latest result explanation or tip shown to the student. */
   latest?: string
+  /** The next step on the bench, as the app's own guide words it. */
+  next?: string
 }
 
 export type TurnRequest = {

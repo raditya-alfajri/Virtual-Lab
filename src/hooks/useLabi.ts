@@ -26,6 +26,7 @@ export function useLabi(experiment: Experiment, lab: Lab) {
         latest: lab.explanation
           ? `${lab.explanation.result} ${lab.explanation.reason}`
           : lab.hint,
+        next: experiment.guide?.(lab.world, lab.rows)?.text ?? null,
         predictionAnswer,
       }),
     )
@@ -50,6 +51,8 @@ export function useLabi(experiment: Experiment, lab: Lab) {
     const { experiment: exp, lab: now } = latest.current
     for (const event of events) {
       if (event.type === 'rejected') {
+        // That did not work: show the step that does.
+        session.nudge()
         session.react('confused')
         return
       }
@@ -69,6 +72,13 @@ export function useLabi(experiment: Experiment, lab: Lab) {
       }
     }
   }, [events, session])
+
+  // After the events above, so a reaction to a new result comes before the
+  // next step.
+  const { world, rows } = lab
+  useEffect(() => {
+    if (experiment.guide) session.guide(experiment.guide(world, rows))
+  }, [session, experiment, world, rows])
 
   return { state, session }
 }

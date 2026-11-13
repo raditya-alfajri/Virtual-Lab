@@ -1,9 +1,11 @@
 import type {
   Experiment,
   Explanation,
+  GuideStep,
   ItemState,
   ItemView,
   LabEvent,
+  Row,
   World,
 } from '../types'
 
@@ -167,6 +169,63 @@ function pipetteView(state: ItemState): ItemView {
     label: solution?.name ?? 'Kosong',
     color: solution?.color,
     level: solution ? 1 : 0,
+  }
+}
+
+function guide(world: World, rows: Row[]): GuideStep | null {
+  const tested = (name: string) => rows.some((row) => row.larutan === name)
+  const tubes = TUBE_IDS.map((id) => ({ id, ...world.items[id] }))
+  const isEmpty = (state: ItemState) => !state.solution && !state.indicator
+
+  // A tube that is under way comes first.
+  for (const { id, state } of tubes) {
+    const solution = solutionOf(state)
+    if (solution && tested(solution.name)) continue
+    if (solution && state.indicator) {
+      return Number(state.progress) < 1
+        ? { text: 'Tunggu sampai warnanya berhenti berubah.', target: id }
+        : {
+            text: 'Seret tabung ini ke kartu skala pH, lalu cocokkan warnanya.',
+            target: id,
+          }
+    }
+    if (solution) {
+      return {
+        text: `Teteskan indikator universal ke tabung berisi ${solution.inline}.`,
+        target: 'indicator',
+      }
+    }
+    if (state.indicator) {
+      return { text: 'Isi tabung ini dengan satu larutan.', target: id }
+    }
+  }
+
+  const next = Object.keys(SOLUTIONS).find(
+    (key) => !tested(SOLUTIONS[key].name),
+  )
+  if (!next) {
+    return {
+      text: 'Kelima larutan sudah diuji! Buka Tabel, mana yang paling asam?',
+    }
+  }
+  if (solutionOf(world.items.pipette.state)) {
+    return { text: 'Teteskan isi pipet ke tabung kosong.', target: 'pipette' }
+  }
+  if (
+    tubes.some((tube) => tube.at.startsWith('rack-') && isEmpty(tube.state))
+  ) {
+    return {
+      text: `Tuang ${SOLUTIONS[next].inline} ke tabung kosong.`,
+      target: `bottle-${next}`,
+    }
+  }
+  const spare = tubes.find((tube) => isEmpty(tube.state))
+  if (spare) {
+    return { text: 'Taruh satu tabung reaksi di rak tabung.', target: spare.id }
+  }
+  return {
+    text: 'Kosongkan tabung yang sudah diuji di wastafel supaya bisa dipakai lagi.',
+    target: tubes[0].id,
   }
 }
 
@@ -388,6 +447,7 @@ export const acidBaseTest: Experiment = {
     out.pipette = pipetteView(world.items.pipette.state)
     return out
   },
+  guide,
 
   columns: [
     { key: 'larutan', label: 'Larutan' },

@@ -12,6 +12,7 @@ describe('buildLabContext', () => {
     columns: newtonLaw.columns,
     rows: [{ gaya: 4, massa: 0.5, waktu: 0.5, percepatan: 8, kecepatan: 16 }],
     latest: null,
+    next: null,
     predictionAnswer: 'Setengahnya',
   })
 

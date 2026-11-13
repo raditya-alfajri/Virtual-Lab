@@ -1,5 +1,13 @@
 import { SHELF } from '../../lib/engine'
-import type { Experiment, ItemDef, ItemView, Result, World } from '../types'
+import type {
+  Experiment,
+  GuideStep,
+  ItemDef,
+  ItemView,
+  Result,
+  Row,
+  World,
+} from '../types'
 import {
   bool,
   fmt,
@@ -112,6 +120,42 @@ function launch(world: World): Result {
       mass: totalMass(world),
     }),
   )
+}
+
+function guide(world: World, rows: Row[]): GuideStep | null {
+  const at = world.items[CART].at
+  if (at === TRACK) {
+    if (bool(world, CART, 'running')) return null
+    return rows.length >= 3
+      ? {
+          text: 'Datamu sudah banyak. Buka Tabel, lalu bandingkan gaya dan percepatannya.',
+        }
+      : {
+          text: 'Seret troli kembali ke titik start untuk percobaan berikutnya.',
+          target: CART,
+        }
+  }
+  if (at !== START) {
+    return { text: 'Seret troli ke titik start di lintasan.', target: CART }
+  }
+  const force = cartForce(world)
+  if (force === 0) {
+    return {
+      text: 'Pasang satu kipas di troli sebagai gaya dorongnya.',
+      target: FANS.find((f) => world.items[f.id].at === SHELF)?.id,
+    }
+  }
+  if (world.items[SENSOR].at !== SENSOR_ZONE) {
+    return { text: 'Pasang sensor gerak di titik 1 m.', target: SENSOR }
+  }
+  const mass = totalMass(world)
+  if (rows.some((row) => row.gaya === force && row.massa === mass)) {
+    return {
+      text: 'Susunan ini sudah tercatat. Tambah beban atau ganti kipasnya dulu.',
+      target: WEIGHTS.find((x) => world.items[x.id].at === SHELF)?.id,
+    }
+  }
+  return { text: 'Siap! Ketuk troli untuk melepasnya.', target: CART }
 }
 
 const items: ItemDef[] = [
@@ -269,6 +313,7 @@ export const newtonLaw: Experiment = {
     }
     return view
   },
+  guide,
 
   columns: [
     { key: 'gaya', label: 'Gaya F (N)' },

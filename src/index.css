@@ -23,6 +23,40 @@ body {
   --labi-level: 0;
   --labi-gaze-x: 0px;
   --labi-gaze-y: 0px;
+  --labi-turn-x: 0;
+  --labi-turn-y: 0;
+  --labi-lean: 0deg;
+}
+/* The head turning: layers at different depths slide by different amounts. */
+.labi-lean {
+  transform-origin: 60px 70px;
+  transform: rotate(var(--labi-lean));
+}
+.labi-back {
+  transform: translate(
+    calc(var(--labi-turn-x) * -4px),
+    calc(var(--labi-turn-y) * -2.5px)
+  );
+}
+.labi-front {
+  transform: translate(
+    calc(var(--labi-turn-x) * 5px),
+    calc(var(--labi-turn-y) * 3.5px)
+  );
+}
+.labi-shine {
+  transform: translate(
+    calc(var(--labi-turn-x) * -2.5px),
+    calc(var(--labi-turn-y) * -1.5px)
+  );
+}
+.labi-point {
+  animation: labi-point 0.9s ease-in-out infinite;
+}
+@keyframes labi-point {
+  50% {
+    transform: translateY(-7px);
+  }
 }
 .labi-float {
   animation: labi-float 3.2s ease-in-out infinite;
@@ -124,6 +158,7 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .labi-float,
+  .labi-point,
   .labi-eyes,
   .labi-jet,
   .labi-antenna {

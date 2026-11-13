@@ -2,6 +2,7 @@ import { SHELF } from '../../lib/engine'
 import type {
   Experiment,
   Explanation,
+  GuideStep,
   Interaction,
   ItemState,
   ItemView,
@@ -317,6 +318,59 @@ const use: Experiment['use'] = {
   },
 }
 
+function guide(world: World, rows: Row[]): GuideStep | null {
+  const flask = readFlask(world)
+  const at = world.items[FLASK].at
+  if (isReacting(flask)) {
+    return { text: 'Perhatikan tanda silang di bawah labu sampai hilang.' }
+  }
+  if (flask.hcl) {
+    return {
+      text: 'Ketuk labu untuk membersihkannya, lalu coba suhu atau konsentrasi lain.',
+      target: FLASK,
+    }
+  }
+  if (!flask.conc) {
+    return { text: 'Tuang Na₂S₂O₃ ke dalam labu.', target: 'thio-020' }
+  }
+  if (world.items.thermometer.at !== FLASK) {
+    return { text: 'Pasang termometer di labu.', target: 'thermometer' }
+  }
+  const heaterOn = world.items[BATH].state.on === true
+  const recorded = rows.some(
+    (row) =>
+      row.suhu === Math.round(flask.temp) &&
+      row.konsentrasi === formatConc(flask.conc),
+  )
+  if (recorded) {
+    if (at !== BATH) {
+      return {
+        text: 'Suhu ini sudah tercatat. Taruh labu di penangas air untuk memanaskannya.',
+        target: FLASK,
+      }
+    }
+    return heaterOn
+      ? { text: 'Tunggu suhunya naik dulu.', target: 'thermometer' }
+      : { text: 'Ketuk penangas air untuk menyalakan pemanas.', target: BATH }
+  }
+  if (at !== PAPER) {
+    return {
+      text:
+        at === BATH && heaterOn
+          ? 'Kalau suhunya sudah cukup, pindahkan labu ke kertas silang.'
+          : 'Pindahkan labu ke atas kertas silang.',
+      target: FLASK,
+    }
+  }
+  if (world.items.stopwatch.state.running !== true) {
+    return {
+      text: 'Ketuk stopwatch untuk menjalankannya.',
+      target: 'stopwatch',
+    }
+  }
+  return { text: 'Sekarang tuang HCl ke labu!', target: 'hcl' }
+}
+
 function flaskView(flask: Flask): ItemView {
   if (!flask.conc) return { label: 'Kosong', level: 0 }
   const reacting = isReacting(flask)
@@ -407,6 +461,7 @@ export const reactionRate: Experiment = {
   interactions,
   use,
   tick,
+  guide,
 
   view: (world) => {
     const flask = readFlask(world)
