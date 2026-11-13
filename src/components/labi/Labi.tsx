@@ -1,12 +1,13 @@
 import clsx from 'clsx'
 import { Mic, X } from 'lucide-react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { LabiSession, LabiState } from '../../lib/labi/session'
 import { speechLevel } from '../../lib/labi/speech-player'
-import { STAGE_WIDTH } from '../../simulations/types'
+import { STAGE_WIDTH, type Rect } from '../../simulations/types'
 import { useStageFrame } from '../lab/stage-frame'
 import AiBadge from './AiBadge'
+import { cornerBox, pickBubblePlace, pickCorner, type Room } from './corner'
 import LabiChoices from './LabiChoices'
 import LabiFace, { type Expression } from './LabiFace'
 
@@ -19,6 +20,14 @@ type Props = {
   locate: (itemId: string) => Point | null
   /** True while something is dragged: Labi must not catch the pointer. */
   passive: boolean
+  /** On a phone Labi waits small in a free corner and folds its balloon away. */
+  phone: boolean
+  /** Room kept free at the top on a phone, for what floats there. */
+  topClear?: number
+  /** What Labi keeps clear of on a phone, in stage coordinates. */
+  obstacles: Rect[]
+  /** Opens the chat, to answer Labi's question in one's own words. */
+  onAnswerYourself: () => void
 }
 
 /** The wall above the bench, in stage coordinates: where Labi drifts about. */
@@ -53,7 +62,11 @@ const POINTER_REST_MS = 1500
 /** Lean into a move, in degrees per pixel moved in a frame, and its limit. */
 const LEAN_PER_PX = 1.6
 const MAX_LEAN = 14
-const COMPACT_BELOW = 640
+/** Labi's size on a phone, and what it keeps clear of along the room's edges. */
+const PHONE_SIZE = 56
+const PHONE_EDGES = { top: 8, side: 8, bottom: 60 }
+/** On a phone a balloon folds into a dot after this long, unless it asks something. */
+const FOLD_MS = 5000
 
 const between = (min: number, max: number) => min + Math.random() * (max - min)
 /**
@@ -75,7 +88,16 @@ function expressionOf(state: LabiState): Expression {
 }
 
 /** Labi hovering in the room: it drifts about, flies to what it talks about, and speaks in a balloon. */
-export default function Labi({ state, session, locate, passive }: Props) {
+export default function Labi({
+  state,
+  session,
+  locate,
+  passive,
+  phone,
+  topClear = PHONE_EDGES.top,
+  obstacles,
+  onAnswerYourself,
+}: Props) {
   const frame = useStageFrame()
   const still = useReducedMotion()
   const rootRef = useRef<HTMLDivElement>(null)
@@ -92,14 +114,29 @@ export default function Labi({ state, session, locate, passive }: Props) {
   const dragged = useRef(false)
   // Where on screen the pointed-out item is, for the eyes to turn to.
   const lookAt = useRef<Point | null>(null)
+  // The balloon the student folded away, or that folded by itself, on a phone.
+  const [foldedFor, setFoldedFor] = useState<string | null>(null)
+  const [bubbleHeight, setBubbleHeight] = useState(0)
+  const measureBubble = useCallback((node: HTMLDivElement | null) => {
+    if (!node) return
+    const observer = new ResizeObserver(([entry]) =>
+      setBubbleHeight(entry.contentRect.height),
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
 
-  const size = clamp(STAGE_SIZE * frame.scale, MIN_SIZE, MAX_SIZE)
+  const size = phone
+    ? PHONE_SIZE
+    : clamp(STAGE_SIZE * frame.scale, MIN_SIZE, MAX_SIZE)
   const talking = state.status !== 'idle'
   const holding = state.bubble !== null
+  const asking = state.choices.length > 0
+  const folded = phone && state.bubble !== null && foldedFor === state.bubble
   const targetAt = state.target ? locate(state.target) : null
   // Labi flies to what it talks about; a step of the guide it only points out,
-  // and it stays where the student put it.
-  const flying = targetAt !== null && !state.guiding && !placed
+  // and it stays where the student put it. On a phone it stays in its corner.
+  const flying = !phone && targetAt !== null && !state.guiding && !placed
   const pointing = flying
   const markerAt =
     state.guiding && targetAt
@@ -139,7 +176,7 @@ export default function Labi({ state, session, locate, passive }: Props) {
   // pointing at something, and only sway while a balloon is open or after the
   // student chose the spot.
   useEffect(() => {
-    if (talking || pointing || still || dragging) return
+    if (phone || talking || pointing || still || dragging) return
     const [min, max] = holding || placed ? SWAY_MS : WANDER_MS
     const timer = setTimeout(
       () =>
@@ -160,6 +197,7 @@ export default function Labi({ state, session, locate, passive }: Props) {
     )
     return () => clearTimeout(timer)
   }, [
+    phone,
     talking,
     pointing,
     holding,
@@ -172,6 +210,14 @@ export default function Labi({ state, session, locate, passive }: Props) {
     roamY0,
     roamY1,
   ])
+
+  // On a phone the balloon folds into a dot after a while, unless it asks something.
+  const bubble = state.bubble
+  useEffect(() => {
+    if (!phone || bubble === null || folded || asking) return
+    const timer = setTimeout(() => setFoldedFor(bubble), FOLD_MS)
+    return () => clearTimeout(timer)
+  }, [phone, bubble, folded, asking])
 
   // The face a click chose goes back to Labi's own after a moment.
   useEffect(() => {
@@ -202,16 +248,38 @@ export default function Labi({ state, session, locate, passive }: Props) {
               ? Math.min(spot.y, Math.max(BALLOON_Y, roamY0))
               : spot.y,
         }
-  const x = clamp(
-    frame.left + at.x * frame.scale,
-    size / 2 + 8,
-    Math.max(frame.width - size / 2 - 8, size / 2 + 8),
-  )
-  const y = clamp(
-    frame.top + at.y * frame.scale,
-    size / 2 + 56,
-    Math.max(frame.height - size / 2 - 72, size / 2 + 56),
-  )
+  // On a phone: the corner that leaves the most of the bench in view.
+  const room: Room = {
+    width: frame.width,
+    height: frame.height,
+    ...PHONE_EDGES,
+    top: topClear,
+  }
+  const box = { w: size, h: size * 1.1 }
+  const onScreen = phone
+    ? obstacles.map((rect) => ({
+        x: frame.left + rect.x * frame.scale,
+        y: frame.top + rect.y * frame.scale,
+        w: rect.w * frame.scale,
+        h: rect.h * frame.scale,
+      }))
+    : []
+  const corner = phone ? pickCorner(room, box, onScreen) : null
+  const cornerAt = corner && cornerBox(corner, room, box)
+  const x = cornerAt
+    ? cornerAt.x + size / 2
+    : clamp(
+        frame.left + at.x * frame.scale,
+        size / 2 + 8,
+        Math.max(frame.width - size / 2 - 8, size / 2 + 8),
+      )
+  const y = cornerAt
+    ? cornerAt.y + size / 2
+    : clamp(
+        frame.top + at.y * frame.scale,
+        size / 2 + 56,
+        Math.max(frame.height - size / 2 - 72, size / 2 + 56),
+      )
 
   // Eyes follow the pointer and the glow follows the voice, without re-rendering.
   useEffect(() => {
@@ -312,15 +380,23 @@ export default function Labi({ state, session, locate, passive }: Props) {
     grab.current = null
     setDragging(false)
   }
+  const pokeLabi = () => {
+    setPoke((last) => ({ count: last.count + 1, on: true }))
+    // A poke also asks: what do I do now?
+    session.nudge()
+  }
   const onClick = () => {
     // The click that ends a drag is not a poke.
     if (dragged.current) {
       dragged.current = false
       return
     }
-    setPoke((last) => ({ count: last.count + 1, on: true }))
-    // A poke also asks: what do I do now?
-    session.nudge()
+    pokeLabi()
+  }
+  // On a phone a tap opens a folded balloon, folds an open one, or else pokes.
+  const onTap = () => {
+    if (state.bubble === null) pokeLabi()
+    else setFoldedFor(folded ? null : state.bubble)
   }
   // A click always shows a face other than the one Labi already has.
   const own = expressionOf(state)
@@ -331,13 +407,24 @@ export default function Labi({ state, session, locate, passive }: Props) {
       : own
 
   const bubbleLeft = x > frame.width / 2
-  const bubbleWidth = clamp(
-    (bubbleLeft ? x : frame.width - x) - size / 2 - 20,
-    120,
-    260,
-  )
-  // A small room (a phone): the balloon stays short, the chat below has the rest.
-  const compact = frame.width < COMPACT_BELOW
+  const bubbleUp = corner?.startsWith('bottom') ?? false
+  const bubbleWidth = phone
+    ? Math.max(
+        Math.min(frame.width * 0.7, frame.width - size - PHONE_EDGES.side * 3),
+        120,
+      )
+    : clamp((bubbleLeft ? x : frame.width - x) - size / 2 - 20, 120, 260)
+  // On a phone the balloon goes beside Labi, or above or below it, wherever it hides less.
+  const stacked =
+    corner !== null &&
+    cornerAt !== null &&
+    pickBubblePlace(
+      corner,
+      cornerAt,
+      { w: bubbleWidth, h: bubbleHeight },
+      room,
+      onScreen,
+    ) === 'stacked'
   const listening = state.mic === 'listening'
   const caption =
     state.mic === 'opening'
@@ -396,19 +483,34 @@ export default function Labi({ state, session, locate, passive }: Props) {
       >
         <button
           type="button"
-          onClick={onClick}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerEnd}
-          onPointerCancel={onPointerEnd}
-          aria-label="Labi. Klik untuk petunjuk langkah, tahan lalu geser untuk memindahkannya."
-          title="Klik aku untuk petunjuk, atau tahan lalu geser untuk memindahkanku"
+          {...(phone
+            ? {
+                onClick: onTap,
+                'aria-label': folded
+                  ? 'Labi punya pesan. Ketuk untuk membacanya.'
+                  : holding
+                    ? 'Labi. Ketuk untuk melipat pesannya.'
+                    : 'Labi. Ketuk untuk petunjuk langkah.',
+              }
+            : {
+                onClick,
+                onPointerDown,
+                onPointerMove,
+                onPointerUp: onPointerEnd,
+                onPointerCancel: onPointerEnd,
+                'aria-label':
+                  'Labi. Klik untuk petunjuk langkah, tahan lalu geser untuk memindahkannya.',
+                title:
+                  'Klik aku untuk petunjuk, atau tahan lalu geser untuk memindahkanku',
+              })}
           className={clsx(
-            'labi-float group relative block size-full touch-none rounded-full select-none',
+            'labi-float group relative block size-full rounded-full select-none',
             'outline-offset-4 transition-transform',
-            dragging
-              ? 'scale-110 cursor-grabbing'
-              : 'cursor-grab hover:scale-105 active:scale-95',
+            phone
+              ? 'cursor-pointer active:scale-95'
+              : dragging
+                ? 'scale-110 cursor-grabbing touch-none'
+                : 'cursor-grab touch-none hover:scale-105 active:scale-95',
             passive ? 'pointer-events-none' : 'pointer-events-auto',
           )}
         >
@@ -423,72 +525,95 @@ export default function Labi({ state, session, locate, passive }: Props) {
               <span className="absolute inset-0 animate-ping rounded-full bg-rose-400/60" />
             </span>
           )}
+          {folded && (
+            <span
+              aria-hidden
+              className="absolute top-0 right-0 size-3.5 rounded-full bg-rose-500 ring-2 ring-white"
+            />
+          )}
         </button>
 
         <AnimatePresence>
-          {(state.bubble || caption) && (
+          {((state.bubble && !folded) || caption) && (
             <motion.div
               key="bubble"
+              ref={measureBubble}
               initial={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.85 }}
               transition={{ duration: 0.16 }}
               className={clsx(
-                'absolute top-1 flex flex-col gap-1.5',
-                bubbleLeft
-                  ? 'right-full mr-2 items-end'
-                  : 'left-full ml-2 items-start',
+                'absolute flex flex-col gap-1.5',
+                stacked
+                  ? clsx(
+                      bubbleUp
+                        ? 'bottom-full mb-2 flex-col-reverse'
+                        : 'top-full mt-2',
+                      bubbleLeft ? 'right-0 items-end' : 'left-0 items-start',
+                    )
+                  : clsx(
+                      bubbleUp ? 'bottom-1 flex-col-reverse' : 'top-1',
+                      bubbleLeft
+                        ? 'right-full mr-2 items-end'
+                        : 'left-full ml-2 items-start',
+                    ),
+                // On a phone only the buttons catch a tap; the bench below stays reachable.
+                phone && 'pointer-events-none',
               )}
               style={{
                 width: bubbleWidth,
-                transformOrigin: bubbleLeft ? 'right 30%' : 'left 30%',
+                transformOrigin: stacked
+                  ? `${bubbleLeft ? 'right' : 'left'} ${bubbleUp ? 'bottom' : 'top'}`
+                  : `${bubbleLeft ? 'right' : 'left'} ${bubbleUp ? '70%' : '30%'}`,
               }}
             >
-              {state.bubble && (
+              {state.bubble && !folded && (
                 <div
                   aria-live="polite"
                   className={clsx(
                     'max-w-full rounded-2xl border-2 border-ink bg-white leading-snug font-medium text-ink shadow-[0_3px_0_0_var(--color-ink)]',
-                    compact
+                    phone
                       ? 'px-2.5 py-1.5 text-xs'
                       : 'relative py-2.5 pr-8 pl-3.5 text-sm',
-                    bubbleLeft ? 'rounded-tr-sm' : 'rounded-tl-sm',
-                    passive ? 'pointer-events-none' : 'pointer-events-auto',
+                    bubbleUp
+                      ? bubbleLeft
+                        ? 'rounded-br-sm'
+                        : 'rounded-bl-sm'
+                      : bubbleLeft
+                        ? 'rounded-tr-sm'
+                        : 'rounded-tl-sm',
+                    !phone &&
+                      (passive ? 'pointer-events-none' : 'pointer-events-auto'),
                   )}
                 >
-                  {compact ? (
-                    // No room to spare: a tap puts the balloon away, the chat keeps the words.
+                  <p
+                    className={
+                      asking
+                        ? undefined
+                        : phone
+                          ? 'line-clamp-3'
+                          : 'line-clamp-5'
+                    }
+                  >
+                    {state.bubbleByAi && <AiBadge />}
+                    {state.bubble}
+                  </p>
+                  {!phone && (
                     <button
                       type="button"
                       onClick={() => session.dismissBubble()}
                       aria-label="Tutup balon Labi"
-                      className="line-clamp-4 text-left"
+                      className="absolute top-1.5 right-1.5 rounded-md p-1 text-ink-muted hover:bg-primary-tint hover:text-ink"
                     >
-                      {state.bubbleByAi && <AiBadge />}
-                      {state.bubble}
+                      <X size={14} />
                     </button>
-                  ) : (
-                    <>
-                      <p className="line-clamp-5">
-                        {state.bubbleByAi && <AiBadge />}
-                        {state.bubble}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => session.dismissBubble()}
-                        aria-label="Tutup balon Labi"
-                        className="absolute top-1.5 right-1.5 rounded-md p-1 text-ink-muted hover:bg-primary-tint hover:text-ink"
-                      >
-                        <X size={14} />
-                      </button>
-                    </>
                   )}
-                  {!compact && (
-                    <LabiChoices
-                      choices={state.choices}
-                      onChoose={(choice) => session.choose(choice)}
-                    />
-                  )}
+                  <LabiChoices
+                    choices={state.choices}
+                    onChoose={(choice) => session.choose(choice)}
+                    onAnswerYourself={onAnswerYourself}
+                    passive={passive}
+                  />
                 </div>
               )}
               {caption && (

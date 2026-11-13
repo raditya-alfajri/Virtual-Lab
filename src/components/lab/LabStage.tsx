@@ -1,6 +1,12 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 import { STAGE_HEIGHT, STAGE_WIDTH, type Rect } from '../../simulations/types'
-import { fitCamera } from './camera'
+import { fitCamera, visibleArea } from './camera'
 import { StageFrameContext } from './stage-frame'
 import { StageScaleContext } from './stage-scale'
 
@@ -27,6 +33,8 @@ type Props = {
   overlay?: ReactNode
   /** Floats at the bottom of the room, e.g. the shelf strip. */
   footer?: ReactNode
+  /** Told the part of the stage on screen, in stage coordinates, whenever it changes. */
+  onVisibleChange?: (area: Rect) => void
   onBackgroundClick?: () => void
   children?: ReactNode
 }
@@ -46,6 +54,7 @@ export default function LabStage({
   region,
   overlay,
   footer,
+  onVisibleChange,
   onBackgroundClick,
   children,
 }: Props) {
@@ -75,6 +84,16 @@ export default function LabStage({
     : wholeStage(roomWidth, box.height, topGap, rest)
   const { scale, left, top } = camera
   const floor = top + floorY * scale
+
+  useEffect(() => {
+    if (scale <= 0) return
+    onVisibleChange?.(
+      visibleArea(
+        { scale, left, top },
+        { width: roomWidth, height: box.height },
+      ),
+    )
+  }, [scale, left, top, roomWidth, box.height, onVisibleChange])
 
   return (
     <div

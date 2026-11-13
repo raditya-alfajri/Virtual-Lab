@@ -10,7 +10,8 @@ export const solutionConcentrationLayout: SceneLayout = {
     {
       id: 'bench',
       label: 'Meja kerja',
-      region: { x: 630, y: 470, w: 720, h: 290 },
+      // Wide enough for the labels right of the spoons.
+      region: { x: 630, y: 470, w: 780, h: 290 },
     },
   ],
   home: {

@@ -245,6 +245,41 @@ describe('LabiSession', () => {
     })
   })
 
+  describe('prediction question', () => {
+    const answerSent = () =>
+      vi.fn((answer: string | null) => ({ ...context, answer }) as LabContext)
+
+    it('takes a picked answer and hides the answers', async () => {
+      const session = new LabiSession()
+      const sent = answerSent()
+      session.describeWith(sent)
+      session.pose('Tebak dulu, yuk.', ['Asam', 'Basa'])
+      expect(session.getState().choices).toEqual(['Asam', 'Basa'])
+
+      session.choose('Asam')
+      await tick()
+      expect(sent).toHaveBeenLastCalledWith('Asam')
+      expect(session.getState().choices).toEqual([])
+      expect(session.getState().messages.at(-1)?.text).toBe('Tebakanku: Asam')
+    })
+
+    it('takes an answer typed while the answers are offered', async () => {
+      const session = new LabiSession()
+      const sent = answerSent()
+      session.describeWith(sent)
+      session.pose('Tebak dulu, yuk.', ['Asam', 'Basa'])
+
+      session.ask('Kayaknya asam deh')
+      await tick()
+      expect(sent).toHaveBeenLastCalledWith('Kayaknya asam deh')
+      expect(session.getState().choices).toEqual([])
+
+      session.ask('Kenapa begitu?')
+      await tick()
+      expect(sent).toHaveBeenLastCalledWith('Kayaknya asam deh')
+    })
+  })
+
   describe('guided start', () => {
     const step = (text: string) => ({ text, target: 'cart' })
 

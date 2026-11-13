@@ -36,7 +36,7 @@ export default function StageViewTabs({
               : 'text-ink-muted hover:bg-primary-tint hover:text-primary',
           )}
         >
-          <span className="block truncate">{view.label}</span>
+          <span className="line-clamp-2">{view.label}</span>
           {view.id === flagged && (
             <span className="absolute top-1.5 right-1.5 size-2 animate-pulse rounded-full bg-rose-500">
               <span className="sr-only">, langkah berikutnya ada di sini</span>

@@ -240,6 +240,10 @@ export class LabiSession {
     if (!text) return
     unlockAudio()
     this.#interrupt()
+    // Typed or said while the answers are offered, it answers the question.
+    if (this.#state.choices.length > 0 && this.#answer === null) {
+      this.#answer = text
+    }
 
     // A phrase that got no answer yet and this one are one message.
     const last = this.#history.at(-1)

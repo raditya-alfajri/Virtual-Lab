@@ -15,7 +15,8 @@ export const reactionRateLayout: SceneLayout = {
   },
   zones: {},
   views: [
-    { id: 'bench', label: 'Meja', region: { x: 120, y: 480, w: 760, h: 290 } },
+    // Wide enough for the bottles on the wall shelf above the bench as well.
+    { id: 'bench', label: 'Meja', region: { x: 95, y: 480, w: 790, h: 290 } },
     {
       id: 'bath',
       label: 'Penangas',

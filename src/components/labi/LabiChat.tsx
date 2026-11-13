@@ -17,6 +17,8 @@ type Props = {
   session: LabiSession
   /** Fill the height given, on small screens: the transcript takes what is left. */
   fill?: boolean
+  /** Grows each time the typing box is to take the focus. */
+  focusRequest?: number
 }
 
 const STATUS: Record<LabiState['status'], string> = {
@@ -37,10 +39,20 @@ const tail = (text: string, max: number) =>
   text.length > max ? `…${text.slice(-max)}` : text
 
 /** The conversation with Labi as text: transcript, typing box, talk button and sound switch. */
-export default function LabiChat({ state, session, fill }: Props) {
+export default function LabiChat({
+  state,
+  session,
+  fill,
+  focusRequest = 0,
+}: Props) {
   const [draft, setDraft] = useState('')
   const listRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const holding = state.mic !== 'off'
+
+  useEffect(() => {
+    if (focusRequest > 0) inputRef.current?.focus()
+  }, [focusRequest])
 
   // Keep the newest message in view.
   useEffect(() => {
@@ -193,6 +205,7 @@ export default function LabiChat({ state, session, fill }: Props) {
           </p>
         ) : (
           <input
+            ref={inputRef}
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             maxLength={500}
