@@ -32,6 +32,8 @@ export type LabContext = {
   latest?: string
   /** The next step on the bench, as the app's own guide words it. */
   next?: string
+  /** True until the first row is in the table: Labi leads the steps. Afterwards it only suggests when asked. */
+  guided: boolean
 }
 
 export type TurnRequest = {

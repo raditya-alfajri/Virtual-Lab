@@ -1,6 +1,5 @@
 import {
   DndContext,
-  PointerSensor,
   pointerWithin,
   useDroppable,
   useSensor,
@@ -46,6 +45,12 @@ import StageScreen from './StageScreen'
 import StageViewTabs from './StageViewTabs'
 import StageZone from './StageZone'
 import ToolTray from './ToolTray'
+import {
+  aboveFinger,
+  draggedItemId,
+  isTrayDrag,
+  LabPointerSensor,
+} from './tray-drag'
 
 type Props = {
   experiment: Experiment
@@ -68,13 +73,14 @@ const collisionDetection: CollisionDetection = (args) => {
       .current as DropData | undefined
     return data ? [{ ...data, id: String(hit.id) }] : []
   })
-  const target = pickDropTarget(candidates, String(args.active.id))
+  const target = pickDropTarget(candidates, draggedItemId(args.active.id))
   return hits.filter((hit) => hit.id === target)
 }
 
 export default function LabBench({ experiment, layout, lab, header }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [fromTray, setFromTray] = useState(false)
   const [hintClosed, setHintClosed] = useState(false)
   const mode = useLabLayout()
   const stacked = mode === 'stack'
@@ -88,7 +94,7 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
   const view = views.find((v) => v.id === viewId) ?? views.at(0)
   const suppressClick = useRef(false)
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(LabPointerSensor, { activationConstraint: { distance: 5 } }),
   )
 
   const itemCount = experiment.items.length
@@ -156,12 +162,14 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
           ]
         })
 
-  const nameOf = (id: UniqueIdentifier) =>
-    id === SHELF
+  const nameOf = (dragOrDropId: UniqueIdentifier) => {
+    const id = draggedItemId(dragOrDropId)
+    return id === SHELF
       ? SHELF_NAME
       : (experiment.items.find((item) => item.id === id)?.name ??
-        experiment.zones.find((zone) => zone.id === id)?.name ??
-        String(id))
+          experiment.zones.find((zone) => zone.id === id)?.name ??
+          id)
+  }
 
   const dropOn = (sourceId: string, targetId: string) => {
     setHintClosed(false)
@@ -204,7 +212,8 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
 
   const handleDragStart = ({ active }: DragStartEvent) => {
     setSelectedId(null)
-    setActiveId(String(active.id))
+    setActiveId(draggedItemId(active.id))
+    setFromTray(isTrayDrag(active.id))
   }
 
   const ignoreNextClick = () => {
@@ -217,12 +226,13 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
   // The browser still fires a click right after a drag ends; ignore that one.
   const endDrag = () => {
     setActiveId(null)
+    setFromTray(false)
     ignoreNextClick()
   }
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
     endDrag()
-    if (over) dropOn(String(active.id), String(over.id))
+    if (over) dropOn(draggedItemId(active.id), String(over.id))
   }
 
   const announcements: Announcements = {
@@ -386,7 +396,10 @@ export default function LabBench({ experiment, layout, lab, header }: Props) {
                 </Fragment>
               )
             })}
-            <DragPreview pieces={previewPieces} />
+            <DragPreview
+              pieces={previewPieces}
+              modifiers={fromTray ? [aboveFinger] : undefined}
+            />
           </LabStage>
         </div>
         <div

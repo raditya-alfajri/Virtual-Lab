@@ -9,21 +9,21 @@ const optional = (name: string, fallback: string) =>
 
 /** Read on each use, so a missing key fails the request and not the import. */
 export const env = {
-  get cloudflareBaseUrl() {
-    return optional(
-      'CLOUDFLARE_AI_BASE_URL',
-      `https://api.cloudflare.com/client/v4/accounts/${required('CLOUDFLARE_ACCOUNT_ID')}/ai`,
-    )
+  get geminiKey() {
+    return required('GEMINI_API_KEY')
   },
-  get cloudflareToken() {
-    return required('CLOUDFLARE_API_TOKEN')
+  get geminiBaseUrl() {
+    return optional(
+      'GEMINI_BASE_URL',
+      'https://generativelanguage.googleapis.com/v1beta/openai',
+    ).replace(/\/+$/, '')
   },
   get chatModel() {
-    return optional('CF_CHAT_MODEL', '@cf/meta/llama-3.3-70b-instruct-fp8-fast')
+    return required('GEMINI_MODEL')
   },
-  /** Identical chat requests raced per turn; the first to stream wins. 1 = off. */
-  get chatHedge() {
-    return Math.max(1, Number(optional('CF_CHAT_HEDGE', '2')))
+  /** Sent as `reasoning_effort` only when set; little thinking keeps spoken replies quick. */
+  get reasoningEffort() {
+    return process.env.GEMINI_REASONING_EFFORT || undefined
   },
   get elevenLabsKey() {
     return required('ELEVENLABS_API_KEY')
@@ -37,9 +37,13 @@ export const env = {
   get sttModel() {
     return optional('ELEVENLABS_STT_MODEL', 'scribe_v2_realtime')
   },
-  /** Replies per day over all visitors; the last line of defence for the API bill. */
+  /** Replies per day over all visitors; kept under the Gemini free tier's daily quota. */
   get dailyTurns() {
-    return Number(optional('LABI_DAILY_TURNS', '3000'))
+    return Number(optional('LABI_DAILY_TURNS', '400'))
+  },
+  /** Replies per minute over all visitors; kept under the Gemini project's per-minute quota. */
+  get globalRpm() {
+    return Number(optional('LABI_GLOBAL_RPM', '15'))
   },
   /** Optional shared store for the rate limiter (Upstash Redis REST). */
   get upstash() {

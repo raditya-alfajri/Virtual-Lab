@@ -11,6 +11,7 @@ type LabState = {
   latest: string | null
   next: string | null
   predictionAnswer: string | null
+  guided: boolean
 }
 
 /** The open experiment and the state of the bench, in words, for Labi. */
@@ -48,6 +49,7 @@ export function buildLabContext(exp: Experiment, state: LabState): LabContext {
     },
     latest: state.latest ?? undefined,
     next: state.next ?? undefined,
+    guided: state.guided,
   }
 }
 

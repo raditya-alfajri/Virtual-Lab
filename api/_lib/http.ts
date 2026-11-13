@@ -40,6 +40,10 @@ function isCrossSite(request: Request): boolean {
 
 const DAY = 86_400
 
+export const TIRED = 'Labi perlu istirahat sebentar. Coba lagi nanti.'
+export const BUSY =
+  'Labi sedang menjawab banyak pertanyaan, coba lagi sebentar ya.'
+
 /**
  * The checks every Labi endpoint starts with. Returns the response to send
  * when the request is refused, otherwise null.
@@ -47,7 +51,12 @@ const DAY = 86_400
 export async function guard(
   request: Request,
   name: string,
-  limits: { perMinute: number; perDay: number; totalPerDay: number },
+  limits: {
+    perMinute: number
+    perDay: number
+    totalPerDay: number
+    totalPerMinute?: number
+  },
 ): Promise<Response | null> {
   if (isCrossSite(request)) return fail(403, 'Permintaan ditolak.')
   const ip = clientIp(request)
@@ -56,9 +65,17 @@ export async function guard(
     { key: `${name}:ip:${ip}`, limit: limits.perDay, windowSeconds: DAY },
     { key: `${name}:all`, limit: limits.totalPerDay, windowSeconds: DAY },
   ]
-  const wait = await rateLimit(rules)
-  if (wait === null) return null
-  return fail(429, 'Labi perlu istirahat sebentar. Coba lagi nanti.', {
-    'Retry-After': String(wait),
+  if (limits.totalPerMinute !== undefined) {
+    rules.push({
+      key: `${name}:all`,
+      limit: limits.totalPerMinute,
+      windowSeconds: 60,
+      message: BUSY,
+    })
+  }
+  const refusal = await rateLimit(rules)
+  if (!refusal) return null
+  return fail(429, refusal.rule.message ?? TIRED, {
+    'Retry-After': String(refusal.wait),
   })
 }

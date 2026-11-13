@@ -44,27 +44,41 @@ function defaultStore(): CounterStore {
   return (key, ttl) => shared(key, ttl).catch(() => memoryStore(key, ttl))
 }
 
-export type Rule = { key: string; limit: number; windowSeconds: number }
+export type Rule = {
+  key: string
+  limit: number
+  windowSeconds: number
+  /** What the student is told when this rule refuses. */
+  message?: string
+}
+
+export type Refusal = { wait: number; rule: Rule }
 
 /**
- * Fixed-window limiter. Returns the seconds to wait when any rule is over its
- * limit, otherwise null. Every rule is counted, also when an earlier one fails.
+ * Fixed-window limiter. When any rule is over its limit, returns the one with
+ * the longest wait and the seconds to wait, otherwise null. Every rule is
+ * counted, also when an earlier one fails.
  */
 export async function rateLimit(
   rules: Rule[],
   store: CounterStore = defaultStore(),
   now = Date.now(),
-): Promise<number | null> {
+): Promise<Refusal | null> {
   const seconds = now / 1000
   const waits = await Promise.all(
-    rules.map(async ({ key, limit, windowSeconds }) => {
-      const window = Math.floor(seconds / windowSeconds)
-      const count = await store(`labi:${key}:${window}`, windowSeconds)
-      return count > limit
-        ? Math.ceil((window + 1) * windowSeconds - seconds)
-        : 0
+    rules.map(async (rule) => {
+      const window = Math.floor(seconds / rule.windowSeconds)
+      const count = await store(
+        `labi:${rule.key}:${window}`,
+        rule.windowSeconds,
+      )
+      const wait =
+        count > rule.limit
+          ? Math.ceil((window + 1) * rule.windowSeconds - seconds)
+          : 0
+      return { wait, rule }
     }),
   )
-  const wait = Math.max(...waits)
-  return wait > 0 ? wait : null
+  const longest = waits.reduce((a, b) => (b.wait > a.wait ? b : a))
+  return longest.wait > 0 ? longest : null
 }

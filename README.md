@@ -39,7 +39,7 @@ Lab virtual Interaktif untuk siswa melakukan experiment Kimia dan Fisika
 
 React, Vite, TypeScript, Tailwind CSS, React Router, dnd-kit, Motion, dan Vitest. Endpoint AI dan suara dibuat sebagai serverless function di Vercel.
 
-Untuk AI, kami merencanakan Gemini API tingkat gratis dari Google AI Studio. Pilihan layanan diatur lewat variabel lingkungan, jadi bisa diganti tanpa mengubah kode. Untuk suara kami memakai ElevenLabs. Layanan dan model yang dipakai dicatat di README dan halaman Tentang AI.
+Untuk AI, kami memakai Gemini API tingkat gratis dari Google AI Studio lewat endpoint yang kompatibel dengan OpenAI. Model diatur lewat variabel lingkungan, jadi bisa diganti tanpa mengubah kode. Untuk suara kami memakai ElevenLabs. Kalau Gemini menolak karena batas pemakaian atau sedang gagal, Labi beralih ke mode sederhana dengan pesan yang sopan dan praktikum tetap berjalan.
 
 ## Arsitektur dan alur data
 
@@ -67,14 +67,17 @@ Mesin simulasi mengeluarkan daftar kejadian setiap kali ada aksi atau proses, mi
 
 ### Variabel lingkungan
 
-| Nama                           | Keterangan                            |
-| ------------------------------ | ------------------------------------- |
-| `AI_PROVIDER`                  | Layanan AI yang dipakai               |
-| `AI_API_KEY`                   | API key layanan AI                    |
-| `AI_MODEL`                     | Model AI                              |
-| `AI_MAX_QUESTIONS_PER_SESSION` | Batas pertanyaan per sesi             |
-| `ELEVENLABS_API_KEY`           | API key ElevenLabs untuk suara maskot |
-| `ELEVENLABS_VOICE_ID`          | Id suara ElevenLabs                   |
+| Nama                                                 | Keterangan                                                                    |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `GEMINI_API_KEY`                                     | API key Gemini dari Google AI Studio (wajib)                                  |
+| `GEMINI_MODEL`                                       | Model Gemini yang dipakai Labi (wajib)                                        |
+| `GEMINI_REASONING_EFFORT`                            | Seberapa lama model berpikir, misalnya `minimal` atau `low` (opsional)        |
+| `GEMINI_BASE_URL`                                    | Endpoint Gemini yang kompatibel dengan OpenAI (opsional)                      |
+| `ELEVENLABS_API_KEY`                                 | API key ElevenLabs untuk suara maskot (wajib)                                 |
+| `ELEVENLABS_VOICE_ID`                                | Id suara ElevenLabs (opsional)                                                |
+| `LABI_DAILY_TURNS`                                   | Batas jawaban Labi per hari untuk semua pengunjung, bawaan 400                |
+| `LABI_GLOBAL_RPM`                                    | Batas jawaban Labi per menit untuk semua pengunjung, bawaan 15                |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Penyimpanan bersama untuk pembatas pemakaian di Vercel (opsional, disarankan) |
 
 ## Penggunaan AI
 
