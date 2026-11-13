@@ -7,7 +7,15 @@ import { speechLevel } from '../../lib/labi/speech-player'
 import { STAGE_WIDTH, type Rect } from '../../simulations/types'
 import { useStageFrame } from '../lab/stage-frame'
 import AiBadge from './AiBadge'
-import { cornerBox, pickBubblePlace, pickCorner, type Room } from './corner'
+import {
+  cornerBox,
+  pickCorner,
+  placeBubble,
+  snapToEdge,
+  spotBox,
+  type Room,
+  type Spot,
+} from './corner'
 import LabiChoices from './LabiChoices'
 import LabiFace, { type Expression } from './LabiFace'
 
@@ -20,7 +28,10 @@ type Props = {
   locate: (itemId: string) => Point | null
   /** True while something is dragged: Labi must not catch the pointer. */
   passive: boolean
-  /** On a phone Labi waits small in a free corner and folds its balloon away. */
+  /**
+   * On a phone Labi waits small in a free corner, or where the student put it
+   * along the edges, and folds its balloon away.
+   */
   phone: boolean
   /** Room kept free at the top on a phone, for what floats there. */
   topClear?: number
@@ -67,6 +78,13 @@ const PHONE_SIZE = 56
 const PHONE_EDGES = { top: 8, side: 8, bottom: 60 }
 /** On a phone a balloon folds into a dot after this long, unless it asks something. */
 const FOLD_MS = 5000
+/** The balloon's corner nearest Labi, drawn sharper as its tail. */
+const TAIL: Record<string, string> = {
+  tl: 'rounded-tl-sm',
+  tr: 'rounded-tr-sm',
+  bl: 'rounded-bl-sm',
+  br: 'rounded-br-sm',
+}
 
 const between = (min: number, max: number) => min + Math.random() * (max - min)
 /**
@@ -110,7 +128,11 @@ export default function Labi({
     pointer: Point
     from: Point
     moved: boolean
+    at?: Point
   } | null>(null)
+  // On a phone: where the student put Labi, and where its box is while dragged.
+  const [phoneSpot, setPhoneSpot] = useState<Spot | null>(null)
+  const [phoneDrag, setPhoneDrag] = useState<Point | null>(null)
   const dragged = useRef(false)
   // Where on screen the pointed-out item is, for the eyes to turn to.
   const lookAt = useRef<Point | null>(null)
@@ -248,7 +270,8 @@ export default function Labi({
               ? Math.min(spot.y, Math.max(BALLOON_Y, roamY0))
               : spot.y,
         }
-  // On a phone: the corner that leaves the most of the bench in view.
+  // On a phone: where the student put Labi, else the corner that leaves the
+  // most of the bench in view.
   const room: Room = {
     width: frame.width,
     height: frame.height,
@@ -264,17 +287,22 @@ export default function Labi({
         h: rect.h * frame.scale,
       }))
     : []
-  const corner = phone ? pickCorner(room, box, onScreen) : null
-  const cornerAt = corner && cornerBox(corner, room, box)
-  const x = cornerAt
-    ? cornerAt.x + size / 2
+  const labiBox: Rect | null = !phone
+    ? null
+    : phoneDrag
+      ? { ...phoneDrag, ...box }
+      : phoneSpot
+        ? spotBox(phoneSpot, room, box)
+        : cornerBox(pickCorner(room, box, onScreen), room, box)
+  const x = labiBox
+    ? labiBox.x + size / 2
     : clamp(
         frame.left + at.x * frame.scale,
         size / 2 + 8,
         Math.max(frame.width - size / 2 - 8, size / 2 + 8),
       )
-  const y = cornerAt
-    ? cornerAt.y + size / 2
+  const y = labiBox
+    ? labiBox.y + size / 2
     : clamp(
         frame.top + at.y * frame.scale,
         size / 2 + 56,
@@ -380,6 +408,45 @@ export default function Labi({
     grab.current = null
     setDragging(false)
   }
+  const onPhoneDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (event.button !== 0 || !labiBox) return
+    event.stopPropagation()
+    event.currentTarget.setPointerCapture(event.pointerId)
+    dragged.current = false
+    grab.current = {
+      pointer: { x: event.clientX, y: event.clientY },
+      from: { x: labiBox.x, y: labiBox.y },
+      moved: false,
+    }
+    // Pressed, Labi shows another face, as a click does on a laptop.
+    setPoke((last) => ({ count: last.count + 1, on: true }))
+  }
+  const onPhoneMove = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const held = grab.current
+    if (!held) return
+    event.stopPropagation()
+    const dx = event.clientX - held.pointer.x
+    const dy = event.clientY - held.pointer.y
+    if (!held.moved && Math.hypot(dx, dy) < DRAG_START) return
+    held.moved = true
+    dragged.current = true
+    held.at = {
+      x: clamp(held.from.x + dx, 0, Math.max(frame.width - box.w, 0)),
+      y: clamp(held.from.y + dy, 0, Math.max(frame.height - box.h, 0)),
+    }
+    setDragging(true)
+    setPhoneDrag(held.at)
+  }
+  // Let go, Labi settles on the nearest free edge or corner.
+  const onPhoneEnd = () => {
+    const held = grab.current
+    grab.current = null
+    if (held?.moved && held.at) {
+      setPhoneSpot(snapToEdge(held.at, room, box, onScreen))
+    }
+    setPhoneDrag(null)
+    setDragging(false)
+  }
   const pokeLabi = () => {
     setPoke((last) => ({ count: last.count + 1, on: true }))
     // A poke also asks: what do I do now?
@@ -393,9 +460,14 @@ export default function Labi({
     }
     pokeLabi()
   }
-  // On a phone a tap opens a folded balloon, folds an open one, or else pokes.
+  // On a phone a tap opens a folded balloon, folds an open one, or else asks
+  // for the next step; the end of a drag is not a tap.
   const onTap = () => {
-    if (state.bubble === null) pokeLabi()
+    if (dragged.current) {
+      dragged.current = false
+      return
+    }
+    if (state.bubble === null) session.nudge()
     else setFoldedFor(folded ? null : state.bubble)
   }
   // A click always shows a face other than the one Labi already has.
@@ -407,24 +479,25 @@ export default function Labi({
       : own
 
   const bubbleLeft = x > frame.width / 2
-  const bubbleUp = corner?.startsWith('bottom') ?? false
   const bubbleWidth = phone
     ? Math.max(
         Math.min(frame.width * 0.7, frame.width - size - PHONE_EDGES.side * 3),
         120,
       )
     : clamp((bubbleLeft ? x : frame.width - x) - size / 2 - 20, 120, 260)
-  // On a phone the balloon goes beside Labi, or above or below it, wherever it hides less.
-  const stacked =
-    corner !== null &&
-    cornerAt !== null &&
-    pickBubblePlace(
-      corner,
-      cornerAt,
-      { w: bubbleWidth, h: bubbleHeight },
-      room,
-      onScreen,
-    ) === 'stacked'
+  // On a phone the balloon goes around Labi wherever it hides the least, inside the room.
+  const bubbleAt =
+    labiBox &&
+    placeBubble(labiBox, { w: bubbleWidth, h: bubbleHeight }, room, onScreen)
+  const towardLabi = bubbleAt && { x: x - bubbleAt.x, y: y - bubbleAt.y }
+  const tail =
+    bubbleAt && towardLabi
+      ? TAIL[
+          `${towardLabi.y < bubbleAt.h / 2 ? 't' : 'b'}${towardLabi.x < bubbleAt.w / 2 ? 'l' : 'r'}`
+        ]
+      : bubbleLeft
+        ? 'rounded-tr-sm'
+        : 'rounded-tl-sm'
   const listening = state.mic === 'listening'
   const caption =
     state.mic === 'opening'
@@ -486,11 +559,17 @@ export default function Labi({
           {...(phone
             ? {
                 onClick: onTap,
+                onPointerDown: onPhoneDown,
+                onPointerMove: onPhoneMove,
+                onPointerUp: onPhoneEnd,
+                onPointerCancel: onPhoneEnd,
+                onContextMenu: (event: React.MouseEvent) =>
+                  event.preventDefault(),
                 'aria-label': folded
-                  ? 'Labi punya pesan. Ketuk untuk membacanya.'
+                  ? 'Labi punya pesan. Ketuk untuk membacanya, tahan lalu geser untuk memindahkannya.'
                   : holding
-                    ? 'Labi. Ketuk untuk melipat pesannya.'
-                    : 'Labi. Ketuk untuk petunjuk langkah.',
+                    ? 'Labi. Ketuk untuk melipat pesannya, tahan lalu geser untuk memindahkannya.'
+                    : 'Labi. Ketuk untuk petunjuk langkah, tahan lalu geser untuk memindahkannya.',
               }
             : {
                 onClick,
@@ -507,7 +586,12 @@ export default function Labi({
             'labi-float group relative block size-full rounded-full select-none',
             'outline-offset-4 transition-transform',
             phone
-              ? 'cursor-pointer active:scale-95'
+              ? clsx(
+                  'touch-none [-webkit-touch-callout:none]',
+                  dragging
+                    ? 'scale-110 cursor-grabbing'
+                    : 'cursor-grab active:scale-95',
+                )
               : dragging
                 ? 'scale-110 cursor-grabbing touch-none'
                 : 'cursor-grab touch-none hover:scale-105 active:scale-95',
@@ -544,28 +628,34 @@ export default function Labi({
               transition={{ duration: 0.16 }}
               className={clsx(
                 'absolute flex flex-col gap-1.5',
-                stacked
+                bubbleAt && labiBox && towardLabi
                   ? clsx(
-                      bubbleUp
-                        ? 'bottom-full mb-2 flex-col-reverse'
-                        : 'top-full mt-2',
-                      bubbleLeft ? 'right-0 items-end' : 'left-0 items-start',
+                      // On a phone only the buttons catch a tap; the bench below stays reachable.
+                      'pointer-events-none',
+                      towardLabi.x > bubbleAt.w / 2
+                        ? 'items-end'
+                        : 'items-start',
                     )
                   : clsx(
-                      bubbleUp ? 'bottom-1 flex-col-reverse' : 'top-1',
+                      'top-1',
                       bubbleLeft
                         ? 'right-full mr-2 items-end'
                         : 'left-full ml-2 items-start',
                     ),
-                // On a phone only the buttons catch a tap; the bench below stays reachable.
-                phone && 'pointer-events-none',
               )}
-              style={{
-                width: bubbleWidth,
-                transformOrigin: stacked
-                  ? `${bubbleLeft ? 'right' : 'left'} ${bubbleUp ? 'bottom' : 'top'}`
-                  : `${bubbleLeft ? 'right' : 'left'} ${bubbleUp ? '70%' : '30%'}`,
-              }}
+              style={
+                bubbleAt && labiBox && towardLabi
+                  ? {
+                      left: bubbleAt.x - labiBox.x,
+                      top: bubbleAt.y - labiBox.y,
+                      width: bubbleWidth,
+                      transformOrigin: `${towardLabi.x}px ${towardLabi.y}px`,
+                    }
+                  : {
+                      width: bubbleWidth,
+                      transformOrigin: bubbleLeft ? 'right 30%' : 'left 30%',
+                    }
+              }
             >
               {state.bubble && !folded && (
                 <div
@@ -575,13 +665,7 @@ export default function Labi({
                     phone
                       ? 'px-2.5 py-1.5 text-xs'
                       : 'relative py-2.5 pr-8 pl-3.5 text-sm',
-                    bubbleUp
-                      ? bubbleLeft
-                        ? 'rounded-br-sm'
-                        : 'rounded-bl-sm'
-                      : bubbleLeft
-                        ? 'rounded-tr-sm'
-                        : 'rounded-tl-sm',
+                    tail,
                     !phone &&
                       (passive ? 'pointer-events-none' : 'pointer-events-auto'),
                   )}
