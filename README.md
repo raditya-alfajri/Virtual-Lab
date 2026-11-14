@@ -138,6 +138,123 @@ dev/             plugin Vite agar api/ juga berjalan di localhost
 public/img/lab/  latar meja lab tiap eksperimen
 ```
 
+## Dokumentasi Frontend
+
+Frontend dibangun dengan **React 19 + TypeScript + Vite**, styling **Tailwind CSS 4** dengan token warna di `src/index.css`, routing **React Router**, drag-and-drop **dnd-kit**, dan animasi **Motion**.
+
+### Halaman
+
+| Rute                      | File                              | Isi                                       |
+| ------------------------- | --------------------------------- | ----------------------------------------- |
+| `/`                       | `src/pages/Home.tsx`              | Beranda                                   |
+| `/lab`                    | `src/pages/LabList.tsx`           | Pilih laboratorium                        |
+| `/lab/:subject`           | `src/pages/ExperimentCatalog.tsx` | Katalog dengan pencarian dan filter topik |
+| `/lab/:subject/:id`       | `src/pages/ExperimentDetail.tsx`  | Detail eksperimen                         |
+| `/lab/:subject/:id/mulai` | `src/pages/LabPage.tsx`           | Halaman praktikum bersama Labi            |
+| `/tentang-ai`             | `src/pages/AboutAI.tsx`           | Penjelasan penggunaan AI                  |
+
+### Struktur komponen
+
+| Folder                       | Komponen utama                                                                                           | Fungsi                                                                                                              |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `src/components/ui/`         | `Navbar`                                                                                                 | Navigasi situs                                                                                                      |
+| `src/components/catalog/`    | `ExperimentCard`, `CatalogControls`, `ScenePreview`                                                      | Kartu eksperimen, pencarian, filter, pratinjau adegan                                                               |
+| `src/components/detail/`     | `DetailPreview`, `SectionCard`                                                                           | Isi halaman detail                                                                                                  |
+| `src/components/lab/`        | `LabStage`, `LabBench`, `StageItem`, `StageZone`, `LabPanel`, `ToolTray`, `StageViewTabs`, `ResetDialog` | Panggung lab yang diskalakan, drag-and-drop dan mode tap, panel Penjelasan dan Tabel, rak alat dan area kerja di HP |
+| `src/components/lab/assets/` | Satu komponen per alat                                                                                   | Aset alat lab yang bagian dinamisnya (cairan, angka, warna) digerakkan dari data `view`                             |
+| `src/components/labi/`       | `Labi`, `LabiFace`, `LabiChat`, `LabiChoices`, `AiBadge`                                                 | Maskot dan ekspresinya, percakapan, pilihan tebakan, label AI                                                       |
+
+Logika yang tidak bergantung pada tampilan dipisah dan diuji: mesin simulasi di `src/lib/engine.ts`, data eksperimen di `src/data/`, posisi benda tiap adegan di `src/simulations/`, dan logika Labi di `src/lib/labi/`.
+
+### Aset
+
+| Lokasi                       | Isi                                                        |
+| ---------------------------- | ---------------------------------------------------------- |
+| `public/img/lab/<id>-bg.svg` | Latar meja lab tiap eksperimen, diekspor dari desain Figma |
+| `src/assets/lab/`            | File SVG alat lab yang menjadi dasar komponen aset         |
+
+Semua posisi benda memakai koordinat panggung 1440 × 1024 yang diskalakan seragam, sehingga adegan tidak pernah gepeng di layar mana pun.
+
+## Dokumentasi Backend
+
+Backend berupa **serverless function di Vercel** (folder `api/`). Di localhost, fungsi yang sama dijalankan lewat plugin Vite di `dev/api-routes.ts`. Semua API key hanya dibaca di server.
+
+### API endpoint
+
+| Method | Endpoint              | Fungsi                                                                                                  |
+| ------ | --------------------- | ------------------------------------------------------------------------------------------------------- |
+| `POST` | `/api/labi/turn`      | Menjawab siswa: meminta jawaban ke Gemini, lalu mengalirkan teks dan suara (ElevenLabs Text to Speech)  |
+| `POST` | `/api/labi/stt-token` | Memberi token sekali pakai untuk mengubah suara siswa menjadi teks (ElevenLabs Speech to Text realtime) |
+
+**`POST /api/labi/turn`**
+
+Isi permintaan (JSON, maksimal 32 KB):
+
+```json
+{
+  "turns": [{ "role": "user", "text": "Kenapa cuka bersifat asam?" }],
+  "context": {
+    "title": "Uji Asam dan Basa",
+    "topic": "Asam & basa",
+    "objectives": ["..."],
+    "concepts": ["..."],
+    "items": [
+      { "id": "tube-1", "name": "Tabung 1", "at": "rak 1", "note": "pH 3" }
+    ],
+    "columns": ["Larutan", "Warna", "pH", "Sifat"],
+    "rows": [["Cuka", "Merah", "3", "Asam"]],
+    "prediction": {
+      "question": "Menurutmu cuka bersifat asam, basa, atau netral?",
+      "answer": "Asam"
+    },
+    "latest": "Cuka berubah menjadi merah.",
+    "guided": false
+  },
+  "voice": true
+}
+```
+
+`turns` berisi maksimal 12 giliran terakhir (peran `user`, `assistant`, atau `event`). `voice: false` berarti jawaban hanya teks.
+
+Jawaban dialirkan sebagai baris JSON (`application/x-ndjson`), satu kejadian per baris:
+
+| `type`      | Isi                                                     |
+| ----------- | ------------------------------------------------------- |
+| `meta`      | Ekspresi Labi (`mood`) dan alat yang dituju (`target`)  |
+| `text`      | Satu kalimat jawaban (`index`, `text`)                  |
+| `audio`     | Potongan suara kalimat itu (PCM 16-bit, 24 kHz, base64) |
+| `audio-end` | Suara kalimat itu selesai                               |
+| `done`      | Jawaban selesai                                         |
+| `error`     | Pesan kesalahan                                         |
+
+Kode status lain: `400` permintaan tidak valid, `413` terlalu besar, `429` batas pemakaian tercapai, `503` Labi sedang tidak bisa menjawab (aplikasi beralih ke mode sederhana).
+
+**`POST /api/labi/stt-token`**
+
+Tanpa isi permintaan. Jawabannya:
+
+```json
+{
+  "token": "...",
+  "url": "wss://api.elevenlabs.io/v1/speech-to-text/realtime?..."
+}
+```
+
+Token hanya untuk satu kali bicara. Kode status lain: `429` batas pemakaian, `502` mikrofon sedang tidak bisa dipakai.
+
+### Batas pemakaian
+
+| Batas            | Nilai                                                                             |
+| ---------------- | --------------------------------------------------------------------------------- |
+| Per pengunjung   | 12 permintaan per menit, 200 per hari                                             |
+| Semua pengunjung | `LABI_GLOBAL_RPM` per menit (bawaan 15), `LABI_DAILY_TURNS` per hari (bawaan 400) |
+
+### Skema data
+
+Aplikasi **tidak memakai database**: tidak ada akun, dan tabel pengamatan hanya ada di browser selama praktikum dibuka. Satu-satunya data di server adalah **penghitung batas pemakaian** di Upstash Redis (opsional), berupa kunci `labi:<nama-batas>:<jendela-waktu>` berisi angka yang otomatis kedaluwarsa. Tanpa Upstash, penghitung disimpan sementara di memori server.
+
+Variabel lingkungan lengkap ada di `.env.example` dan di tabel bagian Menjalankan Aplikasi.
+
 ## Menjalankan Aplikasi
 
 **Yang dibutuhkan:** Node.js versi LTS dan npm.
@@ -253,6 +370,6 @@ Kami tidak memakai dataset pihak ketiga. Ilustrasi alat lab, latar meja lab, dan
 
 ## Tautan
 
-- **Aplikasi:** _(isi alamat Vercel)_
-- **Video demo:** _(isi tautan YouTube)_
+- **Aplikasi:** https://virtual-lab-plugin.vercel.app/
+- **Video demo:** https://youtu.be/ZlSakgg43B0?si=PgZlhIaiReyn19mf
 - **Dokumen produk:** [docs/PRD.md](docs/PRD.md)
